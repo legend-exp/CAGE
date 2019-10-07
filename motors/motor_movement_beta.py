@@ -45,9 +45,15 @@ def movement_program():
     if source_check == 'y':
         center_source_motor()
 
-    # rotary_program()
-    linear_program()
-    source_program()
+    rotary_move = input(' Move rotary motor? \n y/n -->')
+    if rotary_move == 'y':
+        rotary_program()
+    linear_move = input(' Move linear motor? \n y/n -->')
+    if linear_move == 'y':
+        linear_program()
+    source_move = input(' Move source motor? \n y/n -->')
+    if source_move == 'y':
+        source_program()
 
     # g.GClose()
 
