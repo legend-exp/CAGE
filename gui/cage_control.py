@@ -229,6 +229,23 @@ class MotorMonitor(QWidget):
     def source_click(self):
         source_program()
 
+        pt_initial = [
+        #     {'name': 'Run Query', 'type': 'group',
+        #      'children': [
+        #        {'name': 'Date (earlier)', 'type':'str', 'value': t_earlier.isoformat()},
+        #        {'name': 'Date (later)', 'type':'str', 'value': "now"},
+        #        {'name': 'Query DB', 'type': 'action'}
+        #     ]},
+        #     {'name': 'Endpoint Select', 'type': 'group',
+        #      'children': self.endpts_enabled
+        #     }]
+        # self.p = Parameter.create(name='params', type='group', children=pt_initial)
+        # self.pt = ParameterTree()
+        # self.pt.setParameters(self.p, showTop=False)
+        #
+        # # connect a simple function
+        # self.p.sigTreeStateChanged.connect(self.tree_change)
+
 
 # === RABBITMQ LIVE DB PLOT ====================================================
 
