@@ -4,15 +4,16 @@
 
 /g4simple/setRandomSeed true
 
-/g4simple/setReferencePhysList Shielding
+#/g4simple/setReferencePhysList QGSP_BIC_HP_EMZ
+/g4simple/setReferencePhysList Shielding_LIV
 #/physics_engine/tailor/MuonNuclear on
 
 ##Geometry File to run simulation with
-/g4simple/setDetectorGDML ../geometries/gscanner.gdml
+/g4simple/setDetectorGDML ../geometries/gscanner_alpha.gdml
 
 ##Specify output file
 /g4simple/setOutputFormat hdf5
-/analysis/setFileName ./raw_out/alpha_5MeV_10000000.hdf5
+/analysis/setFileName ./raw_out/test_alpha_gold.hdf5
 
 ##Set Volume ID's for Geometry Volumes (volume.in.geometry.file_PV volID)
 /g4simple/setVolID PPC_Germanium_Detector_PV 1
@@ -31,9 +32,14 @@
 #/g4simple/setVolID vacuum_volume_PV 13
 
 ##initialize the run
+/process/em/auger true
 /process/em/fluo true
-#/process/em/pixe true
+/process/em/pixe true
 /process/em/deexcitationIgnoreCut true
+/process/em/augerCascade true
+#/run/setCutForAGivenParticle alpha 0.01 mm
+#/run/setCutForAGivenParticle e- 0.01 mm
+#/run/setCut  0.01 mm
 
 /run/initialize
 
@@ -43,15 +49,17 @@
 /gps/particle alpha
 /gps/energy 5.48556 MeV
 /gps/ang/type iso
-/gps/pos/type Volume
-/gps/pos/shape Sphere
-#/gps/pos/radius 3.5 mm
-#/gps/pos/centre 0 0 48.15 mm
+/gps/pos/type Plane
+/gps/pos/shape Rectangle
+/gps/pos/halfx 0.5 mm
+/gps/pos/halfy 0.5 mm
+/gps/pos/centre 0 0 47.6 mm
+/gps/direction 0 0 -1
 #/gps/pos/confine Source_Disk_PV
 
-/gps/pos/radius 3.81 mm
-/gps/pos/centre 0 0 59.139 mm
-/gps/pos/confine LANL_Source_Disk_PV
+#/gps/pos/radius 3.81 mm
+#/gps/pos/centre 0 0 59.139 mm
+#/gps/pos/confine LANL_Source_Disk_PV
 
 ##set number of runs
 /run/beamOn 10
