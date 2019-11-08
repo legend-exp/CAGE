@@ -12,7 +12,8 @@
 
 ##Specify output file
 /g4simple/setOutputFormat hdf5
-/analysis/setFileName ./alpha/raw_out/30mm_collimated_241Am_10000000.hdf5
+#/analysis/setFileName ./alpha/raw_out/30mm_collimated_241Am_10000000.hdf5
+/analysis/setFileName ./alpha/raw_out/30mm_collimated_241Am_100000.hdf5
 
 ##Set Volume ID's for Geometry Volumes (volume.in.geometry.file_PV volID)
 /g4simple/setVolID OPPI1_Detector_PV 1
@@ -45,4 +46,4 @@
 #/gps/pos/confine Am_sourceDeposition_PV
 
 ##set number of runs
-/run/beamOn 10000000
+/run/beamOn 100000
