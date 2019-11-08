@@ -16,7 +16,7 @@
   <position name="center" x="0" y="0" z="0"/>
   <rotation name="identity" x="0" y="0" z="0"/>
 
-  <quantity name="foil_innerradius" type="length" value="0" unit="mm"/>
+  <quantity name="foil_innerradius" type="length" value="0.0" unit="mm"/>
   <quantity name="foil_radius" type="length" value="3.175" unit="mm"/>
   <quantity name="foil_height" type="length" value="0.01" unit="mm"/>
 
