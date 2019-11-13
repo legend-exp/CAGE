@@ -17,15 +17,19 @@ def main():
 	# filename = '../alpha/raw_out/uncollimated_test_241Am_700000.hdf5'
 	# filename = '../alpha/raw_out/collimated_test_241Am_700000.hdf5'
 	# filename = '../alpha/raw_out/30mm_collimated_241Am_700000.hdf5'
-	filename = '../alpha/raw_out/30mm_notcollimated_241Am_700000.hdf5'
+	# filename = '../alpha/raw_out/30mm_notcollimated_241Am_700000.hdf5'
+	# filename = '../alpha/processed_out/processed_30mm_notcollimated_241Am_700000.hdf5'
+	# filename = '../alpha/raw_out/30mm_collimated_241Am_10000000.hdf5'
+	filename = '../alpha/processed_out/processed_30mm_collimated_241Am_10000000.hdf5'
 
 
 
 
 	#filename = '../alpha/raw_out/test_sebColl_e100000.hdf5'
 
-	plotHist(filename)
-	# plotSpot(filename)
+	# plotHist(filename)
+	# post_process(filename)
+	plotSpot(filename)
 
 
 
@@ -40,6 +44,10 @@ def main():
 
 # def test4(filename):
 
+def post_process(filename):
+	df = pandarize(filename)
+	# df.to_hdf('../alpha/processed_out/processed_30mm_notcollimated_241Am_700000.hdf5', key='procdf', mode='w')
+	df.to_hdf('../alpha/processed_30mm_collimated_241Am_10000000.hdf5', key='procdf', mode='w')
 
 
 def get_hist(np_arr, bins=None, range=None, dx=None, wts=None):
@@ -61,7 +69,8 @@ def get_hist(np_arr, bins=None, range=None, dx=None, wts=None):
         return hist, bins, var
 
 def plotHist(filename):
-	df = pandarize(filename)
+	# df = pandarize(filename)
+	df = pd.read_hdf(filename, keys='procdf')
 	energy = np.array(df['energy']*1000)
 	x = np.array(df['x'])
 	y = np.array(df['y'])
@@ -75,7 +84,8 @@ def plotHist(filename):
 	plt.show()
 
 def plotSpot(filename):
-	df = pandarize(filename)
+	# df = pandarize(filename)
+	df = pd.read_hdf(filename, keys='procdf')
 	energy = np.array(df['energy']*1000)
 	x = np.array(df['x'])
 	y = np.array(df['y'])
