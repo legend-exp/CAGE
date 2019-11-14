@@ -20,16 +20,18 @@ def main():
 	# filename = '../alpha/raw_out/30mm_notcollimated_241Am_700000.hdf5'
 	# filename = '../alpha/processed_out/processed_30mm_notcollimated_241Am_700000.hdf5'
 	# filename = '../alpha/raw_out/30mm_collimated_241Am_10000000.hdf5'
-	filename = '../alpha/processed_out/processed_30mm_collimated_241Am_10000000.hdf5'
+	# filename = '../alpha/processed_out/processed_30mm_collimated_241Am_10000000.hdf5'
+	# filename = '../alpha/raw_out/22mm_collimated_241Am_10000000.hdf5'
+	filename = '../alpha/processed_out/processed_22mm_collimated_241Am_10000000.hdf5'
 
 
 
 
 	#filename = '../alpha/raw_out/test_sebColl_e100000.hdf5'
 
-	# plotHist(filename)
+	plotHist(filename)
 	# post_process(filename)
-	plotSpot(filename)
+	# plotSpot(filename)
 
 
 
@@ -47,7 +49,7 @@ def main():
 def post_process(filename):
 	df = pandarize(filename)
 	# df.to_hdf('../alpha/processed_out/processed_30mm_notcollimated_241Am_700000.hdf5', key='procdf', mode='w')
-	df.to_hdf('../alpha/processed_30mm_collimated_241Am_10000000.hdf5', key='procdf', mode='w')
+	df.to_hdf('../alpha/processed_out/processed_22mm_collimated_241Am_10000000.hdf5', key='procdf', mode='w')
 
 
 def get_hist(np_arr, bins=None, range=None, dx=None, wts=None):

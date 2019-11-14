@@ -20,11 +20,11 @@
 
   <quantity name="body_top_innerradius" type="length" value="26./2" unit="mm"/>
   <quantity name="body_top_radius" type="length" value="30./2" unit="mm"/>
-  <quantity name="body_top_height" type="length" value="2." unit="mm"/>
+  <quantity name="body_top_height" type="length" value="3.5" unit="mm"/>
 
   <quantity name="body_sourceOffset_innerradius" type="length" value="9.0/2" unit="mm"/>
   <quantity name="body_sourceOffset_radius" type="length" value="30./2" unit="mm"/>
-  <quantity name="body_sourceOffset_height" type="length" value="0.5" unit="mm"/>
+  <quantity name="body_sourceOffset_height" type="length" value="5." unit="mm"/>
 
   <quantity name="body_middle_innerradius" type="length" value="1./2" unit="mm"/>
   <quantity name="body_middle_radius" type="length" value="30./2" unit="mm"/>
@@ -98,7 +98,7 @@
     <union name="am_collimator">
       <first ref="body_collimator" />
       <second ref="lid_collimator" />
-      <position x="0" y="0" z="(body_bottom_height/2)+(body_middle_height)+(body_top_height/2)" />
+      <position x="0" y="0" z="(body_bottom_height/2)+(body_middle_height)+(body_top_height/2)+(body_sourceOffset_height)/2" />
       <rotationref ref="identity"/>
     </union>
 
@@ -111,6 +111,8 @@
  <volume name="Am_Collimator_sebastian">
    <materialref ref="G4_Pb"/>
    <solidref ref="am_collimator"/>
+   <!-- <solidref ref="body_collimator"/> -->
+   <!-- <solidref ref="body_bottomSourceOffset_collimator"/> -->
   </volume>
 
  </structure>
