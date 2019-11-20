@@ -20,15 +20,15 @@
 
   <quantity name="body_top_innerradius" type="length" value="26./2" unit="mm"/>
   <quantity name="body_top_radius" type="length" value="30./2" unit="mm"/>
-  <quantity name="body_top_height" type="length" value="3.5" unit="mm"/>
+  <quantity name="body_top_height" type="length" value="4.5" unit="mm"/>
 
   <quantity name="body_sourceOffset_innerradius" type="length" value="9.0/2" unit="mm"/>
   <quantity name="body_sourceOffset_radius" type="length" value="30./2" unit="mm"/>
-  <quantity name="body_sourceOffset_height" type="length" value="5." unit="mm"/>
+  <quantity name="body_sourceOffset_height" type="length" value="1.0" unit="mm"/>
 
   <quantity name="body_middle_innerradius" type="length" value="1./2" unit="mm"/>
   <quantity name="body_middle_radius" type="length" value="30./2" unit="mm"/>
-  <quantity name="body_middle_height" type="length" value="4.5" unit="mm"/>
+  <quantity name="body_middle_height" type="length" value="4." unit="mm"/>
 
   <quantity name="body_bottom_innerradius" type="length" value="1./2" unit="mm"/>
   <quantity name="body_bottom_radius" type="length" value="13./2" unit="mm"/>
@@ -38,6 +38,8 @@
   <quantity name="lid_top_height" type="length" value="2." unit="mm"/>
   <quantity name="lid_bottom_radius" type="length" value="25.9/2" unit="mm"/>
   <quantity name="lid_bottom_height" type="length" value="2" unit="mm"/>
+
+  <quantity name="lid_offset_height" type="length" value="3.5" unit="mm"/>
 
 
  </define>
@@ -70,6 +72,7 @@
     <union name="body_bottom_collimator">
       <first ref="body_bottom" />
       <second ref="body_middle" />
+      <!-- <position x="0" y="0" z="body_bottom_height" /> -->
       <position x="0" y="0" z="(body_bottom_height/2)+(body_middle_height/2)" />
       <rotationref ref="identity"/>
     </union>
@@ -77,14 +80,15 @@
     <union name="body_bottomSourceOffset_collimator">
       <first ref="body_bottom_collimator" />
       <second ref="body_sourceOffset" />
-      <position x="0" y="0" z="(body_bottom_height/2)+(body_middle_height/2)+(body_sourceOffset_height/2)" />
+      <position x="0" y="0" z="(body_bottom_height/2)+body_middle_height+(body_sourceOffset_height/2)" />
       <rotationref ref="identity"/>
     </union>
 
     <union name="body_collimator">
       <first ref="body_bottomSourceOffset_collimator" />
       <second ref="body_top" />
-      <position x="0" y="0" z="(body_bottom_height/2)+(body_middle_height)+(body_top_height/2)+(body_sourceOffset_height/2)" />
+      <position x="0" y="0" z="(body_bottom_height/2)+(body_middle_height)+(body_sourceOffset_height)+(body_top_height/2)" />
+      <!-- <position x="0" y="0" z="(body_bottom_height/2)+(body_middle_height)+(body_top_height/2)" /> -->
       <rotationref ref="identity"/>
     </union>
 
@@ -98,7 +102,9 @@
     <union name="am_collimator">
       <first ref="body_collimator" />
       <second ref="lid_collimator" />
-      <position x="0" y="0" z="(body_bottom_height/2)+(body_middle_height)+(body_top_height/2)+(body_sourceOffset_height)/2" />
+      <position x="0" y="0" z="(body_bottom_height/2)+(body_middle_height)+(body_sourceOffset_height)+(lid_offset_height)" />
+      <!-- <position x="0" y="0" z="(body_bottom_height/2)+(body_middle_height)+(body_sourceOffset_height)+(body_top_height)" /> -->
+      <!-- <position x="0" y="0" z="(body_bottom_height/2)+(body_middle_height)+(body_top_height/2)" /> -->
       <rotationref ref="identity"/>
     </union>
 

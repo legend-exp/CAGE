@@ -29,9 +29,9 @@ def main():
 
 	#filename = '../alpha/raw_out/test_sebColl_e100000.hdf5'
 
-	plotHist(filename)
+	# plotHist(filename)
 	# post_process(filename)
-	# plotSpot(filename)
+	plotSpot(filename)
 
 
 
