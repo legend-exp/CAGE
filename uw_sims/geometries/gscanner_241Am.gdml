@@ -60,19 +60,19 @@ This file is a "mother file" to insert other gdml file geometries into. This fil
 
    <physvol>
      <file name="./geometries/Am_Collimator_sebastian.gdml"/>
-     <position name="Am_Collimator_Position" x="0" y="0" z="45/2+22+1.5/2" unit="mm"/> detector height/2  + 22 mm above detector + collimator bottom/2
+     <position name="Am_Collimator_Position" x="0" y="0" z="45/2+16+1.5/2" unit="mm"/> detector height/2  + 16 mm above detector + collimator bottom/2
      <rotation name="Am_Collimator_Rotation" x="0" y="0" z="0" unit="deg"/>
    </physvol>
 
    <physvol>
      <file name="./geometries/Am_sourceDeposition.gdml"/>
-     <position name="Am_sourceDeposition_Position" x="0" y="0" z="45/2+22+1.5+5+0.001/2" unit="mm"/>  <!--detector height/2+ 22 mm above detector + collimator bottom + collimator middle + source deposition height/2 -->
+     <position name="Am_sourceDeposition_Position" x="0" y="0" z="45/2+16+1.5+5+0.001/2" unit="mm"/>  <!--detector height/2+ 16 mm above detector + collimator bottom + collimator middle + source deposition height/2 -->
      <rotation name="Am_sourceDeposition_Rotation" x="0" y="0" z="0" unit="deg"/> -->
    </physvol>
 
    <physvol>
      <file name="./geometries/ss_sourceDisk_ezag.gdml"/>
-     <position name="ss_sourceDisk_ezag_Position" x="0" y="0" z="45/2+22+1.5+5+0.001+0.5/2" unit="mm"/> <!--detector height/2+ 22 mm above detector + collimator bottom + collimator middle + source deposition height+ ss source disk height/2 -->
+     <position name="ss_sourceDisk_ezag_Position" x="0" y="0" z="45/2+16+1.5+5+0.001+0.5/2" unit="mm"/> <!--detector height/2+ 16 mm above detector + collimator bottom + collimator middle + source deposition height+ ss source disk height/2 -->
      <rotation name="ss_sourceDisk_ezag_Rotation" x="0" y="0" z="0" unit="deg"/>
    </physvol>
 

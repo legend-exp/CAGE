@@ -12,7 +12,7 @@
 
 ##Specify output file
 /g4simple/setOutputFormat hdf5
-/analysis/setFileName ./alpha/raw_out/22mm_collimated_241Am_10000000.hdf5
+/analysis/setFileName ./alpha/raw_out/16mm_collimated_241Am_10000000.hdf5
 
 ##Set Volume ID's for Geometry Volumes (volume.in.geometry.file_PV volID)
 /g4simple/setVolID OPPI1_Detector_PV 1
@@ -36,7 +36,7 @@
 /gps/energy 0 MeV
 
 /gps/ang/type iso
-/gps/pos/centre 0 0 51.0005 mm #detector height/2+ 22 mm above detector + collimator bottom + collimator middle + source deposition height/2
+/gps/pos/centre 0 0 45.0005 mm #detector height/2+ 16 mm above detector + collimator bottom + collimator middle + source deposition height/2
 /gps/pos/type Volume
 /gps/pos/shape Para
 /gps/pos/halfx 3.5 mm
