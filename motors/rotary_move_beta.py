@@ -70,7 +70,7 @@ def rotary_program():
     if load == 0:
         c('DPD=0')
     c('ACD=300000')
-    c('BCD=300000')
+    c('DCD=300000')
     print(' Starting move...')
 
     if checks != 0:

@@ -8,6 +8,7 @@ import psycopg2
 import collections
 import pika
 import numpy as np
+from functools import partial
 from pprint import pprint
 import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
@@ -82,10 +83,17 @@ class CAGEMonitor(QMainWindow):
         # tab 2 -- motor controller
         st2 = MotorMonitor()
         # st2 = QWidget() # blank
+<<<<<<< HEAD
         tabs.addTab(st2,"Motor Controller")
 
         # tab 3 -- MJ60 DB monitor?
         # also need an HV biasing & interlock widget
+=======
+        # tabs.addTab(st2,"Motor Controller")
+
+        # tab 3 -- detector / DB control.  dragonfly reporting, interlock status, etc.
+        # also would like an HV biasing (auto-ramp) & interlock status widget
+>>>>>>> 4d937e6858466d5808f277f806f3e4ae316bc253
 
         self.setCentralWidget(tabs)
         self.show()
@@ -134,11 +142,21 @@ class DBMonitor(QWidget):
         for endpt in self.endpt_types:
             self.endpts_enabled.append({'name':endpt, 'type':'bool', 'value':False})
 
+<<<<<<< HEAD
         self.endpts_enabled[10]['value'] = True
 
         # default time window of 1 day
         t_later = datetime.utcnow()
         t_earlier = datetime.utcnow() - timedelta(hours=4)
+=======
+        # debug: monitor mj60 by default.  1: baseline  2: pressure
+        # 10: cage_pressure
+        self.endpts_enabled[1]['value'] = True
+
+        # default time window
+        t_later = datetime.utcnow()
+        t_earlier = datetime.utcnow() - timedelta(hours=.15)
+>>>>>>> 4d937e6858466d5808f277f806f3e4ae316bc253
 
         # create a parameter tree widget from the DB endpoints
         pt_initial = [
@@ -167,7 +185,15 @@ class DBMonitor(QWidget):
 
         # reinitialize the plot when the user clicks the "Query DB" button.
         # TODO: add a flag w/ functools partial to turn live update on/off
+<<<<<<< HEAD
         self.p.param('Run Query', 'Query DB').sigActivated.connect(self.rp.__init__)
+=======
+        # self.p.param('Run Query', 'Query DB').sigActivated.connect(self.rp.__init__)
+        call = partial(self.rp.__init__, self.endpts_enabled, t_earlier, t_later, self.cursor)
+        self.p.param('Run Query', 'Query DB').sigActivated.connect(call)
+
+        # TODO: connect to self.reset_plot here so it's more flexible
+>>>>>>> 4d937e6858466d5808f277f806f3e4ae316bc253
 
         # could put a second plot with an independent parameter tree here,
         # that listens to the same (or different?) rabbit queue.
@@ -196,6 +222,7 @@ class DBMonitor(QWidget):
             print(f'  change:    {change}')
             print(f'  data:      {str(data)}')
 
+<<<<<<< HEAD
 
 # ========= MOTOR CONTROLS =====================================================
 
@@ -246,6 +273,19 @@ class MotorMonitor(QWidget):
         # # connect a simple function
         # self.p.sigTreeStateChanged.connect(self.tree_change)
 
+=======
+    def reset_plot(self):
+        # placeholder -- put more stuff here
+        # need to tell DBMonitor to re-draw its layout here based on the number
+        # of active endpoints.
+        print('hi clint')
+        self.rp.__init__(self.endpts_enabled, t_earlier, t_later, self.cursor)
+
+
+
+
+
+>>>>>>> 4d937e6858466d5808f277f806f3e4ae316bc253
 
 # === RABBITMQ LIVE DB PLOT ====================================================
 
@@ -268,6 +308,7 @@ class RabbitPlot(pg.PlotWidget):
         self.plots = {}
 
         # set up plot colors (0.0: black, 1.0: white)
+        print("found endpoints", len(self.endpoints))
         colors = np.arange(0.2, 1.0, len(self.endpoints))
 
         # set up deques and plots
@@ -352,19 +393,28 @@ class RabbitListener(QRunnable):
         self.cpars = pika.ConnectionParameters(host=self.config['cage_daq'])
         self.conn = pika.BlockingConnection(self.cpars)
         self.channel = self.conn.channel()
+        self.queue_name = f"cage_{np.random.randint(1e6):.2f}" # allow multiple users
 
         self.channel.exchange_declare(exchange=self.config["exchange"],
                                       exchange_type='topic')
 
+<<<<<<< HEAD
         self.channel.queue_declare(queue=self.config['queue'],
+=======
+        self.channel.queue_declare(queue=self.queue_name,
+>>>>>>> 4d937e6858466d5808f277f806f3e4ae316bc253
                                    exclusive=True)
 
         # listen to everything that gets posted (.# symbol)
         self.channel.queue_bind(exchange=self.config['exchange'],
-                                queue=self.config['queue'],
+                                queue=self.queue_name,
                                 routing_key="sensor_value.#")
 
+<<<<<<< HEAD
         self.channel.basic_consume(queue=self.config['queue'],
+=======
+        self.channel.basic_consume(queue=self.queue_name,
+>>>>>>> 4d937e6858466d5808f277f806f3e4ae316bc253
                                    on_message_callback=self.dispatch,
                                    auto_ack=True)
 
@@ -375,8 +425,17 @@ class RabbitListener(QRunnable):
         endpt = method.routing_key.split(".")[-1] # split off "sensor_value."
         record = json.loads(body.decode()) # decode binary string to dict
         xv = parser.parse(record["timestamp"]) # convert to ISO string
+<<<<<<< HEAD
         yv = record["payload"]["value_cal"]
         self.signals.target.emit(endpt, xv, yv)
+=======
+        if "value_cal" in record["payload"]:
+            yv = record["payload"]["value_cal"]
+            self.signals.target.emit(endpt, xv, yv)
+        # else:
+        #     print("unfamiliar value:")
+        #     pprint(record)
+>>>>>>> 4d937e6858466d5808f277f806f3e4ae316bc253
 
 
 class RabbitSignal(QObject):

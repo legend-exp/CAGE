@@ -152,11 +152,31 @@ def get_temp():
     """
     example of quickly accessing the DB to get something 'now'.
     """
-    endpoints = ["cage_coldPlate_temp"]
-    t_earlier_aug = '2019-10-02T00:00'
-    t_later_aug = datetime.utcnow().isoformat()
-    dfs = pandas_db_query(endpoints, t_earlier_aug, t_later_aug)
-    print(dfs["cage_coldPlate_temp"].tail())
+    epts = ["cage_coldPlate_temp", "cage_pressure"]
+    # t_earlier_aug = '2019-10-02T00:00'
+    # t_later_aug = datetime.utcnow().isoformat()
+    t_earlier_aug = '2019-09-27T13:00'
+    t_later_aug = '2019-09-28T19:49'
+    dfs = pandas_db_query(epts, t_earlier_aug, t_later_aug)
+    print(dfs[epts[0]].tail())
+    
+    exit()
+
+    xv = dfs[epts[0]]["timestamp"]
+    yv = dfs[epts[0]][epts[0]]
+    plt.plot(xv, yv, '-b')
+    plt.ylabel(epts[0], ha='right', y=1)
+    
+    p1a = plt.gca().twinx()
+    xv = dfs[epts[1]]["timestamp"]
+    yv = dfs[epts[1]][epts[1]]
+    p1a.set_ylabel(epts[1], color='r', ha='right', y=1)
+    p1a.tick_params('y', colors='r')
+    p1a.semilogy(xv, yv, '-r')
+    
+    plt.gcf().autofmt_xdate()
+    plt.tight_layout()
+    plt.show()
     
     
 
