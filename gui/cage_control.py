@@ -7,6 +7,7 @@ import psycopg2
 import collections
 import pika
 import numpy as np
+from functools import partial
 from pprint import pprint
 import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
@@ -163,7 +164,11 @@ class DBMonitor(QWidget):
 
         # reinitialize the plot when the user clicks the "Query DB" button.
         # TODO: add a flag w/ functools partial to turn live update on/off
-        self.p.param('Run Query', 'Query DB').sigActivated.connect(self.rp.__init__)
+        # self.p.param('Run Query', 'Query DB').sigActivated.connect(self.rp.__init__)
+        call = partial(self.rp.__init__, self.endpts_enabled, t_earlier, t_later, self.cursor)
+        self.p.param('Run Query', 'Query DB').sigActivated.connect(call)
+
+        # TODO: connect to self.reset_plot here so it's more flexible
 
         # could put a second plot with an independent parameter tree here,
         # that listens to the same (or different?) rabbit queue.
@@ -192,6 +197,16 @@ class DBMonitor(QWidget):
             print(f'  change:    {change}')
             print(f'  data:      {str(data)}')
 
+    def reset_plot(self):
+        # placeholder -- put more stuff here
+        # need to tell DBMonitor to re-draw its layout here based on the number
+        # of active endpoints.
+        print('hi clint')
+        self.rp.__init__(self.endpts_enabled, t_earlier, t_later, self.cursor)
+
+
+
+
 
 
 # === RABBITMQ LIVE DB PLOT ====================================================
@@ -215,6 +230,7 @@ class RabbitPlot(pg.PlotWidget):
         self.plots = {}
 
         # set up plot colors (0.0: black, 1.0: white)
+        print("found endpoints", len(self.endpoints))
         colors = np.arange(0.2, 1.0, len(self.endpoints))
 
         # set up deques and plots
