@@ -120,7 +120,7 @@ def tier1(ds,
         ProcessTier1(
             t1_file,
             proc,
-            output_dir=ds.tier_dir,
+            output_dir=ds.tier2_dir,
             overwrite=overwrite,
             verbose=verbose,
             multiprocess=multiproc,
