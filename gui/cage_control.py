@@ -131,7 +131,7 @@ class DBMonitor(QWidget):
 
         # debug: monitor mj60 by default.  1: baseline  2: pressure
         # 10: cage_pressure
-        self.endpts_enabled[1]['value'] = True
+        self.endpts_enabled[16]['value'] = True
 
         # default time window
         t_later = datetime.utcnow()
@@ -341,7 +341,8 @@ class RabbitListener(QRunnable):
         xv = parser.parse(record["timestamp"]) # convert to ISO string
         if "value_cal" in record["payload"]:
             yv = record["payload"]["value_cal"]
-            self.signals.target.emit(endpt, xv, yv)
+            if not isinstance(yv, str):
+                self.signals.target.emit(endpt, xv, yv)
         # else:
         #     print("unfamiliar value:")
         #     pprint(record)
