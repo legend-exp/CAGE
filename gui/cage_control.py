@@ -201,7 +201,7 @@ class DBMonitor(QWidget):
         # placeholder -- put more stuff here
         # need to tell DBMonitor to re-draw its layout here based on the number
         # of active endpoints.
-        print('hi clint')
+        print('hi clint, hello plz')
         self.rp.__init__(self.endpts_enabled, t_earlier, t_later, self.cursor)
 
 
