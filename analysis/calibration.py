@@ -4,12 +4,17 @@ import numpy as np
 import pandas as pd
 import tinydb as db
 import matplotlib.pyplot as plt
+plt.style.use('clint.mpl')
+
 import itertools as it
 from scipy.stats import mode
 from pprint import pprint
 from pygama import DataSet
+
+import pygama.analysis.histograms as ph
 from pygama.utils import set_plot_style, peakdet
-set_plot_style('clint')
+# set_plot_style('clint')
+
 
 def main():
     """
@@ -19,7 +24,7 @@ def main():
     """
     run_db, cal_db = "runDB.json", "calDB.json"
 
-    par = argparse.ArgumentParser(description="calibration suite")
+    par = argparse.ArgumentParser(description="pygama calibration suite")
     arg, st, sf = par.add_argument, "store_true", "store_false"
     arg("-ds", nargs='*', action="store", help="load runs for a DS")
     arg("-r", "--run", nargs=1, help="load a single run")
@@ -49,8 +54,11 @@ def main():
     # -- start calibration routines --
     etype = args["etype"][0] if args["etype"] else "e_ftp"
 
+    if args["printDB"]:
+        show_calDB(cal_db) # print current DB status
+
     if args["spec"]:
-        show_spectrum(ds, etype)
+        show_spectrum(ds, etype) 
 
     if args["pass1"]:
         calibrate_pass1(ds, etype, args["writeDB"], args["test"])
@@ -62,24 +70,49 @@ def main():
     # if args["pass3"]:
     #     calibrate_pass3(ds)
 
-    if args["printDB"]:
-        show_calDB(cal_db)
 
+def show_calDB(fdb):
+    """
+    pretty-print what we've stored in our calibration database
+    """
+    calDB = db.TinyDB(fdb)
+    query = db.Query()
+    table = calDB.table("cal_pass1")
+    df = pd.DataFrame(table.all())
+    print(df)
 
 
 def show_spectrum(ds, etype="e_ftp"):
     """
     display the raw spectrum of an (uncalibrated) energy estimator,
     use it to tune the x-axis range and binning in preparation for
-    the first pass calibration.
+    the first pass calibration.  
+    
+    TODO -- it would be neat to use this function to display an estimate for 
+    the peakdet threshold we need later in the code, based on the number of 
+    counts in each bin or something ...
     """
     df = ds.get_t2df()
     print(df.columns)
-    df.hist(etype)
+    
+    # built-in pandas histogram
+    # df.hist(etype, bins=1000)
+    
+    # pygama histogram
+    xlo, xhi, xpb = 0, 6000, 10 # gamma spectrum
+    hE, xE = ph.get_hist(t2df[ene], range=(xlo, xhi), dx=xpb)
+    plt.semilogy(xE, hE, ls='steps', lw=1, c='r', label=f'run {run}')
+    plt.xlabel("Energy (uncal.)", ha='right', x=1)
+    plt.ylabel("Counts", ha='right', y=1)
+    
+    # show a couple formatting tricks
+    import matplotlib.ticker as ticker
+    plt.gca().xaxis.set_major_formatter(ticker.FormatStrFormatter('%0.1e'))
+    plt.locator_params(axis='x', nbins=5)
+    plt.grid(linestyle=':')
+    
     plt.show()
-
-    # need to display an estimate for the peakdet threshold
-    # based on the number of counts in each bin or something
+    
 
 
 def calibrate_pass1(ds, etype="e_ftp", write_db=False, test=False):
@@ -207,33 +240,38 @@ def calibrate_pass1(ds, etype="e_ftp", write_db=False, test=False):
 
 def calibrate_pass2(ds, test=False):
     """
-    load first-pass constants from the calDB for this DataSet,
-    and the list of peaks we want to fit from the runDB, and
-    fit the radford peak to each one.
-    make a new table in the calDB, "cal_pass2" that holds all
-    the important results, like mu, sigma, errors, etc.
+    Load first-pass constants from the calDB for this DataSet, and the list of 
+    peaks we want to fit from the runDB, and fit the PPC peakshape to each one.
+    
+    Make a new table in the calDB for each DataSet, "cal_pass2", that holds all 
+    the important results -- mu's, sigma, errors, etc.
     """
+    
+    # get a list of peaks we assume are always present
+    epeaks = sorted(ds.runDB["expected_peaks"], reverse=True)
 
-    """
-    This function is mainly being used to estimate the FWHM of the calibration
-    peaks
-    """
-    epeaks = sorted(ds.runDB["expected_peaks"])
-    calpars = ds.get_p1cal_pars("e_ftp")
+    # get initial parameters for this energy estimator
+    # -- might want to put more stuff here -- 
+    etype = "e_ftp"
+    calpars = ds.get_p1cal_pars(etype)
+    pk_thresh = calpars["peakdet_thresh"]
+    match_thresh = calpars["match_thresh"]
     xlo, xhi, xpb = calpars["xlims"]
-    pk_thresh = calpars["width_thresh"]
-    width_lo, width_hi, wlo1, whi1, wlo2, whi2 = calpars["width_lims"]
-
+    
+    # load calibration database file with tinyDB and convert to pandas
     calDB = ds.calDB
     query = db.Query()
-    table = calDB.table("cal_pass1")
-    vals = table.all()
-    df_cal = pd.DataFrame(vals) # <<---- omg awesome
+    table = calDB.table("cal_pass1").all()
+    df_cal = pd.DataFrame(table) # <<---- omg awesome
+    
+    # apply calibration from db to tier 2 dataframe
     df_cal = df_cal.loc[df_cal.ds.isin(ds.ds_list)]
     p1cal = df_cal.iloc[0]["p1cal"]
-
-    t2 = ds.get_t2df()
-    ene = t2["e_ftp"] * p1cal
+    t2df = ds.get_t2df()
+    ene = t2df["e_ftp"] * p1cal
+    
+    
+    exit()
 
     for i in range(len(epeaks)):
         ehi = epeaks[i] + width_hi
@@ -281,15 +319,6 @@ def calibrate_pass2(ds, test=False):
 
 
 
-def show_calDB(fdb):
-    """
-    pretty-print what we've stored in our calibration database
-    """
-    calDB = db.TinyDB(fdb)
-    query = db.Query()
-    table = calDB.table("cal_pass1")
-    df = pd.DataFrame(table.all())
-    print(df)
 
 
 if __name__=="__main__":

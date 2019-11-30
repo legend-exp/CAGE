@@ -41,7 +41,8 @@
         "ds_coverage":"0, 9999",
         "xlims":[0, 10000, 10],
         "peakdet_thresh":100,
-        "match_thresh":0.01
+        "match_thresh":0.01,
+        "width_thresh":99
       },
       "energy": {
         "ds_coverage":"0, 9999",
