@@ -180,7 +180,7 @@ def zero_linear_motor():
     while (zero > 10) and (zero < 16374):
         zero = linear_set_zero()
 
-    print(' Attempting to zero the rotary motor now, sudden error or break in code expected')
+    print(' Attempting to zero the linear motor now, sudden error or break in code expected')
     print(' Rerun motor_movement.py to continue')
 
     move = -25000
@@ -228,13 +228,13 @@ def zero_linear_motor():
     except gclib.GclibError:
         print('Linear stage is zeroed')
 
-        print('Moving motor 3mm to align axes')
+        print('Moving motor 3.175 mm to align axes')
 
         zero = linear_set_zero()
         while (zero > 10) and (zero < 16374):
             zero = linear_set_zero()
 
-        mm = 3
+        mm = 3.175
         cts = 100244
 
         if mm < 0:
@@ -355,7 +355,7 @@ def zero_linear_motor():
 
 def linear_read_pos():
 
-    shell = spur.SshShell(hostname="10.66.193.74",
+    shell = spur.SshShell(hostname="10.66.193.75",
                             username="pi", password="raspberry")
 
     with shell:
@@ -367,7 +367,7 @@ def linear_read_pos():
 
 def linear_set_zero():
 
-    shell = spur.SshShell(hostname="10.66.193.74",
+    shell = spur.SshShell(hostname="10.66.193.75",
                             username="pi", password="raspberry")
 
     with shell:
