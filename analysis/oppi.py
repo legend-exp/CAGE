@@ -34,9 +34,9 @@ def main():
      'tslope_pz', 'tail_amp', 'tail_tau']
     """
     # tier2_spec()
-    # tier2_AoverE()
+    tier2_AoverE()
     # tier1_wfs()
-    optimize_trap()
+    # optimize_trap()
     
     
 def tier2_spec():
@@ -90,6 +90,8 @@ def tier2_AoverE():
     ds = DataSet(run=run, md="runDB.json")
     t2df = ds.get_t2df()
     
+    aoe = t2df["current_max"] / t2df["e_ftp"]
+    
     # # 1d
     # xlo, xhi, xpb = -2000, 2000, 10
     # h, x = ph.get_hist(aoe, range=(xlo, xhi), dx=xpb)
@@ -102,12 +104,9 @@ def tier2_AoverE():
     # plt.cla()
     
     # 2d vs E
-    aoe = t2df["atrap_max"] / t2df["e_ftp"] # not sure which of these is better, but 
-    # aoe = t2df["current_max"] / t2df["e_ftp"] # this one has a weird 'sharp' feature
-    
     xlo, xhi, xpb = 0, 6000, 5
-    ylo, yhi, ypb = 0.6, 1.2, 0.001
-    # ylo, yhi, ypb = 0, 0.1, 0.001
+    # ylo, yhi, ypb = 0.6, 1.2, 0.001 
+    ylo, yhi, ypb = 0, 0.1, 0.001
     nbx, nby = int((xhi-xlo)/xpb), int((yhi-ylo)/ypb)
 
     from matplotlib.colors import LogNorm
@@ -119,7 +118,8 @@ def tier2_AoverE():
     # cb.set_label("Counts", ha='right', y=1)
     plt.xlabel("e_ftp (uncal.)", ha='right', x=1)
     plt.ylabel("A/E", ha='right', y=1)
-    plt.grid(which='both', linestyle=':')
+    # plt.grid(which='both', linestyle=':')
+    plt.grid()
 
     plt.savefig(f"./plots/cage_run{run}_AE.png", dpi=200)
 
@@ -204,93 +204,6 @@ def tier1_wfs():
         plt.show(block=False)
         plt.pause(0.01)
     
-    
-def optimize_trap(test=False):
-    """
-    take a single run, window it so that the file only contains events near an 
-    expected peak location, and determine the trapezoid parameters that minimize
-    the FWHM of the peak (fitting to the peakshape function).
-
-    uses temporary in/out files s/t the originals aren't overwritten.
-    
-    NOTE: We could also optimize the A trap here, it might help with A/E
-    """
-    from pygama.dsp.base import Intercom
-    from pygama.io.tier1 import ProcessTier1
-    
-    run = 42
-    # ds = DataSet(3, md="runDB.json")
-    ds = DataSet(run=run, md="runDB.json")
-    
-    # specify temporary I/O locations
-    p_tmp = "~/Data/cage"
-    f_tier1 = "~/Data/cage/cage_ds3_t1.h5"
-    f_tier2 = "~/Data/cage/cage_ds3_t2.h5"
-    
-    # figure out the uncalibrated energy range of the K40 peak
-    # xlo, xhi, xpb = 0, 2e6, 2000 # show phys. spectrum (top feature is 2615 pk)
-    xlo, xhi, xpb = 990000, 1030000, 250 # k40 peak, ds 3
-    if test:
-        t2df = ds.get_t2df()
-        hE, xE = ph.get_hist(t2df["energy"], range=(xlo, xhi), dx=xpb)
-        plt.semilogy(xE, hE, ls='steps', lw=1, c='r')
-        
-        import matplotlib.ticker as ticker
-        plt.gca().xaxis.set_major_formatter(ticker.FormatStrFormatter('%0.4e'))
-        plt.locator_params(axis='x', nbins=5)
-
-        plt.xlabel("Energy (uncal.)", ha='right', x=1)
-        plt.ylabel("Counts", ha='right', y=1)
-        plt.show()
-        exit()
-        
-    # write a windowed tier 1 file containing only waveforms near the peak
-    t1df = pd.DataFrame()
-    for run in ds.paths:
-        ft1 = ds.paths[run]["t1_path"]
-        for chunk in pd.read_hdf(ft1, 'ORSIS3302DecoderForEnergy', chunksize=5e4):
-            t1df_win = chunk.loc[(chunk.energy > xlo) & (chunk.energy < xhi)]
-            # print(t1df_win.shape)
-            t1df = pd.concat([t1df, t1df_win], ignore_index=True)
-    
-    t1df.to_hdf(f_tier1, key='df_windowed')
-    
-    
-    exit()
-        
-    # values to loop over -- might want to zip them together into tuples
-    # rise_times = [2, 2.5, 3, 3.5, 4, 4.5, 5]
-    rise_times = [4]
-    rc_decay = 72
-    
-    for rt in rise_times:
-        
-        # custom tier 1 processor list -- very minimal
-        opts = {
-            "clk" : 100e6,
-            "fit_bl" : {"ihi":500, "order":1},
-            "blsub" : {},
-            "savgol" : [{"wfin":"wf_blsub", "wfout":"wf_savgol", 
-                         "window":47, "order":2}],
-            "trap" : [
-                {"wfout":"wf_etrap", "wfin":"wf_blsub", 
-                 "rise":1.75, "flat":2.5, "decay":72},
-                {"wfout":"wf_atrap", "wfin":"wf_blsub", 
-                 "rise":0.04, "flat":0.1, "fall":2}
-                ],
-            "get_max" : [{"wfin":"wf_etrap"}, {"wfin":"wf_atrap"}],
-            "ftp" : {"test":1}
-        }
-        
-        # need to specify the in/out files s/t the t2 file doesn't get overwritten
-        
-        ProcessTier1(t1_file, proc, output_dir=p_tmp, 
-                     overwrite=True, verbose=True, 
-                     multiprocess=False, nevt=np.inf, ioff=0, 
-                     chunk=ds.runDB["chunksize"])
-        
-        # might want to separate the processing step from the plotting step
-
 
 def get_detector_parameters():
     """
