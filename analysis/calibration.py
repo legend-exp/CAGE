@@ -64,7 +64,7 @@ def main():
 
     if args["pass2"]:
         cal_mode = int(args["mode"][0]) if args["mode"] else 0
-        calibrate_pass2(ds, cal_mode)
+        calibrate_pass2(ds, cal_mode, args["writeDB"])
 
 
 def show_calDB(fdb):
@@ -73,7 +73,8 @@ def show_calDB(fdb):
     """
     calDB = db.TinyDB(fdb)
     query = db.Query()
-    table = calDB.table("cal_pass1")
+    # table = calDB.table("cal_pass1")
+    table = calDB.table("cal_pass2")
     df = pd.DataFrame(table.all())
     print(df)
 
@@ -231,7 +232,7 @@ def calibrate_pass1(ds, etype="e_ftp", write_db=False, test=False):
             table.upsert(row, query.ds == dset)
 
 
-def calibrate_pass2(ds, mode):
+def calibrate_pass2(ds, mode, write_db=False):
     """
     Load first-pass constants from the calDB for this DataSet, and the list of 
     peaks we want to fit from the runDB, and fit the PPC peakshape to each one.
@@ -261,6 +262,9 @@ def calibrate_pass2(ds, mode):
     cal_opts = ds.get_p1cal_pars(etype)
     pk_lim = cal_opts["peak_lim_keV"]
     # pk_thresh = cal_opts["peakdet_thresh"]
+
+    fits = {}
+    pk_names = ds.runDB["pks"]
 
     # loop over a list of peaks we assume are always present
     for e_peak in sorted(ds.runDB["main_peaks"], reverse=True):
@@ -298,11 +302,14 @@ def calibrate_pass2(ds, mode):
                 diff = (pf.gauss_lin(xE[i], *xF) - hE[i])**2 / pf.gauss_lin(xE[i], *xF)
                 chisq.append(abs(diff))
             results["chisq_ndf"] = sum(np.array(chisq) / len(hE))
+            
+            # update DB results
+            fits[pk_names[str(e_peak)]] = results
         
         # -- run peakshape function fit (+ linear bkg term) -- 
         elif mode == 1:
             
-            # peakshape parameters: mu, sigma, hstep, htail, tau, bg0, amp
+            # peakshape parameters: mu, sigma, hstep, htail, tau, bg0, a=1
             hstep = 0.001 # fraction that the step contributes
             htail = 0.1
             amp = np.sum(hE)
@@ -312,17 +319,22 @@ def calibrate_pass2(ds, mode):
             
             xF, xF_cov = pf.fit_hist(pf.radford_peak, hE, xE, var=vE, guess=x0)
             
-            # mu, sigma, hstep, htail, tau, bg0, a=1
             results = {
                 "e_fit" : xF[0],
                 "fwhm" : xF[1] * 2.355
                 # ...
             }
+            chisq = []
+            for i, h in enumerate(hE):
+                diff = (pf.radford_peak(xE[i], *xF) - hE[i])**2 / pf.radford_peak(xE[i], *xF)
+                chisq.append(abs(diff))
+            results["chisq_ndf"] = sum(np.array(chisq) / len(hE))
             
-        # save fit results to calDB
-        
+            # update DB results
+            fits[pk_names[str(e_peak)]] = results
 
-        # make the plot
+
+        # -- plot the fit -- 
         plt.axvline(e_peak, c='g')
 
         if mode==0:
@@ -353,12 +365,29 @@ def calibrate_pass2(ds, mode):
         plt.xlabel("Energy (keV)", ha='right', x=1)
         plt.ylabel("Counts", ha='right', y=1)
         plt.legend()
-        plt.show()
+        # plt.show()
+        plt.savefig("./plots/cage_ds3_pass2cal.pdf")
         
         
-        # exit()
+    if write_db:
+        calDB = ds.calDB
+        query = db.Query()
+        table = calDB.table("cal_pass2")
         
-    
+        # collapse data to 1 row
+        row = {}
+        for pk in fits:
+            for key, val in fits[pk].items():
+                row[f"{key}_{pk}"] = val
+                
+        # write an entry for every dataset.  if we've chained together
+        # multiple datasets, the values will be the same.
+        # use "upsert" to avoid writing duplicate entries.
+        for dset in ds.ds_list:
+            table.upsert(row, query.ds == dset)
+
+        print("wrote results to DB.")
+        
 
 if __name__=="__main__":
     main()
