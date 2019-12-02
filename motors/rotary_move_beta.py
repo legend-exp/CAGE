@@ -70,7 +70,7 @@ def rotary_program():
     if load == 0:
         c('DPD=0')
     c('ACD=300000')
-    c('BCD=300000')
+    c('DCD=300000')
     print(' Starting move...')
 
     if checks != 0:
@@ -191,9 +191,9 @@ def zero_rotary_motor():
     c('AB')
     c('MO')
     c('SHD')
-    c('SPD=300000')
-    c('ACD=300000')
-    c('BCD=300000')
+    c('SPD=50000')
+    c('ACD=50000')
+    c('BCD=50000')
     print(' Starting move...')
 
     try:
@@ -236,7 +236,7 @@ def zero_rotary_motor():
 
 def rotary_read_pos():
 
-    shell = spur.SshShell(hostname="10.66.193.74",
+    shell = spur.SshShell(hostname="10.66.193.75",
                             username="pi", password="raspberry")
 
     with shell:
@@ -248,7 +248,7 @@ def rotary_read_pos():
 
 def rotary_set_zero():
 
-    shell = spur.SshShell(hostname="10.66.193.74",
+    shell = spur.SshShell(hostname="10.66.193.75",
                             username="pi", password="raspberry")
 
     with shell:

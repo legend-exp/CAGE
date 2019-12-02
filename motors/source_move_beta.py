@@ -268,7 +268,7 @@ def center_source_motor():
 
 def source_read_pos():
 
-    shell = spur.SshShell(hostname="10.66.193.74",
+    shell = spur.SshShell(hostname="10.66.193.75",
                             username="pi", password="raspberry")
 
     with shell:
@@ -280,7 +280,7 @@ def source_read_pos():
 
 def source_set_zero():
 
-    shell = spur.SshShell(hostname="10.66.193.74",
+    shell = spur.SshShell(hostname="10.66.193.75",
                             username="pi", password="raspberry")
 
     with shell:
