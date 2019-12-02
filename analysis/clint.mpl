@@ -14,6 +14,8 @@ legend.handlelength : 1
 axes.titlesize : 17
 axes.labelsize : 15
 axes.linewidth : 1
+axes.grid : True
+grid.linestyle : :
 xtick.labelsize : 14 # font size of tick labels
 xtick.direction : in
 ytick.direction : in
