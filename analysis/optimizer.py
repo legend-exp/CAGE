@@ -20,10 +20,11 @@ def main():
     # window_ds()
     
     # values to loop over -- might want to zip them together into tuples
-    rise_times = [1, 2, 3, 4, 5]
+    # rise_times = [1, 2, 3, 4, 5]
+    rise_times = np.arange(1, 6, 0.2)
     
-    process_ds(rise_times)
-    optimize_trap(rise_times, True)
+    # process_ds(rise_times)
+    optimize_trap(rise_times, test=False)
     
     
 def window_ds():
@@ -155,19 +156,17 @@ def optimize_trap(rise_times, test=False):
     opt_file = f"{out_dir}/cage_ds3_optimize.h5"
     print("input file:", opt_file)
     
-    # match keys to settings; should maybe do this in prev function as attrs.
-    with pd.HDFStore(opt_file, 'r') as store:
-        keys = [key[1:] for key in store.keys()]  # remove leading '/'
-        settings = {keys[i] : rise_times[i] for i in range(len(keys))}
-    pprint(settings)
-    exit()
-    
+    # match dataframe keys to rise time values
+    df_keys = [f"opt_{i}" for i in range(len(rise_times))]
+
     # loop over the keys and fit each e_ftp spectrum to the peakshape function
-    fwhms = {}
-    for key, rt in settings.items():
+    results = {}
+    for i in range(len(rise_times)):
         
+        key = f"opt_{i}"
+        rt = rise_times[i]
         t2df = pd.read_hdf(opt_file, key=key)
-        
+    
         # histogram spectrum near the uncalibrated peak -- have to be careful here
         xlo, xhi, xpb = 2550, 2660, 1
         hE, xE, vE = ph.get_hist(t2df["e_ftp"], range=(xlo, xhi), dx=xpb, trim=False)
@@ -184,7 +183,7 @@ def optimize_trap(rise_times, test=False):
         
         xF, xF_cov = pf.fit_hist(pf.radford_peak, hE, xE, var=vE, guess=x0)
         
-        fwhms[key] = xF[1] * 2.355
+        results[key] = (xF[1] * 2.355, rt)
 
         if test:
             plt.cla()
@@ -205,13 +204,28 @@ def optimize_trap(rise_times, test=False):
             # plt.plot(xE, tail_lo, ls='--', lw=2, c='k', label='tail_lo')
         
             plt.plot(xE[1:], hE, ls='steps', lw=1, c='b', label="data")
-            plt.plot(np.nan, np.nan, c='w', label=f"fwhm = {results['fwhm']:.2f} uncal.")
+            plt.plot(np.nan, np.nan, c='w', label=f"fwhm = {results[key][0]:.2f} uncal.")
+            plt.plot(np.nan, np.nan, c='w', label=f"rt = {rt:.2f} us")
         
             plt.xlabel("Energy (uncal.)", ha='right', x=1)
             plt.ylabel("Counts", ha='right', y=1)
             plt.legend(loc=2)
             
             plt.show()
+            
+    # make the FWHM^2 vs risetime plot
+    # pprint(results)
+    
+    fwhms = [results[key][0]**2 for key in results]
+    rts = [results[key][1] for key in results]
+    
+    plt.plot(rts, fwhms, ".", c='b')
+    plt.xlabel("Ramp time (us)", ha='right', x=1)
+    plt.ylabel(r"FWHM$^2$", ha='right', y=1)
+    
+    # plt.show()
+    plt.savefig("./plots/cage_ds3_fwhm2.pdf")
+            
             
 
     
