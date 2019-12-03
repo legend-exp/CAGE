@@ -36,20 +36,9 @@ def main():
     arg("-pr", "--printDB", action=st, help="print calibration results in DB")
     args = vars(par.parse_args())
 
-    # -- declare the DataSet --
-    if args["ds"]:
-        ds_lo = int(args["ds"][0])
-        try:
-            ds_hi = int(args["ds"][1])
-        except:
-            ds_hi = None
-        ds = DataSet(ds_lo, ds_hi,
-                     md=run_db, cal=cal_db, v=args["test"])
-
-    if args["run"]:
-        ds = DataSet(run=int(args["run"][0]),
-                     md=run_db, cal=cal_db, v=args["test"])
-
+    # -- standard method to declare the DataSet from cmd line --
+    ds = pu.get_dataset_from_cmdline(args, "runDB.json", "calDB.json")
+    
     # -- start calibration routines --
     etype = args["etype"][0] if args["etype"] else "e_ftp"
 

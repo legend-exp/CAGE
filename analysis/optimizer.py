@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
 import os
+import argparse
+import time
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 plt.style.use('clint.mpl')
 from pprint import pprint
 import scipy.signal as signal
+import itertools
 
 from pygama import DataSet
 import pygama.utils as pu
@@ -15,17 +18,72 @@ import pygama.analysis.peak_fitting as pf
 
 def main():
     """
-    NOTE: We could also optimize the A trap here, it might help with A/E
     """
-    # window_ds()
     
-    # values to loop over -- might want to zip them together into tuples
-    # rise_times = [1, 2, 3, 4, 5]
-    rise_times = np.arange(1, 6, 0.2)
+    par = argparse.ArgumentParser(description="pygama dsp optimizer")
+    arg, st, sf = par.add_argument, "store_true", "store_false"
+    arg("-ds", nargs='*', action="store", help="load runs for a DS")
+    arg("-r", "--run", nargs=1, help="load a single run")
+    args = vars(par.parse_args())
+
+    # -- standard method to declare the DataSet from cmd line --
+    ds = pu.get_dataset_from_cmdline(args, "runDB.json", "calDB.json")
     
-    # process_ds(rise_times)
-    optimize_trap(rise_times, test=False)
     
+    
+    # set I/O locations
+    f_grid = "~/Data/cage/cage_optimize_resuts.h5"
+
+    if ["grid"]:
+        # set the combination of processor parameters to vary to optimize resolution
+        set_grid(f_grid)
+    
+    if["window"]:
+        # generate a small single-peak file w/ uncalibrated energy
+        window_ds(ds)
+    
+    # create an hdf5 file with DataFrames for each set of parameters
+    # process_ds(f_grid)
+    
+    # fit all outputs to the peakshape function and find the best resolution
+    # get_fwhm(f_grid, test=False)
+    
+    # show results
+    plot_fwhm()
+    
+    
+def set_grid():
+    """
+    to get the best energy resolution, we want to explore the possible values
+    of our DSP processor list, especially trap filter and RC decay constants.
+    
+    a flexible + easy way to vary a bunch of parameters at once is to create
+    a DataFrame with each row corresponding to a set of parameters.  
+    We then use this DF as an input/output for the other functions.
+    
+    it could also easily be extended to loop over detector channels, or vary
+    any other set of parameters in the processor list ......
+    """
+    # # this is pretty ambitious, but maybe doable -- 3500 entries
+    # e_rises = np.arange(1, 6, 0.2)
+    # e_flats = np.arange(0.5, 4, 0.5)
+    # rc_consts = np.arange(50, 150, 5) # ~same as MJD charge trapping correction
+    
+    # this runs more quickly -- 100 entries, 3 minutes on my mac
+    e_rises = np.arange(2, 3, 0.2)
+    e_flats = np.arange(1, 3, 1)
+    rc_consts = np.arange(52, 152, 10)
+    
+    lists = [e_rises, e_flats, rc_consts]
+    
+    prod = list(itertools.product(*lists)) # clint <3 stackoverflow
+    
+    df = pd.DataFrame(prod, columns=['rise','flat','rc']) 
+    
+    # print(df)
+    
+    return df
+
     
 def window_ds():
     """
@@ -84,10 +142,13 @@ def window_ds():
     print("wrote file:", f_tier1)
 
 
-def process_ds(rise_times):
+def process_ds(df_grid):
     """
     and determine the trapezoid parameters that minimize
     the FWHM of the peak (fitting to the peakshape function).
+    
+    NOTE: I don't think we need to multiprocess this, since that's already
+    being done in ProcessTier1
     """
     from pygama.dsp.base import Intercom
     from pygama.io.tier1 import ProcessTier1
@@ -107,12 +168,21 @@ def process_ds(rise_times):
         os.remove(opt_file)
         
     # check the windowed file
-    tmp = pd.read_hdf(t1_file)
-    nevt = len(tmp)
+    # tmp = pd.read_hdf(t1_file)
+    # nevt = len(tmp)
 
-    rc_decay = 72
-    
-    for i, rt in enumerate(rise_times):
+    t_start = time.time()
+    for i, row in df_grid.iterrows():
+        
+        # estimate remaining time in scan
+        if i == 4:
+            diff = time.time() - t_start
+            tot = diff/5 * len(df_grid) / 60
+            tot -= diff / 60
+            print(f"Estimated remaining time: {tot:.2f} mins")
+        
+        rise, flat, rc = row
+        print(f"Row {i}/{len(df_grid)},  rise {rise}  flat {flat}  rc {rc}")
         
         # custom tier 1 processor list -- very minimal
         proc_list = {
@@ -121,9 +191,9 @@ def process_ds(rise_times):
             "blsub" : {},
             "trap" : [
                 {"wfout":"wf_etrap", "wfin":"wf_blsub", 
-                 "rise":rt, "flat":2.5, "decay":rc_decay},
+                 "rise":rise, "flat":flat, "decay":rc},
                 {"wfout":"wf_atrap", "wfin":"wf_blsub", 
-                 "rise":0.04, "flat":0.1, "fall":2}
+                 "rise":0.04, "flat":0.1, "fall":2} # could vary these too
                 ],
             "get_max" : [{"wfin":"wf_etrap"}, {"wfin":"wf_atrap"}],
             # "ftp" : {"test":1}
@@ -135,6 +205,7 @@ def process_ds(rise_times):
         dig.decoder_name = "df_windowed"
         dig.class_name = None
         
+        # process silently
         ProcessTier1(t1_file, proc, output_dir=out_dir, overwrite=True, 
                      verbose=False, multiprocess=True, nevt=np.inf, ioff=0, 
                      chunk=ds.runDB["chunksize"], run=first_run, 
@@ -146,27 +217,28 @@ def process_ds(rise_times):
         t2df.to_hdf(opt_file, df_key)
 
 
-def optimize_trap(rise_times, test=False):
+def get_fwhm(df_grid, test=False):
     """
-    duplicate the plot from Figure 2.7 of Kris Vorren's thesis.
-    need to fit the e_ftp peak to the HPGe peakshape function (same as in
-    calibration.py) and plot the resulting FWHM^2 vs. the ramp time.
+    duplicate the plot from Figure 2.7 of Kris Vorren's thesis (and much more!)
+    
+    this code fits the e_ftp peak to the HPGe peakshape function (same as in
+    calibration.py) and writes a new column to df_grid, "fwhm".
     """
     out_dir = "~/Data/cage"
     opt_file = f"{out_dir}/cage_ds3_optimize.h5"
     print("input file:", opt_file)
     
-    # match dataframe keys to rise time values
-    df_keys = [f"opt_{i}" for i in range(len(rise_times))]
-
+    # declare a new column for resolution in df_grid
+    df_grid["fwhm"] = np.nan
+    
     # loop over the keys and fit each e_ftp spectrum to the peakshape function
-    results = {}
-    for i in range(len(rise_times)):
+    for i, row in df_grid.iterrows():
         
         key = f"opt_{i}"
-        rt = rise_times[i]
-        t2df = pd.read_hdf(opt_file, key=key)
-    
+        rise, flat, rc = row
+        
+        t2df = pd.read_hdf(opt_file, key=f"opt_{i}")
+        
         # histogram spectrum near the uncalibrated peak -- have to be careful here
         xlo, xhi, xpb = 2550, 2660, 1
         hE, xE, vE = ph.get_hist(t2df["e_ftp"], range=(xlo, xhi), dx=xpb, trim=False)
@@ -182,12 +254,16 @@ def optimize_trap(rise_times, test=False):
         x0 = [mu, sigma, hstep, htail, tau, bg0, amp]
         
         xF, xF_cov = pf.fit_hist(pf.radford_peak, hE, xE, var=vE, guess=x0)
-        
-        results[key] = (xF[1] * 2.355, rt)
+
+        # update the master dataframe with the resolution value
+        df_grid.at[i, "fwhm"] = xF[1] * 2.355
 
         if test:
-            plt.cla()
+            # plot every dang fit 
+            print(row)
             
+            plt.cla()
+
             # peakshape function
             plt.plot(xE, pf.radford_peak(xE, *x0), c='orange', label='guess')
             plt.plot(xE, pf.radford_peak(xE, *xF), c='r', label='peakshape')
@@ -213,6 +289,10 @@ def optimize_trap(rise_times, test=False):
             
             plt.show()
             
+            
+def plot_fwhm():
+    """
+    """
     # make the FWHM^2 vs risetime plot
     # pprint(results)
     
@@ -220,6 +300,7 @@ def optimize_trap(rise_times, test=False):
     rts = [results[key][1] for key in results]
     
     plt.plot(rts, fwhms, ".", c='b')
+    
     plt.xlabel("Ramp time (us)", ha='right', x=1)
     plt.ylabel(r"FWHM$^2$", ha='right', y=1)
     
