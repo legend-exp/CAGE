@@ -42,11 +42,11 @@ def main():
     db_cursor = db_conn.cursor()
     
     # -- run analysis -- 
-    # get_endpoints()
+    get_endpoints()
     # get_cooldown_data()
     # plot_cooldown_data()
     
-    get_temp()
+    # get_temp()
     
 
 def get_endpoints():

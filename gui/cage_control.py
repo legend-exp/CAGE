@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 import sys
-sys.path.insert(1, '/Users/timmeh08/software/CAGE/motors')
 import time
 import json
 import argparse
@@ -8,7 +7,6 @@ import psycopg2
 import collections
 import pika
 import numpy as np
-from functools import partial
 from pprint import pprint
 import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
@@ -22,11 +20,6 @@ from PyQt5 import QtGui
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 
-from source_move_beta import *
-from linear_move_beta import *
-from rotary_move_beta import *
-from motor_movement_beta import movement_program
-
 
 # === PRIMARY EVENT LOOP =======================================================
 
@@ -37,35 +30,35 @@ def main():
     arg, st, sf = par.add_argument, 'store_true', 'store_false'
     arg('-d', '--debug', action=st, help='debug mode')
     args = vars(par.parse_args())
-
+    
     # create the main application
     app = pg.mkQApp()
     pg.setConfigOption('background', 'k')
     pg.setConfigOption('foreground', 'w')
-
+    
     # declare main window
     cm = CAGEMonitor()
 
     # debug a single plot widget
     # rp = RabbitPlot(["cage_pressure"], "2019-10-04T17:30", "now")
-
+    
     # connect the RabbitPlot emit signal for live updating
     pool = QThreadPool()
     listener = RabbitListener()
     listener.signals.target.connect(cm.dbmon.rp.update_data)
     pool.start(listener)
-
+        
     # start the main Qt loop
     if not args["debug"]:
         exit(app.exec_())
-
+    
 
 # === PRIMARY GUI WINDOW =======================================================
 
 class CAGEMonitor(QMainWindow):
     """
     we use a tabbed main window, to organize widgets for each subsystem.
-
+    
     TODO: add ability to drag tabs to separate windows, and also reattach:
     https://stackoverflow.com/questions/48901854/is-it-possible-to-drag-a-qtabwidget-and-open-a-new-window-containing-whats-in-t
     """
@@ -73,27 +66,20 @@ class CAGEMonitor(QMainWindow):
         super().__init__()
         self.setWindowTitle('CAGE Detector Monitor')
         self.setGeometry(0, 0, 1200, 800)
-
+        
         tabs = QTabWidget()
 
         # tab 1 -- db monitor
         self.dbmon = DBMonitor()
         tabs.addTab(self.dbmon,"DB Monitor")
-
+        
         # tab 2 -- motor controller
-        st2 = MotorMonitor()
+        # st2 = MotorMonitor()
         # st2 = QWidget() # blank
-<<<<<<< HEAD
-        tabs.addTab(st2,"Motor Controller")
-
-        # tab 3 -- MJ60 DB monitor?
-        # also need an HV biasing & interlock widget
-=======
         # tabs.addTab(st2,"Motor Controller")
-
+        
         # tab 3 -- detector / DB control.  dragonfly reporting, interlock status, etc.
         # also would like an HV biasing (auto-ramp) & interlock status widget
->>>>>>> 4d937e6858466d5808f277f806f3e4ae316bc253
 
         self.setCentralWidget(tabs)
         self.show()
@@ -103,21 +89,21 @@ class DBMonitor(QWidget):
     """
     DBMonitor is a grid of QWidgets, displayed in a tab of CAGEMonitor.
     Available data streams are "endpoints": mj60_baseline, cage_pressure, etc.
-
+    
     TODO: add moveable cross hairs, check the crosshair.py example
-
+    
     TODO: multiple endpoint view.
-    since endpoints have different units and y-ranges, let's make it s/t each
-    box that's checked in `Endpoint Select' gets its OWN plot, and the
-    QGridLayout is automatically re-organized to fit more and more plots in
+    since endpoints have different units and y-ranges, let's make it s/t each 
+    box that's checked in `Endpoint Select' gets its OWN plot, and the 
+    QGridLayout is automatically re-organized to fit more and more plots in 
     column 1, every time the user hits "Query DB".
     """
     def __init__(self):
         super().__init__()
         self.show()
-
+        
         print("Connecting to DB ...")
-
+        
         # establish a postgres connection
         with open("config.json") as f:
             self.config = json.load(f)
@@ -132,85 +118,67 @@ class DBMonitor(QWidget):
 
         # get a list of all available endpoints in the DB
         self.cursor.execute("SELECT * FROM endpoint_id_map;")
-
+        
         self.endpt_types = {}
         for rec in self.cursor.fetchall():
             self.endpt_types[rec[1]] = rec[2]
         self.endpt_list = [key for key in self.endpt_types]
-
+        
         self.endpts_enabled = []
         for endpt in self.endpt_types:
             self.endpts_enabled.append({'name':endpt, 'type':'bool', 'value':False})
-
-<<<<<<< HEAD
-        self.endpts_enabled[10]['value'] = True
-
-        # default time window of 1 day
-        t_later = datetime.utcnow()
-        t_earlier = datetime.utcnow() - timedelta(hours=4)
-=======
-        # debug: monitor mj60 by default.  1: baseline  2: pressure
-        # 10: cage_pressure
+        
         self.endpts_enabled[1]['value'] = True
-
-        # default time window
+            
+        # default time window 
         t_later = datetime.utcnow()
-        t_earlier = datetime.utcnow() - timedelta(hours=.15)
->>>>>>> 4d937e6858466d5808f277f806f3e4ae316bc253
-
+        t_earlier = datetime.utcnow() - timedelta(hours=2)
+        
         # create a parameter tree widget from the DB endpoints
         pt_initial = [
-            {'name': 'Run Query', 'type': 'group',
+            {'name': 'Run Query', 'type': 'group', 
              'children': [
                {'name': 'Date (earlier)', 'type':'str', 'value': t_earlier.isoformat()},
                {'name': 'Date (later)', 'type':'str', 'value': "now"},
                {'name': 'Query DB', 'type': 'action'}
             ]},
-            {'name': 'Endpoint Select', 'type': 'group',
+            {'name': 'Endpoint Select', 'type': 'group', 
              'children': self.endpts_enabled
             }]
         self.p = Parameter.create(name='params', type='group', children=pt_initial)
         self.pt = ParameterTree()
         self.pt.setParameters(self.p, showTop=False)
-
+        
         # connect a simple function
         self.p.sigTreeStateChanged.connect(self.tree_change)
 
-
+        
         # ---- PLOTTING ----
-
-        # -- create a wabbit plot --
+        
+        # -- create a wabbit plot -- 
         # pass our intitial list of endpoints to this
         self.rp = RabbitPlot(self.endpts_enabled, t_earlier, t_later, self.cursor)
-
+        
         # reinitialize the plot when the user clicks the "Query DB" button.
         # TODO: add a flag w/ functools partial to turn live update on/off
-<<<<<<< HEAD
         self.p.param('Run Query', 'Query DB').sigActivated.connect(self.rp.__init__)
-=======
-        # self.p.param('Run Query', 'Query DB').sigActivated.connect(self.rp.__init__)
-        call = partial(self.rp.__init__, self.endpts_enabled, t_earlier, t_later, self.cursor)
-        self.p.param('Run Query', 'Query DB').sigActivated.connect(call)
-
-        # TODO: connect to self.reset_plot here so it's more flexible
->>>>>>> 4d937e6858466d5808f277f806f3e4ae316bc253
-
+        
         # could put a second plot with an independent parameter tree here,
-        # that listens to the same (or different?) rabbit queue.
+        # that listens to the same (or different?) rabbit queue.  
 
-
+        
         # ---- LAYOUT ----
         # https://doc.qt.io/archives/qt-4.8/qgridlayout.html#public-functions
         # NOTE: addWidget(widget, fromRow, fromColumn, rowSpan, columnSpan)
         layout = QGridLayout(self)
         layout.setColumnStretch(0, 2) # stretch column 0 by 2
-        layout.setColumnStretch(1, 5)
+        layout.setColumnStretch(1, 5) 
         layout.addWidget(self.pt, 0, 0)
-        layout.addWidget(self.rp, 0, 1)
+        layout.addWidget(self.rp, 0, 1) 
         # layout.addWidget(plot2, 2, 1, 2, 2)
         self.setLayout(layout)
-
-
+        
+        
     def tree_change(self, param, changes):
         """
         print a message anytime something in the tree changes.
@@ -221,71 +189,8 @@ class DBMonitor(QWidget):
             print(f'  parameter: {child_name}')
             print(f'  change:    {change}')
             print(f'  data:      {str(data)}')
-
-<<<<<<< HEAD
-
-# ========= MOTOR CONTROLS =====================================================
-
-class MotorMonitor(QWidget):
-
-    def __init__(self):
-        super().__init__()
-        self.layout = QHBoxLayout(self)
-        self.show()
-        # self.ctr_widget = DMotorWindow(self)
-        # self.setCentralWidget(self.ctr_widget)
-        self.pushButton1 = QPushButton('Movement Program')
-        self.pushButton2 = QPushButton('Linear Stage')
-        self.pushButton3 = QPushButton('Source Motor')
-
-
-        self.layout.addWidget(self.pushButton1)
-        self.layout.addWidget(self.pushButton2)
-        self.layout.addWidget(self.pushButton3)
-        self.setLayout(self.layout)
-
-        self.pushButton1.clicked.connect(self.movement_click)
-        self.pushButton2.clicked.connect(self.linear_click)
-        self.pushButton3.clicked.connect(self.source_click)
-
-    @pyqtSlot()
-    def movement_click(self):
-        movement_program()
-    def linear_click(self):
-        linear_program()
-    def source_click(self):
-        source_program()
-
-        pt_initial = [
-        #     {'name': 'Run Query', 'type': 'group',
-        #      'children': [
-        #        {'name': 'Date (earlier)', 'type':'str', 'value': t_earlier.isoformat()},
-        #        {'name': 'Date (later)', 'type':'str', 'value': "now"},
-        #        {'name': 'Query DB', 'type': 'action'}
-        #     ]},
-        #     {'name': 'Endpoint Select', 'type': 'group',
-        #      'children': self.endpts_enabled
-        #     }]
-        # self.p = Parameter.create(name='params', type='group', children=pt_initial)
-        # self.pt = ParameterTree()
-        # self.pt.setParameters(self.p, showTop=False)
-        #
-        # # connect a simple function
-        # self.p.sigTreeStateChanged.connect(self.tree_change)
-
-=======
-    def reset_plot(self):
-        # placeholder -- put more stuff here
-        # need to tell DBMonitor to re-draw its layout here based on the number
-        # of active endpoints.
-        print('hi clint')
-        self.rp.__init__(self.endpts_enabled, t_earlier, t_later, self.cursor)
-
-
-
-
-
->>>>>>> 4d937e6858466d5808f277f806f3e4ae316bc253
+            
+    
 
 # === RABBITMQ LIVE DB PLOT ====================================================
 
@@ -293,31 +198,30 @@ class RabbitPlot(pg.PlotWidget):
     def __init__(self, endpoints, t_earlier=None, t_later=None, db_cursor=None):
         super().__init__()
         self.show()
-
+        
         self.n_days = 1
         self.n_deque = 10000 # should add a check if one exceeds the other
         self.cursor = db_cursor
-
+        
         # declare endpoints of interest
         self.endpoints = [ept['name'] for ept in endpoints if ept["value"]]
         self.t_earlier = t_earlier
         self.t_later = t_later
-
+        
         # data for each endpoint goes into circular buffers (aka deques)
         self.deques = {}
         self.plots = {}
-
+        
         # set up plot colors (0.0: black, 1.0: white)
-        print("found endpoints", len(self.endpoints))
         colors = np.arange(0.2, 1.0, len(self.endpoints))
-
+        
         # set up deques and plots
         for i, ept in enumerate(self.endpoints):
             self.deques[ept] = collections.deque([], maxlen=self.n_deque)
             self.plots[ept] = self.plot()
             # self.plots[ept] = self.plot(symbolBrush=(255,255,255), symbolPen='w')
             self.plots[ept].setPen('g', width=3)
-
+        
         self.setLabel('left', 'Value', units="arb. units")
         self.setLabel('bottom', 'Time', units="sec")
 
@@ -326,8 +230,8 @@ class RabbitPlot(pg.PlotWidget):
 
         # run the initial DB query
         self.query_db()
-
-
+        
+        
     def query_db(self):
         """
         query DB for each endpoint, reset/fill the deques, and plot values.
@@ -340,26 +244,26 @@ class RabbitPlot(pg.PlotWidget):
             query = f"SELECT value_cal, timestamp FROM numeric_data "
             query += f"WHERE endpoint_name='{ept}' "
             query += f"AND timestamp>='{str_start}' and timestamp<='{str_end}';"
-
+            
             print("DB query is:")
             print(query)
             print("")
             self.cursor.execute(query)
             record = self.cursor.fetchall()
-
+            
             # separate value and timestamp. pyqtgraph can't handle datetime objs
             xv = np.array([r[1].timestamp() for r in record])
             yv = np.array([r[0] for r in record])
             self.t_offset = xv[0]
-
+            
             # replace the entire data list with tuples: (value, timestamp)
             self.deques[ept] = collections.deque(yv, maxlen=self.n_deque)
             self.deques[ept + "_ts"] = collections.deque(xv, maxlen=self.n_deque)
-
+            
             # show the plot in pyqtgraph
             self.plots[ept].setData(y=yv, x = xv-self.t_offset)
-
-
+            
+            
     def update_data(self, ept=None, xv=None, yv=None):
         """
         every time we get a new value from rabbit, update the plot
@@ -368,18 +272,18 @@ class RabbitPlot(pg.PlotWidget):
         """
         if ept in self.endpoints:
             ts = xv.utcnow().timestamp()
-
+            
             self.deques[ept].append(yv)
             self.deques[ept+"_ts"].append(ts)
-
+            
             # this array copy step is bad
-            self.plots[ept].setData(y=np.array(self.deques[ept]),
+            self.plots[ept].setData(y=np.array(self.deques[ept]), 
                                     x=np.array(self.deques[ept+"_ts"]))
-
+            
 
 class RabbitListener(QRunnable):
     """
-    uses QRunnable's special 'run' function to start a separate thread with a
+    uses QRunnable's special 'run' function to start a separate thread with a 
     pika connection that listens for all new messages posted to the DB.
     """
     def __init__(self):
@@ -389,33 +293,25 @@ class RabbitListener(QRunnable):
     def run(self):
         with open("config.json") as f:
             self.config = json.load(f)
-
+            
         self.cpars = pika.ConnectionParameters(host=self.config['cage_daq'])
         self.conn = pika.BlockingConnection(self.cpars)
         self.channel = self.conn.channel()
-        self.queue_name = f"cage_{np.random.randint(1e6):.2f}" # allow multiple users
+        self.queue_name = f"cage_{np.random.randint(1)}" # allow multiple users
 
-        self.channel.exchange_declare(exchange=self.config["exchange"],
+        self.channel.exchange_declare(exchange=self.config["exchange"], 
                                       exchange_type='topic')
-
-<<<<<<< HEAD
-        self.channel.queue_declare(queue=self.config['queue'],
-=======
-        self.channel.queue_declare(queue=self.queue_name,
->>>>>>> 4d937e6858466d5808f277f806f3e4ae316bc253
+        
+        self.channel.queue_declare(queue=self.queue_name, 
                                    exclusive=True)
-
+    
         # listen to everything that gets posted (.# symbol)
         self.channel.queue_bind(exchange=self.config['exchange'],
                                 queue=self.queue_name,
                                 routing_key="sensor_value.#")
 
-<<<<<<< HEAD
-        self.channel.basic_consume(queue=self.config['queue'],
-=======
-        self.channel.basic_consume(queue=self.queue_name,
->>>>>>> 4d937e6858466d5808f277f806f3e4ae316bc253
-                                   on_message_callback=self.dispatch,
+        self.channel.basic_consume(queue=self.queue_name, 
+                                   on_message_callback=self.dispatch, 
                                    auto_ack=True)
 
         self.channel.start_consuming()
@@ -425,28 +321,20 @@ class RabbitListener(QRunnable):
         endpt = method.routing_key.split(".")[-1] # split off "sensor_value."
         record = json.loads(body.decode()) # decode binary string to dict
         xv = parser.parse(record["timestamp"]) # convert to ISO string
-<<<<<<< HEAD
         yv = record["payload"]["value_cal"]
-        self.signals.target.emit(endpt, xv, yv)
-=======
-        if "value_cal" in record["payload"]:
-            yv = record["payload"]["value_cal"]
+        if not isinstance(yv, str):
             self.signals.target.emit(endpt, xv, yv)
-        # else:
-        #     print("unfamiliar value:")
-        #     pprint(record)
->>>>>>> 4d937e6858466d5808f277f806f3e4ae316bc253
-
+    
 
 class RabbitSignal(QObject):
     """
     used by RabbitListener to communicate w/ the main loop (app.exec_())
     "if you want to define your own signals, they have to be class variables"
     """
-    target = pyqtSignal(str, datetime, float)
+    target = pyqtSignal(str, datetime, float) 
 
 
-# ===
+# === 
 
 
 

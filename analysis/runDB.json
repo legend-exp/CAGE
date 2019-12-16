@@ -8,47 +8,22 @@
   "meta_dir":"$DATADIR/CAGE/metadata",
   "rocks_dir":"/data/LEGEND/Data/CAGE",
   "rocks_login":"wisecg@cenpa-rocks.npl.washington.edu",
-
   "digitizer":"ORSIS3302Model",
   "daq":"ORCA",
   "t1_prefix":"t1_run",
   "t2_prefix":"t2_run",
-
   "chunksize":1000,
   "clock":100e6,
   "rollover":1,
 
-  "pks":{
-    "238.6":"212Pb", "351.9":"214Pb", "511.0":"beta+",
-    "583.2":"208Tl", "609.3":"214Bi", "911.2":"228Ac",
-    "969.0":"228Ac", "1120.3":"214Bi", "1460.8":"40K",
-    "1764.5":"214Bi", "2614.5":"208Tl"
-  },
-  "expected_peaks":[2614.5, 1764.5, 1460.8, 583.2],
-
   "ds":{
     "note":"data sets",
-    "0":["1,3", "initial Cs+bkg runs.  2500 V, 0x10 thr.  25 MHz noise, max varcap value."]
+    "0":["1,10", "initial Cs+bkg runs.  2500 V, 0x10 thr.  25 MHz noise, max varcap value."],
+    "1":["11,14", "initial Cs+bkg runs.  2800 V, same settings otherwise"],
+    "2":["15,41", "HV pulser meas.  Cs source + bkg.  0x15.  see elog 85"],
+    "3":["42,45", "bkg runs, 2800 V, 0x10 thresh"]
   },
-
-  "ecal":{
-    "note":"inputs for each energy estimator are organized by ds",
-    "0,999999999": {
-      "e_ftp": {
-        "ds_coverage":"0, 9999",
-        "xlims":[0, 10000, 10],
-        "peakdet_thresh":100,
-        "match_thresh":0.01
-      },
-      "energy": {
-        "ds_coverage":"0, 9999",
-        "xlims":[0, 3000000, 3000],
-        "peakdet_thresh":100,
-        "match_thresh":0.01
-      }
-    }
-  },
-
+  
   "build_options":{
     "conf1":{
       "run_coverage":[0,999999],
@@ -105,6 +80,36 @@
           "trim": {"n_pre":100, "n_post":1000},
           "peakdet_test":{"delta":1.5, "sigma":0, "ihi":600},
           "trap_test":{"rise":4, "flat":2, "fall":4, "decay":72}
+      }
+    }
+  },
+  
+  "expected_peaks":[2614.5, 1764.5, 1460.8, 583.2],
+  "main_peaks":[2614.5, 1460.8],
+  
+  "pks":{
+    "238.6":"212Pb", "351.9":"214Pb", "511.0":"beta+",
+    "583.2":"208Tl", "609.3":"214Bi", "911.2":"228Ac",
+    "969.0":"228Ac", "1120.3":"214Bi", "1460.8":"40K",
+    "1764.5":"214Bi", "2614.5":"208Tl"
+  },
+  
+  "ecal":{
+    "note":"inputs for each energy estimator are organized by ds",
+    "0,999999999": {
+      "e_ftp": {
+        "ds_coverage":"0, 9999",
+        "xlims":[0, 10000, 10],
+        "peakdet_thresh":100,
+        "match_thresh":0.01,
+        "width_thresh":99,
+        "peak_lim_keV":40
+      },
+      "energy": {
+        "ds_coverage":"0, 9999",
+        "xlims":[0, 3000000, 3000],
+        "peakdet_thresh":100,
+        "match_thresh":0.01
       }
     }
   }
