@@ -7,7 +7,7 @@ as well as some customized parameter types
 """
 
 
-import initExample ## Add path to library (just for examples; you do not need this)
+# import initExample ## Add path to library (just for examples; you do not need this)
 
 import pyqtgraph as pg
 from pyqtgraph.Qt import QtCore, QtGui

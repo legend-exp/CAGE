@@ -34,10 +34,10 @@ def rotary_program():
     while (zero > 10) and (zero < 16374):
         zero = rotary_set_zero()
 
-    load = int(input(' If you are starting a move, type 0. \n If you are moving back to 0 position, type 1 \n -->'))
+    load = int(input(' If you are starting a move, type 0. \n If you are moving back to 0 position, type 1(test, do not use) \n -->'))
 
     if load == 0:
-        angle = float(input(' How many degrees would you like to rotate the rotary motor?\n -->'))
+        angle = float(input(' How many degrees would you like to rotate the rotary motor?\n NOTE:negative angles rotate away from limit switch \n -->'))
         pos = np.asarray([angle])
         np.savez('rotary_pos', pos)
     if load == 1:

@@ -34,7 +34,7 @@ def linear_program():
     while (zero > 10) and (zero < 16374):
         zero = linear_set_zero()
 
-    load = int(input(' If you are starting a move, type 0. \n If you are moving back to 0 position, type 1 \n -->'))
+    load = int(input(' If you are starting a move, type 0. \n If you are moving back to 0 position,(test, do not use) type 1 \n -->'))
 
     if load == 0:
         mm = float(input(' How many mm would you like to move the linear motor?\n -->'))
