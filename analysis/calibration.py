@@ -36,9 +36,20 @@ def main():
     arg("-pr", "--printDB", action=st, help="print calibration results in DB")
     args = vars(par.parse_args())
 
-    # -- standard method to declare the DataSet from cmd line --
-    ds = pu.get_dataset_from_cmdline(args, "runDB.json", "calDB.json")
-    
+
+    if args["ds"]:
+        ds_lo = int(args["ds"][0])
+        try:
+            ds_hi = int(args["ds"][1])
+        except:
+            ds_hi = None
+        ds = DataSet(ds_lo, ds_hi,
+                     md=run_db, cal=cal_db, v=args["test"])
+
+    if args["run"]:
+        ds = DataSet(run=int(args["run"][0]), sub='none',
+                     md=run_db, cal=cal_db, v=args["test"])
+
     # -- start calibration routines --
     etype = args["etype"][0] if args["etype"] else "e_ftp"
 
@@ -46,7 +57,7 @@ def main():
         show_calDB(cal_db) # print current DB status
 
     if args["spec"]:
-        show_spectrum(ds, etype) 
+        show_spectrum(ds, etype)
 
     if args["pass1"]:
         calibrate_pass1(ds, etype, args["writeDB"], args["test"])
@@ -72,19 +83,19 @@ def show_spectrum(ds, etype="e_ftp"):
     """
     display the raw spectrum of an (uncalibrated) energy estimator,
     use it to tune the x-axis range and binning in preparation for
-    the first pass calibration.  
-    
-    TODO -- it would be neat to use this function to display an estimate for 
-    the peakdet threshold we need later in the code, based on the number of 
+    the first pass calibration.
+
+    TODO -- it would be neat to use this function to display an estimate for
+    the peakdet threshold we need later in the code, based on the number of
     counts in each bin or something ...
     """
     t2df = ds.get_t2df()
     print(t2df.columns)
     ene = "e_ftp"
-    
+
     # built-in pandas histogram
     # t2df.hist(etype, bins=1000)
-    
+
     # pygama histogram
     xlo, xhi, xpb = 0, 6000, 10 # gamma spectrum
     hE, xE = ph.get_hist(t2df[ene], range=(xlo, xhi), dx=xpb)
@@ -93,22 +104,22 @@ def show_spectrum(ds, etype="e_ftp"):
     plt.xlabel("Energy (uncal.)", ha='right', x=1)
     plt.ylabel("Counts", ha='right', y=1)
     plt.show()
-    
+
 
 def calibrate_pass1(ds, etype="e_ftp", write_db=False, test=False):
     """
     Run a "first guess" calibration of an arbitrary energy estimator.
 
     Uses a peak matching algorithm based on finding ratios of uncalibrated (u)
-    and "true, keV-scale" (e) energies.  
+    and "true, keV-scale" (e) energies.
     We run peakdet to find the maxima in the spectrum, then compute all ratios:
         - e1/e2, u1/u2, ..., u29/u30 etc.
-    We find the subset of uncalibrated ratios (u7/u8, ... etc) that match the 
+    We find the subset of uncalibrated ratios (u7/u8, ... etc) that match the
     "true" ratios, and compute a calibration constant for each.
-    
-    Then for each uncalibrated ratio, we assume it to be true, then loop over 
+
+    Then for each uncalibrated ratio, we assume it to be true, then loop over
     the expected peak positions.
-    
+
     We shift the uncalibrated peaks so that the true peak would be very close
     to 0, and calculate its distance from 0.  The "true" calibration constant
     will minimize this value for all ratios, and this is the one we select.
@@ -223,30 +234,30 @@ def calibrate_pass1(ds, etype="e_ftp", write_db=False, test=False):
 
 def calibrate_pass2(ds, mode, write_db=False):
     """
-    Load first-pass constants from the calDB for this DataSet, and the list of 
+    Load first-pass constants from the calDB for this DataSet, and the list of
     peaks we want to fit from the runDB, and fit the PPC peakshape to each one.
-    
+
     Apply pygama fit functions developed in pygama.analysis.peak_fitting
-    
-    TODO: 
-    Make a new table in the calDB for each DataSet, "cal_pass2", that 
-    holds fit results, etc.  These should be used as inputs for the 
+
+    TODO:
+    Make a new table in the calDB for each DataSet, "cal_pass2", that
+    holds fit results, etc.  These should be used as inputs for the
     MultiPeakFitter calibration code (pass 3).
     """
     etype, ecal = "e_ftp", "e_cal"
-    
+
     # load calibration database file with tinyDB and convert to pandas
     calDB = ds.calDB
     query = db.Query()
     table = calDB.table("cal_pass1").all()
     df_cal = pd.DataFrame(table) # <<---- omg awesome
-    
+
     # apply calibration from db to tier 2 dataframe
     df_cal = df_cal.loc[df_cal.ds.isin(ds.ds_list)]
     p1cal = df_cal.iloc[0]["p1cal"]
     t2df = ds.get_t2df()
     t2df[ecal] = t2df[etype] * p1cal # create a new column
-    
+
     # get additional options from the config file
     cal_opts = ds.get_p1cal_pars(etype)
     pk_lim = cal_opts["peak_lim_keV"]
@@ -261,21 +272,21 @@ def calibrate_pass2(ds, mode, write_db=False):
         # histogram the spectrum near the peak
         xlo, xhi, xpb = e_peak - pk_lim, e_peak + pk_lim, 1
         hE, xE, vE = ph.get_hist(t2df[ecal], range=(xlo, xhi), dx=xpb, trim=False)
-        
+
         # run peakdet and measure the difference between expected & calibrated
         # maxes, mins = pu.peakdet(hE, pk_thresh, xE)
         # diffs = [e_peak - pk_val[0] for pk_val in maxes]
         # pk_min, i_min = min((v, i) for (i, v) in enumerate(diffs))
         # print(e_peak, pk_min, i_min)
-        
-        # -- run gaussian fit (gauss + linear bkg term) -- 
+
+        # -- run gaussian fit (gauss + linear bkg term) --
         if mode == 0:
-            
+
             # mu, sigma, a, b, m
             # TODO: could set initial sigma w. some simple linear function
             x0 = [e_peak, 5, np.sum(hE), np.mean(hE[:50]), 1]
-            
-            xF, xF_cov = pf.fit_hist(pf.gauss_lin, hE, xE, var=np.ones(len(hE)), 
+
+            xF, xF_cov = pf.fit_hist(pf.gauss_lin, hE, xE, var=np.ones(len(hE)),
                                      guess=x0)
             results = {
                 "e_fit" : xF[0],
@@ -291,13 +302,13 @@ def calibrate_pass2(ds, mode, write_db=False):
                 diff = (pf.gauss_lin(xE[i], *xF) - hE[i])**2 / pf.gauss_lin(xE[i], *xF)
                 chisq.append(abs(diff))
             results["chisq_ndf"] = sum(np.array(chisq) / len(hE))
-            
+
             # update DB results
             fits[pk_names[str(e_peak)]] = results
-        
-        # -- run peakshape function fit (+ linear bkg term) -- 
+
+        # -- run peakshape function fit (+ linear bkg term) --
         elif mode == 1:
-            
+
             # peakshape parameters: mu, sigma, hstep, htail, tau, bg0, a=1
             hstep = 0.001 # fraction that the step contributes
             htail = 0.1
@@ -305,9 +316,9 @@ def calibrate_pass2(ds, mode, write_db=False):
             tau = 10
             bg0 = np.mean(hE[:20])
             x0 = [e_peak, 5, hstep, htail, tau, bg0, amp]
-            
+
             xF, xF_cov = pf.fit_hist(pf.radford_peak, hE, xE, var=vE, guess=x0)
-            
+
             results = {
                 "e_fit" : xF[0],
                 "fwhm" : xF[1] * 2.355
@@ -318,57 +329,57 @@ def calibrate_pass2(ds, mode, write_db=False):
                 diff = (pf.radford_peak(xE[i], *xF) - hE[i])**2 / pf.radford_peak(xE[i], *xF)
                 chisq.append(abs(diff))
             results["chisq_ndf"] = sum(np.array(chisq) / len(hE))
-            
+
             # update DB results
             fits[pk_names[str(e_peak)]] = results
 
 
-        # -- plot the fit -- 
+        # -- plot the fit --
         plt.axvline(e_peak, c='g')
 
         if mode==0:
             # gaussian fit
             # plt.plot(xE, pf.gauss_lin(xE, *x0), c='orange', label='guess')
             plt.plot(xE, pf.gauss_lin(xE, *xF), c='r', label='fit')
-        
+
         if mode==1:
             # peakshape function
             # plt.plot(xE, pf.radford_peak(xE, *x0), c='orange', label='guess')
             plt.plot(xE, pf.radford_peak(xE, *xF), c='r', label='peakshape')
-            
+
             # plot individual components
-            
+
             # consts - tail_hi & bg
             tail_hi, gaus, bg, step, tail_lo = pf.radford_peak(xE, *xF, components=True)
             gaus = np.array(gaus)
             step = np.array(step)
             tail_lo = np.array(tail_lo)
-            
+
             plt.plot(xE, gaus * tail_hi, ls="--", lw=2, c='g', label="gaus+hi_tail")
             plt.plot(xE, step + bg, ls='--', lw=2, c='m', label='step + bg')
             plt.plot(xE, tail_lo, ls='--', lw=2, c='k', label='tail_lo')
-        
+
         plt.plot(xE[1:], hE, ls='steps', lw=1, c='b', label="data")
         plt.plot(np.nan, np.nan, c='w', label=f"fwhm = {results['fwhm']:.2f} keV")
-        
+
         plt.xlabel("Energy (keV)", ha='right', x=1)
         plt.ylabel("Counts", ha='right', y=1)
         plt.legend()
         # plt.show()
         plt.savefig("./plots/cage_ds3_pass2cal.pdf")
-        
-        
+
+
     if write_db:
         calDB = ds.calDB
         query = db.Query()
         table = calDB.table("cal_pass2")
-        
+
         # collapse data to 1 row
         row = {}
         for pk in fits:
             for key, val in fits[pk].items():
                 row[f"{key}_{pk}"] = val
-                
+
         # write an entry for every dataset.  if we've chained together
         # multiple datasets, the values will be the same.
         # use "upsert" to avoid writing duplicate entries.
@@ -376,7 +387,7 @@ def calibrate_pass2(ds, mode, write_db=False):
             table.upsert(row, query.ds == dset)
 
         print("wrote results to DB.")
-        
+
 
 if __name__=="__main__":
     main()

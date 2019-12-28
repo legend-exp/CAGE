@@ -55,7 +55,7 @@ def tier0(ds, overwrite=False, nevt=np.inf, v=False, test=False):
     Run daq_to_raw on a set of runs.
     [raw file] ---> [t1_run{}.lh5] (tier 1 file: basic info & waveforms)
     """
-    from pygama.io.tier0 import daq_to_raw
+    from pygama.io.daq_to_raw import daq_to_raw
 
     for run in ds.runs:
 
@@ -73,8 +73,8 @@ def tier0(ds, overwrite=False, nevt=np.inf, v=False, test=False):
             print("writing to:", t1_file)
             continue
 
-        daq_to_raw(t0_file, run, verbose=v, output_dir=ds.tier1_dir, 
-                     overwrite=overwrite, n_max=nevt, settings=opts)
+        daq_to_raw(t0_file, run, verbose=v, output_dir=ds.tier1_dir,
+                     overwrite=overwrite, n_max=nevt, config=ds.config)#settings=opts)
 
 
 def tier1(ds,
@@ -93,8 +93,8 @@ def tier1(ds,
     - Intercom(default_list=True)
     - manually add with Intercom::add
     """
-    from pygama.dsp.base import Intercom
-    from pygama.io.tier1 import raw_to_dsp
+    from pygama.dsp.dsp_base import Intercom
+    from pygama.io.raw_to_dsp import RunDSP
 
     for run in ds.runs:
 
@@ -111,7 +111,7 @@ def tier1(ds,
         proc_list = ds.config["build_options"][conf]["tier1_options"]
         proc = Intercom(proc_list)
 
-        raw_to_dsp(
+        RunDSP(
             t1_file,
             proc,
             output_dir=ds.tier2_dir,

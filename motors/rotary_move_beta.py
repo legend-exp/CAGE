@@ -236,7 +236,7 @@ def zero_rotary_motor():
 
 def rotary_read_pos():
 
-    shell = spur.SshShell(hostname="10.66.193.75",
+    shell = spur.SshShell(hostname="10.66.193.74",
                             username="pi", password="raspberry")
 
     with shell:
@@ -248,7 +248,7 @@ def rotary_read_pos():
 
 def rotary_set_zero():
 
-    shell = spur.SshShell(hostname="10.66.193.75",
+    shell = spur.SshShell(hostname="10.66.193.74",
                             username="pi", password="raspberry")
 
     with shell:

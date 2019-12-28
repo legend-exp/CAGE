@@ -10,9 +10,9 @@ from rotary_move_beta import *
 
 def main():
 
-    movement_program()
+    movement()
 
-def movement_program():
+def movement():
 
     print(' Hello! Welcome to the super ineractive GUI for the CAGE motor movement software! \n')
     print(' WARNING: Did you lift the motor assembly with the rack and pinion? \n \n')

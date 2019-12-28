@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import sys
+import sys, os
 import time
 import json
 import argparse
@@ -19,6 +19,13 @@ from pyqtgraph.parametertree import ParameterTree, Parameter
 from PyQt5 import QtGui
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
+import pyqtgraph.console
+motor_dir = os.path.expanduser("~/software/CAGE/motors")
+sys.path.append(motor_dir)
+from source_move_beta import *
+from linear_move_beta import *
+from rotary_move_beta import *
+import motor_movement_beta as mp
 
 
 # === PRIMARY EVENT LOOP =======================================================
@@ -74,9 +81,9 @@ class CAGEMonitor(QMainWindow):
         tabs.addTab(self.dbmon,"DB Monitor")
 
         # tab 2 -- motor controller
-        # st2 = MotorMonitor()
+        st2 = MotorMonitor()
         # st2 = QWidget() # blank
-        # tabs.addTab(st2,"Motor Controller")
+        tabs.addTab(st2,"Motor Controller")
 
         # tab 3 -- detector / DB control.  dragonfly reporting, interlock status, etc.
         # also would like an HV biasing (auto-ramp) & interlock status widget
@@ -133,7 +140,7 @@ class DBMonitor(QWidget):
         # default time window
         t_later = datetime.utcnow()
         t_earlier = datetime.utcnow() - timedelta(hours=2)
-        
+
         # create a parameter tree widget from the DB endpoints
         pt_initial = [
             {'name': 'Run Query', 'type': 'group',
@@ -158,10 +165,13 @@ class DBMonitor(QWidget):
         # -- create a wabbit plot --
         # pass our intitial list of endpoints to this
         self.rp = RabbitPlot(self.endpts_enabled, t_earlier, t_later, self.cursor)
+        # def rab():
+        #     RabbitPlot(self.endpts_enabled, t_earlier, t_later, self.cursor)
 
         # reinitialize the plot when the user clicks the "Query DB" button.
         # TODO: add a flag w/ functools partial to turn live update on/off
         self.p.param('Run Query', 'Query DB').sigActivated.connect(self.rp.__init__)
+        # self.p.param('Run Query', 'Query DB').sigActivated.connect(rab)
 
         # could put a second plot with an independent parameter tree here,
         # that listens to the same (or different?) rabbit queue.
@@ -193,6 +203,97 @@ class DBMonitor(QWidget):
 
 
 class MotorMonitor(QWidget):
+
+    def __init__(self):
+        super(QWidget, self).__init__()
+        # self.layout = QVBoxLayout(self)
+        self.show()
+
+        with open("config.json") as f:
+            self.config = json.load(f)
+        ip_address = self.config["encoder_ip"]
+        username = self.config["encoder_usr"]
+        password = self.config["encoder_pwd"]
+
+        self.pushButton1 = QPushButton("Initialize Motor Control")
+        # self.layout.addWidget(self.pushButton1)
+        # self.pushButton1.clicked.connect(self.on_motor_clicked)
+
+        pt_motor = [
+        {'name': 'Motor Positions', 'type': 'group',
+        'children':[
+        {'name':'Rotary', 'type':'float', 'value':0},
+        {'name':'Linear', 'type':'float', 'value':0},
+        {'name':'Source', 'type':'float', 'value':0}
+        ]},
+        {'name': 'Zero Motors', 'type': 'group',
+        'children':[
+        {'name':'Rotary', 'type':'action'},
+        {'name':'Linear', 'type':'action'},
+        {'name':'Source', 'type':'action'}
+        ]}
+        ]
+
+
+        self.p = Parameter.create(name='params', type='group', children=pt_motor)
+
+        self.pt = ParameterTree()
+        self.pt.setParameters(self.p, showTop=False)
+
+        self.p.sigTreeStateChanged.connect(self.tree_change)
+        def zero_rotary():
+            zero_rotary_motor()
+        def zero_linear():
+            zero_linear_motor()
+        def zero_source():
+            zero_source_motor()
+        self.p.param('Zero Motors', 'Rotary').sigActivated.connect(zero_rotary)
+        self.p.param('Zero Motors', 'Linear').sigActivated.connect(zero_linear)
+        self.p.param('Zero Motors', 'Source').sigActivated.connect(zero_source)
+
+        # self.layout.addWidget(self.pt)
+
+        text = """
+                Run mp.movement() to start a movement program.
+                Before any move, make sure the motor assembly is lifted off the cold plate.
+                Before a new movement routine, make sure the motors are in their zero positions,
+                by either clicking the zero motor button, or running through the terminal
+                command in mp.movement().
+                """
+        namespace = {'pg': pg, 'np': np, 'mp':mp}
+
+        self.c = pyqtgraph.console.ConsoleWidget(namespace=namespace, text=text)
+        # c.show()
+        self.c.setWindowTitle('pyqtgraph example: ConsoleWidget')
+
+
+
+        layout = QGridLayout(self)
+        layout.addWidget(self.c,0,1)
+        layout.addWidget(self.pt, 0, 0)
+        layout.addWidget(self.pushButton1)
+        self.pushButton1.clicked.connect(self.on_motor_clicked)
+
+        self.setLayout(layout)
+
+    def tree_change(self, param, changes):
+        """
+        print a message anytime something in the tree changes.
+        """
+        for param, change, data in changes:
+            path = self.p.childPath(param)
+            child_name = '.'.join(path) if path is not None else param.name()
+            print(f'  parameter: {child_name}')
+            print(f'  change:    {change}')
+            print(f'  data:      {str(data)}')
+
+    def on_motor_clicked(self):
+
+        print('Connecting to Motor Controller')
+        rotary_limit_check()
+        source_limit_check()
+        linear_limit_check()
+
 
 
 # === RABBITMQ LIVE DB PLOT ====================================================
