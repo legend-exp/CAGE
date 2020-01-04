@@ -28,6 +28,7 @@ from rotary_move_beta import *
 import motor_movement_beta as mp
 
 
+
 # === PRIMARY EVENT LOOP =======================================================
 
 def main():
@@ -203,6 +204,10 @@ class DBMonitor(QWidget):
 
 
 class MotorMonitor(QWidget):
+    """
+    MotorMonitor is a set of widgets to control the movement and readout the
+    positions of the motors.
+    """
 
     def __init__(self):
         super(QWidget, self).__init__()
@@ -215,7 +220,7 @@ class MotorMonitor(QWidget):
         username = self.config["encoder_usr"]
         password = self.config["encoder_pwd"]
 
-        self.pushButton1 = QPushButton("Initialize Motor Control")
+        # self.pushButton1 = QPushButton("Initialize Motor Control")
         # self.layout.addWidget(self.pushButton1)
         # self.pushButton1.clicked.connect(self.on_motor_clicked)
 
@@ -226,8 +231,15 @@ class MotorMonitor(QWidget):
         {'name':'Linear', 'type':'float', 'value':0},
         {'name':'Source', 'type':'float', 'value':0}
         ]},
+        {'name': 'Limit Switch Check', 'type': 'group',
+        'children':[
+        {'name':'Rotary', 'type':'action'},
+        {'name':'Linear', 'type':'action'},
+        {'name':'Source', 'type':'action'}
+        ]},
         {'name': 'Zero Motors', 'type': 'group',
         'children':[
+        {'name': 'WARNING', 'type': 'str', 'value': 'DO NOT CLICK UNLESS \n ASSEMBLY IS LIFTED'},
         {'name':'Rotary', 'type':'action'},
         {'name':'Linear', 'type':'action'},
         {'name':'Source', 'type':'action'}
@@ -241,15 +253,26 @@ class MotorMonitor(QWidget):
         self.pt.setParameters(self.p, showTop=False)
 
         self.p.sigTreeStateChanged.connect(self.tree_change)
+
         def zero_rotary():
             zero_rotary_motor()
         def zero_linear():
             zero_linear_motor()
         def zero_source():
             zero_source_motor()
+        def rotary_switch():
+            rotary_limit_check()
+        def linear_switch():
+            linear_limit_check()
+        def source_switch():
+            source_limit_check()
+
         self.p.param('Zero Motors', 'Rotary').sigActivated.connect(zero_rotary)
         self.p.param('Zero Motors', 'Linear').sigActivated.connect(zero_linear)
         self.p.param('Zero Motors', 'Source').sigActivated.connect(zero_source)
+        self.p.param('Limit Switch Check', 'Rotary').sigActivated.connect(rotary_switch)
+        self.p.param('Limit Switch Check', 'Linear').sigActivated.connect(linear_switch)
+        self.p.param('Limit Switch Check', 'Source').sigActivated.connect(source_switch)
 
         # self.layout.addWidget(self.pt)
 
@@ -264,15 +287,15 @@ class MotorMonitor(QWidget):
 
         self.c = pyqtgraph.console.ConsoleWidget(namespace=namespace, text=text)
         # c.show()
-        self.c.setWindowTitle('pyqtgraph example: ConsoleWidget')
+        self.c.setWindowTitle('Motor Movement Console')
 
 
 
         layout = QGridLayout(self)
         layout.addWidget(self.c,0,1)
+        layout.setColumnStretch(1, 2)
         layout.addWidget(self.pt, 0, 0)
-        layout.addWidget(self.pushButton1)
-        self.pushButton1.clicked.connect(self.on_motor_clicked)
+        # self.pushButton1.clicked.connect(self.on_motor_clicked)
 
         self.setLayout(layout)
 

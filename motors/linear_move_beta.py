@@ -355,8 +355,8 @@ def zero_linear_motor():
 
 def linear_read_pos():
 
-    shell = spur.SshShell(hostname="10.66.193.75",
-                            username="pi", password="legendscanner")
+    shell = spur.SshShell(hostname="10.66.193.74",
+                            username="pi", password="raspberry")
 
     with shell:
         result = shell.run(["python3", "read_pos_linear.py"])
@@ -367,8 +367,8 @@ def linear_read_pos():
 
 def linear_set_zero():
 
-    shell = spur.SshShell(hostname="10.66.193.75",
-                            username="pi", password="legendscanner")
+    shell = spur.SshShell(hostname="10.66.193.74",
+                            username="pi", password="raspberry")
 
     with shell:
         result = shell.run(["python3", "set_zero_linear.py"])
