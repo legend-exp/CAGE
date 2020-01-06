@@ -43,7 +43,9 @@ def movement():
 
     source_check = input(' IMPORTANT: Did you just zero the source motor? \n y/n -->')
     if source_check == 'y':
-        center_source_motor()
+        for_sure = input('Do you want the source motor to align collimator normal to the detector surface? \n y/n -->')
+        if for_sure =='y':
+            center_source_motor()
 
     rotary_move = input(' Move rotary motor? \n y/n -->')
     if rotary_move == 'y':

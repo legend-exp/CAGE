@@ -44,6 +44,11 @@ def source_program():
         angle = -angle1[0]
     cts = angle / 360 * 50000
 
+    if angle < -25:
+        print('WARNING, cannot rotate source farther than 25 degrees past normal incidence, away from limit switch.')
+        print('Restart motor movement program and choose smaller angle')
+        exit()
+
 
     if angle < 0:
         checks, rem = divmod(-cts, 25000)
@@ -62,19 +67,19 @@ def source_program():
 
     c('AB')
     c('MO')
-    c('SHC')
-    c('SPC=5000')
+    c('SHA')
+    c('SPA=5000')
     if load == 0:
         c('DPC=0')
-    c('ACC=5000')
-    c('BCC=5000')
+    c('ACA=5000')
+    c('BCA=5000')
     print(' Starting move...')
 
     if checks != 0:
         while i < checks:
 
-            c('PRC={}'.format(move))
-            c('BGC') #begin motion
+            c('PRA={}'.format(move))
+            c('BGA') #begin motion
             g.GMotionComplete('C')
             print(' encoder check')
             enc_pos = source_read_pos()
@@ -103,9 +108,9 @@ def source_program():
             i += 1
 
     if rem != 0:
-        c('PRC={}'.format(rem))
-        c('BGC') #begin motion
-        g.GMotionComplete('C')
+        c('PRA={}'.format(rem))
+        c('BGA') #begin motion
+        g.GMotionComplete('A')
 
         print(' encoder check')
         enc_pos = source_read_pos()
@@ -163,12 +168,16 @@ def source_program():
                     exit()
 
     print(' Motor has moved to designated position')
-    print('Motor counter: ', c('PAC=?'))
+    print('Motor counter: ', c('PAA=?'))
     del c #delete the alias
     g.GClose()
 
 
 def zero_source_motor():
+
+    g = gclib.py()
+    c = g.GCommand
+    g.GOpen('172.25.100.168 --direct')
 
     zero = source_set_zero()
     while (zero > 10) and (zero < 16374):
@@ -176,10 +185,6 @@ def zero_source_motor():
 
     print(' Attempting to zero the source motor now, sudden error or break in code expected')
     print(' Rerun motor_movement.py to continue')
-
-    g = gclib.py()
-    c = g.GCommand
-    g.GOpen('172.25.100.168 --direct')
 
     b = False
     move = 25000
@@ -223,8 +228,8 @@ def zero_source_motor():
                     exit()
             b = not b
 
-    except:
-        print('Source motor zeroed')
+    except gclib.GclibError:
+            print('Source Motor is zeroed')
 
     del c #delete the alias
     g.GClose()
@@ -307,7 +312,7 @@ def center_source_motor():
     if rem != 0:
         c('PRA={}'.format(rem))
         c('BGA') #begin motion
-        g.GMotionComplete('C')
+        g.GMotionComplete('A')
 
         print(' encoder check')
         enc_pos = source_read_pos()

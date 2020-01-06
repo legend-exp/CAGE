@@ -45,6 +45,9 @@ def rotary_program():
         file = np.load('./rotary_pos.npz')
         angle1 = file['arr_0']
         angle = -angle1[0]
+    if abs(angle) > 330:
+        print('Too great of an angle, no angles greater than 330.')
+        exit()
     cts = angle * 12500
 
 
@@ -192,8 +195,8 @@ def zero_rotary_motor():
     c('MO')
     c('SHD')
     c('SPD=50000')
-    c('ACD=50000')
-    c('BCD=50000')
+    c('ACD=300000')
+    c('BCD=300000')
     print(' Starting move...')
 
     try:
