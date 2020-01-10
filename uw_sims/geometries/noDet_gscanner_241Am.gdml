@@ -53,7 +53,7 @@ This file is a "mother file" to insert other gdml file geometries into. This fil
    <materialref ref="G4_Galactic"/>
    <solidref ref="vacuum_cylinder"/>
    <physvol>
-     <file name="./geometries/OPPI1_Detector.gdml"/>
+     <file name="./geometries/ghost_OPPI1_Detector.gdml"/>
      <positionref ref="center"/>
      <rotationref ref="identity"/>
    </physvol>
@@ -89,7 +89,7 @@ This file is a "mother file" to insert other gdml file geometries into. This fil
    </physvol>
    <physvol>
      <file name="./geometries/Cold_Plate.gdml"/>
-     <position name="Cold_Plate_Position" x="0" y="0" z="-35.2" unit="mm"/>
+     <position name="Cold_Plate_Position" x="0" y="0" z="-38.2" unit="mm"/>
      <rotationref ref="identity"/>
    </physvol>
    <physvol>
@@ -107,11 +107,11 @@ This file is a "mother file" to insert other gdml file geometries into. This fil
      <position name="Feedthrough_Position" x="0" y="0" z="-178.5" unit="mm"/>
      <rotationref ref="identity"/>
    </physvol>
-   <physvol>
+   <!-- <physvol>
      <file name="./geometries/Detector_Rest.gdml"/>
      <position name="Detector_Rest_Position" x="0" y="0" z="-55.6" unit="mm"/>
      <rotationref ref="identity"/>
-   </physvol>
+   </physvol> -->
    <physvol>
      <file name="./geometries/LN_Dewar.gdml"/>
      <position name="LN_Dewar_Position" x="0" y="0" z="-567.5" unit="mm"/>

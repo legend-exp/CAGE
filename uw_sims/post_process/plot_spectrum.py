@@ -1,11 +1,14 @@
 import numpy as np
+import scipy
 import matplotlib
 from matplotlib.colors import LogNorm
+from scipy.stats import norm
 import matplotlib.pyplot as plt
 import h5py
 import pandas as pd
 import ROOT
 import sys
+from particle import PDGID
 matplotlib.rcParams['text.usetex'] = True
 
 def main():
@@ -22,7 +25,12 @@ def main():
 	# filename = '../alpha/raw_out/30mm_collimated_241Am_10000000.hdf5'
 	# filename = '../alpha/processed_out/processed_30mm_collimated_241Am_10000000.hdf5'
 	# filename = '../alpha/raw_out/22mm_collimated_241Am_10000000.hdf5'
-	filename = '../alpha/processed_out/processed_22mm_collimated_241Am_10000000.hdf5'
+	# filename = '../alpha/raw_out/16mm_collimated_241Am_10000000.hdf5'
+	# filename = '../alpha/processed_out/processed_22mm_collimated_241Am_10000000.hdf5'
+	# filename = '../alpha/processed_out/processed_16mm_collimated_241Am_10000000.hdf5'
+
+	# filename = '../alpha/raw_out/noDet_Cu_22mm_collimated_241Am_100000.hdf5'
+	filename = '../alpha/processed_out/processed_noDet_Cu_22mm_collimated_241Am_100000.hdf5'
 
 
 
@@ -32,6 +40,9 @@ def main():
 	# plotHist(filename)
 	# post_process(filename)
 	plotSpot(filename)
+	# plot1DSpot(filename)
+	# testFit(filename)
+
 
 
 
@@ -49,56 +60,129 @@ def main():
 def post_process(filename):
 	df = pandarize(filename)
 	# df.to_hdf('../alpha/processed_out/processed_30mm_notcollimated_241Am_700000.hdf5', key='procdf', mode='w')
-	df.to_hdf('../alpha/processed_out/processed_22mm_collimated_241Am_10000000.hdf5', key='procdf', mode='w')
+	df.to_hdf('../alpha/processed_out/processed_noDet_Cu_22mm_collimated_241Am_100000.hdf5', key='procdf', mode='w')
 
-
-def get_hist(np_arr, bins=None, range=None, dx=None, wts=None):
-    """
-    """
-    if dx is not None:
-        bins = int((range[1] - range[0]) / dx)
-
-    if bins is None:
-        bins = 100 #override np.histogram default of just 10
-
-    hist, bins = np.histogram(np_arr, bins=bins, range=range, weights=wts)
-    hist = np.append(hist, 0)
-
-    if wts is None:
-        return hist, bins, hist
-    else:
-        var, bins = np.histogram(np_arr, bins=bins, weights=wts*wts)
-        return hist, bins, var
 
 def plotHist(filename):
 	# df = pandarize(filename)
 	df = pd.read_hdf(filename, keys='procdf')
 	energy = np.array(df['energy']*1000)
-	x = np.array(df['x'])
-	y = np.array(df['y'])
-	z = np.array(df['z'])
+	print(energy)
+	exit()
+	pid = np.array(df['pid'])
+
+
+	alpha_df = df.loc[df.energy > 5]
+	# print(tmp['pid'].astype(int).unique)
+	# print(df['pid'].astype(int).unique)
+	# exit()
+	# x = np.array(df['x'])
+	# y = np.array(df['y'])
+	# z = np.array(df['z'])
+
+	x = np.array(alpha_df['x'])
+	y = np.array(alpha_df['y'])
+	z = np.array(alpha_df['z'])
 
 	fig, ax = plt.subplots()
-	plt.hist(energy, range = [0.0, 6000], bins=1000)
+	plt.hist(energy, range = [0.0, 6000], bins=600)
 	plt.yscale('log')
 	# plt.title('Collimated, $^{241}$Am 7*10$^5$ Primaries, 16 mm above detector', fontsize=18)
-	plt.title('un-Collimated, $^{241}$Am 7*10$^5$ Primaries, 16 mm above detector', fontsize=18)
+	plt.title('Collimated, $^{241}$Am 10$^7$ Primaries, 22 mm above detector (10 keV bins, no E-res func)', fontsize=18)
 	plt.show()
 
 def plotSpot(filename):
 	# df = pandarize(filename)
 	df = pd.read_hdf(filename, keys='procdf')
 	energy = np.array(df['energy']*1000)
-	x = np.array(df['x'])
-	y = np.array(df['y'])
-	z = np.array(df['z'])
+	alpha_df = df.loc[df.energy > 5]
+
+	# x = np.array(df['x'])
+	# y = np.array(df['y'])
+	# z = np.array(df['z'])
+	x = np.array(alpha_df['x'])
+	y = np.array(alpha_df['y'])
+	z = np.array(alpha_df['z'])
+
+	energy = np.array(alpha_df['energy']*1000)
 
 	fig, ax = plt.subplots()
-	spot_hist = ax.hist2d(x, y, range = [[-32., 32.],[-32., 32.]], norm=LogNorm(), bins=6000) #, range = [[-20., 20.],[-20., 20.]]
+	# spot_hist = ax.hist2d(x, y, range = [[-32., 32.],[-32., 32.]], weights=energy, norm=LogNorm(), bins=6000) #, range = [[-20., 20.],[-20., 20.]]
+	spot_hist = ax.hist2d(x, y, range = [[-80., 80.],[-80., 80.]], norm=LogNorm(), bins=6000) #, range = [[-20., 20.],[-20., 20.]]
 	plt.colorbar(spot_hist[3], ax=ax)
 	# plt.title('Collimated, $^{241}$Am 7*10$^5$ Primaries, 16 mm above detector', fontsize=18)
-	plt.title('un-Collimated, $^{241}$Am 7*10$^5$ Primaries, 16 mm above detector', fontsize=18)
+
+
+	# plt.scatter(x, y, c=energy, s=1, cmap='plasma', norm=LogNorm(1,6000))
+	# plt.scatter(x, y, c=energy, s=1, cmap='plasma')
+	# cb = plt.colorbar()
+	# cb.set_label("Energy (keV)", ha = 'right', va='center', rotation=270, fontsize=14)
+	# cb.ax.tick_params(labelsize=12)
+	plt.xlim(-31,31)
+	plt.ylim(-31,31)
+	ax.set_xlabel('x position (mm)', fontsize=16)
+	ax.set_ylabel('y position (mm)', fontsize=16)
+	plt.setp(ax.get_xticklabels(), fontsize=14)
+	plt.setp(ax.get_yticklabels(), fontsize=14)
+	plt.title('$^{241}$Am 10$^7$ Primaries, 22 mm above detector, energy $>$ 5 MeV', fontsize=16)
 	plt.show()
+
+def plot1DSpot(filename):
+	# df = pandarize(filename)
+	df = pd.read_hdf(filename, keys='procdf')
+	energy = np.array(df['energy']*1000)
+	alpha_df = df.loc[df.energy > 5]
+
+	# x = np.array(df['x'])
+	# y = np.array(df['y'])
+	# z = np.array(df['z'])
+	x = np.array(alpha_df['x'])
+	y = np.array(alpha_df['y'])
+	z = np.array(alpha_df['z'])
+
+	energy = np.array(alpha_df['energy']*1000)
+
+	(mu, sigma) = norm.fit(x)
+
+	fig, ax = plt.subplots()
+	plt.hist(x, bins=100)
+	y = scipy.stats.norm.pdf(100, mu, sigma)
+	l = plt.plot(100, y, 'r--', linewidth=2)
+	# spot_hist = ax.hist2d(x, y, range = [[-32., 32.],[-32., 32.]], weights=energy, norm=LogNorm(), bins=6000) #, range = [[-20., 20.],[-20., 20.]]
+	# spot_hist = ax.hist2d(x, y, range = [[-32., 32.],[-32., 32.]], norm=LogNorm(), bins=6000) #, range = [[-20., 20.],[-20., 20.]]
+	# plt.colorbar(spot_hist[3], ax=ax)
+	# plt.title('Collimated, $^{241}$Am 7*10$^5$ Primaries, 16 mm above detector', fontsize=18)
+
+
+	# plt.scatter(x, y, c=energy, s=1, cmap='plasma', norm=LogNorm(1,6000))
+	# plt.scatter(x, y, c=energy, s=1, cmap='plasma')
+	# cb = plt.colorbar()
+	# cb.set_label("Energy (keV)", ha = 'right', va='center', rotation=270, fontsize=14)
+	# cb.ax.tick_params(labelsize=12)
+	plt.xlim(-31,31)
+	# plt.ylim(-31,31)
+	ax.set_xlabel('x position (mm)', fontsize=14)
+	# ax.set_ylabel('y position (mm)', fontsize=14)
+	plt.setp(ax.get_xticklabels(), fontsize=12)
+	plt.setp(ax.get_yticklabels(), fontsize=12)
+	plt.title('$^{241}$Am 10$^7$ Primaries, 16 mm above detector, energy $>$ 5 MeV', fontsize=14)
+	print(mu, ', ', sigma)
+	print('FWHM: ', sigma*2.355)
+	plt.show()
+
+
+def gauss(xdata, mu, sigma, a):
+	return(a*np.exp(((xdata-mu)/sigma)**2))
+
+def testFit(filename):
+	df = pd.read_hdf(filename, keys='procdf')
+	xbins = np.linspace(0,6000,num=600)
+	energy = np.array(df['energy']*1000)
+	x = np.array(alpha_df['x'])
+
+	pop, pcov = curve_fit(gauss, xbins, x)
+
+
 
 def test1(filename):
 
@@ -176,6 +260,8 @@ def pandarize(filename):
 	                   columns=['volID']), lsuffix = '_caller', rsuffix = '_other')
 	g4sdf = g4sdf.join(pd.DataFrame(np.array(g4sntuple['iRep']['pages']),
 	                   columns=['iRep']), lsuffix = '_caller', rsuffix = '_other')
+	g4sdf = g4sdf.join(pd.DataFrame(np.array(g4sntuple['pid']['pages']),
+                       columns=['pid']), lsuffix = '_caller', rsuffix = '_other')
 	g4sdf = g4sdf.join(pd.DataFrame(np.array(g4sntuple['x']['pages']),
                        columns=['x']), lsuffix = '_caller', rsuffix = '_other')
 	g4sdf = g4sdf.join(pd.DataFrame(np.array(g4sntuple['y']['pages']),
@@ -197,7 +283,7 @@ def pandarize(filename):
 	detector_hits['y_weights'] = detector_hits['y'] * detector_hits['Edep']
 	detector_hits['z_weights'] = detector_hits['z'] * detector_hits['Edep']
 
-	procdf= pd.DataFrame(detector_hits.groupby(['event','volID'], as_index=False)['Edep','x_weights','y_weights', 'z_weights'].sum())
+	procdf= pd.DataFrame(detector_hits.groupby(['event','volID'], as_index=False)['Edep','x_weights','y_weights', 'z_weights', 'pid'].sum())
     # rename the summed energy depositions for each step within the event to "energy". This is analogous to the event energy you'd see in your detector
 
 	procdf = procdf.rename(columns={'Edep':'energy'})
@@ -263,6 +349,23 @@ def test_func(filename):
 	# procdf = procdf.rename(columns={'iRep':'detID', 'Edep':'energy'})
 	# return procdf
 
+def get_hist(np_arr, bins=None, range=None, dx=None, wts=None):
+    """
+    """
+    if dx is not None:
+        bins = int((range[1] - range[0]) / dx)
+
+    if bins is None:
+        bins = 100 #override np.histogram default of just 10
+
+    hist, bins = np.histogram(np_arr, bins=bins, range=range, weights=wts)
+    hist = np.append(hist, 0)
+
+    if wts is None:
+        return hist, bins, hist
+    else:
+        var, bins = np.histogram(np_arr, bins=bins, weights=wts*wts)
+        return hist, bins, var
 
 
 if __name__ == '__main__':
