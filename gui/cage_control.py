@@ -136,6 +136,7 @@ class DBMonitor(QWidget):
         for endpt in self.endpt_types:
             self.endpts_enabled.append({'name':endpt, 'type':'bool', 'value':False})
 
+        # HACK: set the default endpoint to look at here.  Uggggh, cw
         self.endpts_enabled[1]['value'] = True
 
         # default time window
