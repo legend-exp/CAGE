@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<gdml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://service-spi.web.cern.ch/service-spi/app/releases/GDML/schema/gdml.xsd">
+
+##########################################
+
+#cylindrical collimator defined by an inner radius 'collimator_innerradius', an outer radius 'collimator_radius' and a height 'collimator_height'. 
+
+##########################################
+
+ <define>
+
+  <constant name="HALFPI" value="pi/2."/>
+  <constant name="PI" value="1.*pi"/>
+  <constant name="TWOPI" value="2.*pi"/>
+
+  <position name="center" x="0" y="0" z="0"/>
+  <rotation name="identity" x="0" y="0" z="0"/>
+
+  <quantity name="collimator_innerradius" type="length" value="0.75" unit="mm"/>
+  <quantity name="collimator_radius" type="length" value="16" unit="mm"/>
+  <quantity name="collimator_height" type="length" value="4.0" unit="mm"/>
+
+ </define>
+
+##########################################
+
+ <materials>
+
+
+ </materials>
+
+##########################################
+
+ <solids>
+
+  <cone name="collimator" rmin1="collimator_innerradius" rmax1="collimator_radius" rmin2="collimator_innerradius" rmax2="collimator_radius" z="collimator_height" startphi="0" deltaphi="TWOPI" aunit="rad"/>
+
+ </solids>
+
+##########################################
+
+ <structure>
+
+ <volume name="Tungsten_Collimator">
+   <materialref ref="G4_W"/>
+   <solidref ref="collimator"/>
+  </volume>
+
+ </structure>
+
+##########################################
+
+ <setup name="Default" version="1.0">
+  <world ref="Tungsten_Collimator"/>
+ </setup>
+</gdml>
+
+
+
+
+

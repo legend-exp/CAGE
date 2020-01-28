@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<gdml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://service-spi.web.cern.ch/service-spi/app/releases/GDML/schema/gdml.xsd">
+
+##########################################
+
+#cylinder_height + cone_height = detector height
+#cylinder_radius = cone's larger radius = detector radius
+#cone_radius1 = cone's smaller radius
+#cone_radius2 = cone's larger radius
+
+##########################################
+
+ <define>
+
+  <constant name="HALFPI" value="pi/2."/>
+  <constant name="PI" value="1.*pi"/>
+  <constant name="TWOPI" value="2.*pi"/>
+
+  <position name="center" x="0" y="0" z="0"/>
+  <rotation name="identity" x="0" y="0" z="0" />
+
+  <quantity name="cylinder_radius" type="length" value="31" unit="mm"/>
+  <quantity name="cylinder_height" type="length" value="45.0" unit="mm"/>
+
+  <quantity name="cone_radius1" type="length" value="29.39" unit="mm"/>
+  <quantity name="cone_radius2" type="length" value="31" unit="mm"/>
+  <quantity name="cone_height" type="length" value="6" unit="mm"/>
+
+ </define>
+
+##########################################
+
+ <materials>
+
+  <material name="natGe" Z="32.0"> <D value="5.32"/> <atom value="72.64"/>  </material>
+
+ </materials>
+
+##########################################
+
+ <solids>
+
+  <cone name="cylinder" rmin1="0" rmax1="cylinder_radius" rmin2="0" rmax2="cylinder_radius" z="cylinder_height" startphi="0" deltaphi="TWOPI" aunit="rad" />
+
+  <cone name="cone" rmin1="0" rmax1="cone_radius2" rmin2="0" rmax2="cone_radius1" z="cone_height" startphi="0" deltaphi="TWOPI" aunit="rad" />
+
+  <union name="detector">
+    <first ref="cylinder" />
+    <second ref="cone" />
+    <position x="0" y="0" z="cylinder_height/2.0 + cone_height/2.0" />
+    <rotationref ref="identity"/>
+  </union>
+
+ </solids>
+
+##########################################
+
+ <structure>
+
+ <volume name="PPC_Germanium_Detector">
+   <materialref ref="natGe"/>
+   <solidref ref="detector"/>
+  </volume>
+
+ </structure>
+
+##########################################
+
+ <setup name="Default" version="1.0">
+  <world ref="PPC_Germanium_Detector"/>
+ </setup>
+</gdml>
+
+
+
+
+
+

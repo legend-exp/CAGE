@@ -1,0 +1,41 @@
+/run/verbose 1
+/event/verbose 1
+/tracking/verbose 1
+
+/g4simple/setRandomSeed true
+
+/g4simple/setReferencePhysList Shielding
+#/physics_engine/tailor/MuonNuclear on
+
+/g4simple/setDetectorGDML G4Geometry.gdml
+
+
+/g4simple/setOutputFileName out.root
+/g4simple/setVolID xtal_PV 1
+/g4simple/setVolID LAr_cryo_PV 2
+
+/run/initialize
+
+/g4simple/listPhysVols
+
+/gps/particle ion
+/gps/ion 95 241 0 0
+/gps/energy 0.0 MeV
+/gps/pos/type Volume
+/gps/pos/shape Sphere
+/gps/pos/centre 0 0 0 mm
+/gps/pos/radius 100 mm
+/gps/pos/confine xtal_PV
+
+#/gps/particle gamma
+#/gps/energy 2.0 MeV
+#/gps/position 0 0 0 m
+#/gps/ang/type iso
+
+#/gps/particle ion
+#/gps/ion 27 60 0 0
+#/gps/energy 0.0 MeV
+#/gps/position 0 0 0 mm
+
+/run/beamOn 1
+

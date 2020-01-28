@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<gdml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://service-spi.web.cern.ch/service-spi/app/releases/GDML/schema/gdml.xsd">
+
+##########################################
+
+<!-- this disk is meant to serve the purpose of confining the Am source is simulations modeling LANL's x-ray fluorescence geometry -->
+
+##########################################
+
+ <define>
+
+  <constant name="HALFPI" value="pi/2."/>
+  <constant name="PI" value="1.*pi"/>
+  <constant name="TWOPI" value="2.*pi"/>
+
+  <quantity name="source_radius" type="length" value="3.81" unit="mm"/>
+  <quantity name="source_thickness" type="length" value="0.5" unit="mm"/>
+
+ </define>
+
+##########################################
+
+ <materials>
+
+  <element name="hydrogen" formula="H"  Z="1.">  <atom value="1.008"/>  </element>
+  <element name="carbon" formula="C"  Z="6.">  <atom value="12.011"/>  </element>
+
+  <material name="plastic">
+   <D value="750.0" unit="mg/cm3"/>
+   <composite n="2" ref="hydrogen"/>
+   <composite n="1" ref="carbon"/>
+  </material>
+
+  <material name="vacuum">
+   <D value="1.e-22" unit="mg/cm3"/>
+   <fraction n="1.0" ref="hydrogen"/>
+  </material>
+
+ </materials>
+
+##########################################
+
+ <solids>
+
+  <cone name="source_cylinder" rmin1="0" rmax1="source_radius" rmin2="0" rmax2="source_radius" z="source_thickness" startphi="0" deltaphi="TWOPI" aunit="rad"/>
+
+ </solids>
+
+##########################################
+
+ <structure>
+
+ <volume name="LANL_Source_Disk">
+   <materialref ref="vacuum"/>
+   <solidref ref="source_cylinder"/>
+  </volume>
+
+ </structure>
+
+##########################################
+
+ <setup name="Default" version="1.0">
+  <world ref="LANL_Source_Disk"/>
+ </setup>
+</gdml>
+

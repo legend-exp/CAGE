@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<gdml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://service-spi.web.cern.ch/service-spi/app/releases/GDML/schema/gdml.xsd">
+
+##########################################
+
+<!-- this geometry is to simply model the geometry of the LANL x-ray fluorescence gadget -->
+
+##########################################
+
+ <define>
+
+  <constant name="HALFPI" value="pi/2."/>
+  <constant name="PI" value="1.*pi"/>
+  <constant name="TWOPI" value="2.*pi"/>
+
+  <position name="center" x="0" y="0" z="0"/>
+  <rotation name="identity" x="0" y="0" z="0"/>
+
+  <quantity name="cylinder1_innerradius" type="length" value="0" unit="mm"/>
+  <quantity name="cylinder1_radius" type="length" value="25.4" unit="mm"/>
+  <quantity name="cylinder1_height" type="length" value="16.002" unit="mm"/>
+
+  <quantity name="cylinder2_innerradius" type="length" value="0" unit="mm"/>
+  <quantity name="cylinder2_radius" type="length" value="3.175" unit="mm"/>
+  <quantity name="cylinder2_height" type="length" value="8.89" unit="mm"/>
+
+  <quantity name="cylinder3_innerradius" type="length" value="0" unit="mm"/>
+  <quantity name="cylinder3_radius" type="length" value="3.81" unit="mm"/>
+  <quantity name="cylinder3_height" type="length" value="1.00" unit="mm"/>
+
+ </define>
+
+##########################################
+
+ <materials>
+
+
+ </materials>
+
+##########################################
+
+ <solids>
+
+  <cone name="cylinder1" rmin1="cylinder1_innerradius" rmax1="cylinder1_radius" rmin2="cylinder1_innerradius" rmax2="cylinder1_radius" z="cylinder1_height" startphi="0" deltaphi="TWOPI" aunit="rad"/>
+  <cone name="cylinder2" rmin1="cylinder2_innerradius" rmax1="cylinder2_radius" rmin2="cylinder2_innerradius" rmax2="cylinder2_radius" z="cylinder2_height" startphi="0" deltaphi="TWOPI" aunit="rad"/>
+  <cone name="cylinder3" rmin1="cylinder3_innerradius" rmax1="cylinder3_radius" rmin2="cylinder3_innerradius" rmax2="cylinder3_radius" z="cylinder3_height" startphi="0" deltaphi="TWOPI" aunit="rad"/>
+
+  <subtraction name="cylinder4">
+    <first ref="cylinder1" />
+    <second ref="cylinder2" />
+    <position x="19.05" y="0" z="-3.556" unit="mm" />
+    <rotationref ref="identity" />
+  </subtraction>
+
+  <subtraction name="lanl_gadget">
+    <first ref="cylinder4" />
+    <second ref="cylinder3" />
+    <position x="19.05" y="0" z="1.389" unit="mm" />
+    <rotationref ref="identity" />
+  </subtraction>
+
+ </solids>
+
+##########################################
+
+ <structure>
+
+ <volume name="LANL_Gadget">
+   <materialref ref="G4_STAINLESS-STEEL"/>
+   <solidref ref="lanl_gadget"/>
+  </volume>
+
+ </structure>
+
+##########################################
+
+ <setup name="Default" version="1.0">
+  <world ref="LANL_Gadget"/>
+ </setup>
+</gdml>

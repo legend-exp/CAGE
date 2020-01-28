@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<gdml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://service-spi.web.cern.ch/service-spi/app/releases/GDML/schema/gdml.xsd">
+
+##########################################
+
+This file is a "mother file" to insert other gdml file geometries into. This file itself contains a vacuum inside of a larger world. GDML Modules are inserted as physical volumes in the vacuum logical volume. See 'structure' section of this file to insert other geometries.
+
+##########################################
+
+ <define>
+
+  <constant name="HALFPI" value="pi/2."/>
+  <constant name="PI" value="1.*pi"/>
+  <constant name="TWOPI" value="2.*pi"/>
+
+  <position name="center" x="0" y="0" z="0"/>
+  <rotation name="identity" x="0" y="0" z="0"/>
+
+  <quantity name="world_size" type="length" value="20.0" unit="m"/>
+  <quantity name="vacuum_radius" type="length" value="20" unit="m"/>
+  <quantity name="vacuum_height" type="length" value="20" unit="m"/>
+
+ </define>
+
+##########################################
+
+ <materials>
+
+  <element name="hydrogen" formula="H"  Z="1.">  <atom value="1.008"/>  </element>
+
+  <material name="vacuum">
+   <D value="1.e-22" unit="mg/cm3"/>
+   <fraction n="1.0" ref="hydrogen"/>
+  </material>
+
+ </materials>
+
+##########################################
+
+<solids>
+
+  <box name="world_box" x="world_size" y="world_size" z="world_size"/>
+
+  <cone name="vacuum_cylinder" rmin1="0" rmax1="vacuum_radius" rmin2="0" rmax2="vacuum_radius" z="vacuum_height" startphi="0" deltaphi="TWOPI" aunit="rad"/>
+
+  <cone aunit="deg" deltaphi="360" lunit="mm" name="encasing_cylinder" rmax1="15.85" rmax2="15.85" rmin1="0" rmin2="0" startphi="0" z="2.95"/>
+  <cone aunit="deg" deltaphi="360" lunit="mm" name="source_cylinder" rmax1="15.85" rmax2="15.85" rmin1="0" rmin2="0" startphi="0" z="0.01"/>
+
+ </solids>
+
+##########################################
+
+ <structure>
+
+   <volume name="encasing_volume">
+     <materialref ref="G4_POLYETHYLENE"/>
+     <solidref ref="encasing_cylinder"/>
+   </volume>
+   <volume name="source_volume">
+     <materialref ref="G4_POLYETHYLENE"/>
+     <solidref ref="source_cylinder"/>
+   </volume>
+
+  <volume name="vacuum_volume">
+   <materialref ref="vacuum"/>
+   <solidref ref="vacuum_cylinder"/>
+   <physvol>
+     <file name="MJ60_Detector.gdml"/>
+     <positionref ref="center"/>
+     <rotationref ref="identity"/>
+   </physvol>
+   <physvol>
+     <file name="Copper_Can.gdml"/>
+     <position name="Copper_Can_Position" x="0" y="0" z="112" unit="mm"/>
+     <rotationref ref="identity"/>
+   </physvol>
+   <physvol>
+     <file name="Cryo_Lid.gdml"/>
+     <position name="Cryo_Lid_Position" x="0" y="0" z="-203" unit="mm"/>
+     <rotationref ref="identity"/>
+   </physvol>
+   <physvol>
+     <file name="In_Gas_Kr.gdml"/>
+     <position name="In_Gas_Kr_Position" x="0" y="0" z="112" unit="mm"/>
+     <rotationref ref="identity"/>
+   </physvol>
+   <physvol>
+     <file name="In_Dead_Layer_Kr.gdml"/>
+     <position name="In_Dead_Layer_Kr_Position" x="0" y="0" z="0" unit="mm"/>
+     <rotationref ref="identity"/>
+   </physvol>
+   <physvol>
+     <file name="On_Surface_Kr.gdml"/>
+     <position name="On_Surface_Kr_Position" x="0" y="0" z="23.25" unit="mm"/>
+     <rotationref ref="identity"/>
+   </physvol>
+   <physvol name="Encasing_Volume">
+     <volumeref ref="encasing_volume"/>
+     <position name="Encasing_Volume_pos" unit="mm" x="0" y="0" z="-216.725"/>
+     <rotation name="Encasing_Volume_rot" unit="deg" x="0" y="0" z="0"/>
+   </physvol>
+   <physvol name="Source_Volume">
+     <volumeref ref="source_volume"/>
+     <position name="Source_Volume_pos" unit="mm" x="0" y="0" z="-216.725"/>
+     <rotation name="Source_Volume_rot" unit="deg" x="0" y="0" z="0"/>
+   </physvol>
+  </volume>
+
+  <volume name="world">
+   <materialref ref="vacuum"/>
+   <solidref ref="world_box"/>
+   <physvol>
+     <volumeref ref="vacuum_volume"/>
+     <positionref ref="center"/>
+     <rotationref ref="identity"/>
+   </physvol>
+  </volume>
+
+ </structure>
+
+##########################################
+
+ <setup name="Default" version="1.0">
+  <world ref="world"/>
+ </setup>
+</gdml>
+

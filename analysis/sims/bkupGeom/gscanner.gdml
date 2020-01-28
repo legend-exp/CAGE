@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<gdml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://service-spi.web.cern.ch/service-spi/app/releases/GDML/schema/gdml.xsd">
+
+##########################################
+
+This file is a "mother file" to insert other gdml file geometries into. This file itself contains a vacuum inside of a larger world. GDML Modules are inserted as physical volumes in the vacuum logical volume. See 'structure' section of this file to insert other geometries.
+
+##########################################
+
+ <define>
+
+  <constant name="HALFPI" value="pi/2."/>
+  <constant name="PI" value="1.*pi"/>
+  <constant name="TWOPI" value="2.*pi"/>
+
+  <position name="center" x="0" y="0" z="0"/>
+  <rotation name="identity" x="0" y="0" z="0"/>
+
+  <quantity name="world_size" type="length" value="3" unit="m"/>
+  <quantity name="vacuum_radius" type="length" value="1" unit="m"/>
+  <quantity name="vacuum_height" type="length" value="2" unit="m"/>
+
+ </define>
+
+##########################################
+
+ <materials>
+
+  <element name="hydrogen" formula="H"  Z="1.">  <atom value="1.008"/>  </element>
+
+  <material name="vacuum">
+   <D value="1.e-22" unit="mg/cm3"/>
+   <fraction n="1.0" ref="hydrogen"/>
+  </material>
+
+ </materials>
+
+##########################################
+
+<solids>
+
+  <box name="world_box" x="world_size" y="world_size" z="world_size"/>
+
+  <cone name="vacuum_cylinder" rmin1="0" rmax1="vacuum_radius" rmin2="0" rmax2="vacuum_radius" z="vacuum_height" startphi="0" deltaphi="TWOPI" aunit="rad"/>
+
+ </solids>
+
+##########################################
+
+ <structure>
+
+  <volume name="vacuum_volume">
+   <materialref ref="vacuum"/>
+   <solidref ref="vacuum_cylinder"/>
+   <physvol>
+     <file name="PPC_Germanium_Detector.gdml"/>
+     <positionref ref="center"/>
+     <rotationref ref="identity"/>
+   </physvol>
+   <physvol> -->
+     <file name="Am_Collimator.gdml"/> -->
+     <position name="Am_Collimator_Position" x="0" y="0" z="47.5" unit="mm"/>
+     <rotation name="Am_Rotation" x="0" y="0" z="0" unit="deg"/> -->
+   </physvol> -->
+   <!--<physvol>
+     <file name="Tungsten_Collimator.gdml"/>
+     <position name="Tungsten_Collimator_Position" x="0" y="0" z="38" unit="mm"/>
+     <rotation name="Tungsten_Collimator_Rotation" x="0" y="0" z="0" unit="deg"/>
+   </physvol>
+   <physvol>
+     <file name="Plastic_Collimator.gdml"/>
+     <position name="Plastic_Collimator_Position" x="0" y="0" z="48" unit="mm"/>
+     <rotation name="Plastic_Collimator_Rotation" x="0" y="0" z="0" unit="deg"/>
+   </physvol>
+   <physvol>
+     <file name="Collimator_Edge.gdml"/>
+     <position name="Collimator_Edge_Position" x="0" y="0" z="46" unit="mm"/>
+     <rotation name="Collimator_Edge_Rotation" x="0" y="0" z="0" unit="deg"/>
+   </physvol>
+   <physvol>
+     <file name="Plastic_Collimator_Lid.gdml"/>
+     <position name="Plastic_Collimator_Lid_Position" x="0" y="0" z="56" unit="mm"/>
+     <rotation name="Plastic_Collimator_Lid_Rotation" x="0" y="0" z="0" unit="deg"/>
+   </physvol>
+   <physvol>
+     <file name="Tungsten_Collimator_Lid.gdml"/>
+     <position name="Tungsten_Collimator_Lid_Position" x="0" y="0" z="56" unit="mm"/>
+     <rotation name="Tungsten_Collimator_Lid_Rotation" x="0" y="0" z="0" unit="deg"/>
+   </physvol> -->
+   <physvol>
+     <file name="Source_Disk.gdml"/>
+     <position name="Source_Disk_Position" x="0" y="0" z="47.6" unit="mm"/> -->
+     <rotation name="Source_Disk_Rotation" x="0" y="0" z="0" unit="deg"/> -->
+   </physvol>
+   <!-- <physvol> -->
+     <!-- <file name="Am_Capsule.gdml"/> -->
+     <!-- <position name="Am_Capsule_Position" x="0" y="0" z="58.54" unit="mm"/> -->
+     <!-- <rotation name="Am_Capsule_Rotation" x="0" y="0" z="0" unit="deg"/> -->
+   <!-- </physvol> -->
+   <physvol>
+     <file name="Outer_Vessel.gdml"/>
+     <position name="Outer_Vessel_Position" x="0" y="0" z="184.35" unit="mm"/>
+     <rotationref ref="identity"/>
+   </physvol>
+   <physvol>
+     <file name="Cold_Plate.gdml"/>
+     <position name="Cold_Plate_Position" x="0" y="0" z="-35.2" unit="mm"/>
+     <rotationref ref="identity"/>
+   </physvol>
+   <physvol>
+     <file name="Copper_Finger.gdml"/>
+     <position name="Copper_Finger_Position" x="0" y="0" z="-314.45" unit="mm"/>
+     <rotationref ref="identity"/>
+   </physvol>
+   <physvol>
+     <file name="Top_Hat.gdml"/>
+     <position name="Top_Hat_Position" x="0" y="0" z="60.05" unit="mm"/>
+     <rotationref ref="identity"/>
+   </physvol>
+   <physvol>
+     <file name="Feedthrough.gdml"/>
+     <position name="Feedthrough_Position" x="0" y="0" z="-178.5" unit="mm"/>
+     <rotationref ref="identity"/>
+   </physvol>
+   <physvol>
+     <file name="Detector_Rest.gdml"/>
+     <position name="Detector_Rest_Position" x="0" y="0" z="-55.6" unit="mm"/>
+     <rotationref ref="identity"/>
+   </physvol>
+   <physvol>
+     <file name="LN_Dewar.gdml"/>
+     <position name="LN_Dewar_Position" x="0" y="0" z="-567.5" unit="mm"/>
+     <rotationref ref="identity"/>
+   </physvol>
+   <!--<physvol>
+     <file name="LANL_Gadget.gdml"/>
+     <position name="LANL_Gadget_Position" x="0" y="0" z="58" unit="mm"/>
+     <rotationref ref="identity"/>
+   </physvol>
+   <physvol>
+     <file name="LANL_Source_Disk.gdml"/>
+     <position name="LANL_Source_Disk_Position" x="19.05" y="0" z="59.139" unit="mm"/>
+     <rotationref ref="identity"/>
+   </physvol>
+   <physvol>
+     <file name="Gold_Foil.gdml"/>
+     <position name="Gold_Foil_Position" x="19.05" y="0" z="54.444" unit="mm"/>
+     <rotationref ref="identity"/>
+   </physvol> -->
+   <!-- <physvol> -->
+     <!-- <file name="Ground_Plane.gdml"/> -->
+     <!-- <position name="Ground_Plane_Position" x="0" y="0" z="-904" unit="mm"/> -->
+     <!-- <rotationref ref="identity"/> -->
+   <!-- </physvol> -->
+   <!-- <physvol> -->
+     <!-- <file name="Muon_Veto_02.gdml"/> -->
+     <!-- <position name="Muon_Veto_01_Position" x="0" y="0" z="352" unit="mm"/> -->
+     <!-- <rotationref ref="identity"/> -->
+   <!-- </physvol> -->
+   <physvol>
+     <file name="Vertical_Motion.gdml"/>
+     <position name="Vertical_Motion_Position" x="0" y="0" z="597.1" unit="mm"/>
+     <rotationref ref="identity"/>
+   </physvol>
+  </volume>
+
+  <volume name="world">
+   <materialref ref="vacuum"/>
+   <solidref ref="world_box"/>
+   <physvol>
+     <volumeref ref="vacuum_volume"/>
+     <positionref ref="center"/>
+     <rotationref ref="identity"/>
+   </physvol>
+  </volume>
+
+ </structure>
+
+##########################################
+
+ <setup name="Default" version="1.0">
+  <world ref="world"/>
+ </setup>
+</gdml>

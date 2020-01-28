@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<gdml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://service-spi.web.cern.ch/service-spi/app/releases/GDML/schema/gdml.xsd">
+
+##########################################
+
+#spherical lid defined by an inner radius 'collimator_innerradius', and an outer radius 'collimator_radius'.
+
+##########################################
+
+ <define>
+
+  <constant name="HALFPI" value="pi/2."/>
+  <constant name="PI" value="1.*pi"/>
+  <constant name="TWOPI" value="2.*pi"/>
+
+  <position name="center" x="0" y="0" z="0"/>
+  <rotation name="identity" x="0" y="0" z="0"/>
+
+  <quantity name="collimator_innerradius" type="length" value="16" unit="mm"/>
+  <quantity name="collimator_radius" type="length" value="20" unit="mm"/>
+
+ </define>
+
+##########################################
+
+ <materials>
+
+
+ </materials>
+
+##########################################
+
+ <solids>
+
+    <sphere name="tungsten_lid" rmin="collimator_innerradius" rmax="collimator_radius"  starttheta="0" deltatheta="HALFPI" deltaphi="TWOPI" aunit="rad"/>
+
+ </solids>
+
+##########################################
+
+ <structure>
+
+ <volume name="Tungsten_Collimator_Lid">
+   <materialref ref="G4_W"/>
+   <solidref ref="tungsten_lid"/>
+  </volume>
+
+ </structure>
+
+##########################################
+
+ <setup name="Default" version="1.0">
+  <world ref="Tungsten_Collimator_Lid"/>
+ </setup>
+</gdml>
+
+
+
+

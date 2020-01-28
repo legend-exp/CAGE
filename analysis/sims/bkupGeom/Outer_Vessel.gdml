@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<gdml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://service-spi.web.cern.ch/service-spi/app/releases/GDML/schema/gdml.xsd">
+
+##########################################
+
+#cylinder_height = vessel's height
+#cylinder_inner_radius = vessel's inner radius
+#cylinder_outer_radius = vessel's outer radius
+#cylinder2_height = thickness of cylinder at top of vessel to close the top of the vessel off
+#cylinder3_height = thickness of cylinder at bottom of vessel to close the bottom of the vessel off
+#cylinder4_height = thickness of outer lip on vessel
+
+##########################################
+
+ <define>
+
+  <constant name="HALFPI" value="pi/2."/>
+  <constant name="PI" value="1.*pi"/>
+  <constant name="TWOPI" value="2.*pi"/>
+
+  <position name="center" x="0" y="0" z="0"/>
+  <rotation name="identity" x="0" y="0" z="0" />
+
+  <quantity name="cylinder_height" type="length" value="520.7" unit="mm"/>
+  <quantity name="cylinder_inner_radius" type="length" value="167.8" unit="mm"/>
+  <quantity name="cylinder_outer_radius" type="length" value="177.8" unit="mm"/>
+
+  <quantity name="cylinder2_height" type="length" value="12.7" unit="mm"/>
+  <quantity name="cylinder2_inner_radius" type="length" value="0" unit="mm"/>
+  <quantity name="cylinder2_outer_radius" type="length" value="188.8" unit="mm"/>
+
+  <quantity name="cylinder3_height" type="length" value="12.7" unit="mm"/>
+  <quantity name="cylinder3_inner_radius" type="length" value="50" unit="mm"/>
+  <quantity name="cylinder3_outer_radius" type="length" value="188.8" unit="mm"/>
+
+  <quantity name="cylinder4_height" type="length" value="15.7" unit="mm"/>
+  <quantity name="cylinder4_inner_radius" type="length" value="167.8" unit="mm"/>
+  <quantity name="cylinder4_outer_radius" type="length" value="188.8" unit="mm"/>
+
+ </define>
+
+##########################################
+
+ <materials>
+
+
+ </materials>
+
+##########################################
+
+ <solids>
+
+  <cone name="vessel_edge" rmin1="cylinder_inner_radius" rmax1="cylinder_outer_radius" rmin2="cylinder_inner_radius" rmax2="cylinder_outer_radius" z="cylinder_height" startphi="0" deltaphi="TWOPI" aunit="rad" />
+
+  <cone name="vessel_top" rmin1="cylinder2_inner_radius" rmax1="cylinder2_outer_radius" rmin2="cylinder2_inner_radius" rmax2="cylinder2_outer_radius" z="cylinder2_height" startphi="0" deltaphi="TWOPI" aunit="rad" />
+
+  <cone name="vessel_bottom" rmin1="cylinder3_inner_radius" rmax1="cylinder3_outer_radius" rmin2="cylinder3_inner_radius" rmax2="cylinder3_outer_radius" z="cylinder3_height" startphi="0" deltaphi="TWOPI" aunit="rad" />
+
+  <cone name="vessel_lip" rmin1="cylinder4_inner_radius" rmax1="cylinder4_outer_radius" rmin2="cylinder4_inner_radius" rmax2="cylinder4_outer_radius" z="cylinder4_height" startphi="0" deltaphi="TWOPI" aunit="rad" />
+
+  <union name="vessel_with_top">
+    <first ref="vessel_edge" />
+    <second ref="vessel_top" />
+    <position x="0" y="0" z="cylinder_height/2.0 - cylinder2_height/2.0" />
+    <rotationref ref="identity"/>
+  </union>
+
+  <union name="vessel_with_top_and_bottom">
+    <first ref="vessel_with_top" />
+    <second ref="vessel_bottom" />
+    <position x="0" y="0" z="-cylinder_height/2.0 + cylinder3_height/2.0" />
+    <rotationref ref="identity"/>
+  </union>
+
+  <union name="vessel_with_top_lip">
+    <first ref="vessel_with_top_and_bottom" />
+    <second ref="vessel_lip" />
+    <position x="0" y="0" z="cylinder_height/2.0 - cylinder3_height - cylinder4_height/2.0" />
+    <rotationref ref="identity"/>
+  </union>
+
+  <union name="outer_vessel">
+    <first ref="vessel_with_top_lip" />
+    <second ref="vessel_lip" />
+    <position x="0" y="0" z="-cylinder_height/2.0 + cylinder3_height + cylinder4_height/2.0" />
+    <rotationref ref="identity"/>
+  </union>
+
+
+
+ </solids>
+
+##########################################
+
+ <structure>
+
+ <volume name="Outer_Vessel">
+   <materialref ref="G4_STAINLESS-STEEL"/>
+   <solidref ref="outer_vessel"/>
+  </volume>
+
+ </structure>
+
+##########################################
+
+ <setup name="Default" version="1.0">
+  <world ref="Outer_Vessel"/>
+ </setup>
+</gdml>

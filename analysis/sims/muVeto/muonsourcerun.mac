@@ -1,0 +1,43 @@
+/run/verbose 1
+#/event/verbose 1
+#/tracking/verbose 1
+
+/g4simple/setRandomSeed true
+
+/g4simple/setReferencePhysList Shielding
+#/physics_engine/tailor/MuonNuclear on
+
+##Geometry File to run simulation with
+/g4simple/setDetectorGDML gscanner.gdml
+
+##Specify output file
+/g4simple/setOutputFormat hdf5
+/analysis/setFileName out_muon_veto_02
+
+##Set Volume ID's for Geometry Volumes (volume.in.geometry.file_PV volID)
+/g4simple/setVolID PPC_Germanium_Detector_PV 1
+/g4simple/setVolID Muon_Veto_02_PV 2
+#/g4simple/setVolID vacuum_volume_PV 3
+
+##initialize the run
+/run/initialize
+
+/g4simple/listPhysVols
+
+##Set Source Specifications; this code is to run muon background.
+/gps/particle mu+
+/gps/pos/type Surface
+/gps/pos/shape Sphere
+/gps/pos/centre 0 0 -22.5 mm
+/gps/pos/radius 860 mm
+/gps/pos/confine Muon_Shell_PV
+/gps/ang/type user
+/gps/hist/type theta
+/control/execute muon_angular.mac
+/gps/ene/type User
+/gps/hist/type energy
+/control/execute muon_spectrum.mac
+
+##set number of runs
+/run/beamOn 10000000
+

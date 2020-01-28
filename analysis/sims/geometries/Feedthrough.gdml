@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<gdml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://service-spi.web.cern.ch/service-spi/app/releases/GDML/schema/gdml.xsd">
+
+##########################################
+
+#cylinder_height = feedthrough's frame height
+#cylinder_inner_radius = feedthrough's frame inner radius
+#cylinder_outer_radius = feedthrough's frame outer radius
+#cylinder2_height = thickness of feedthrough top lip
+#cylinder3_height = thickness of feedthrough bottom lip
+
+##########################################
+
+ <define>
+
+  <constant name="HALFPI" value="pi/2."/>
+  <constant name="PI" value="1.*pi"/>
+  <constant name="TWOPI" value="2.*pi"/>
+
+  <position name="center" x="0" y="0" z="0"/>
+  <rotation name="identity" x="0" y="0" z="0" />
+
+  <quantity name="cylinder_height" type="length" value="205" unit="mm"/>
+  <quantity name="cylinder_inner_radius" type="length" value="74.21" unit="mm"/>
+  <quantity name="cylinder_outer_radius" type="length" value="77.21" unit="mm"/>
+
+  <quantity name="cylinder2_height" type="length" value="73.51" unit="mm"/>
+  <quantity name="cylinder2_inner_radius" type="length" value="74.21" unit="mm"/>
+  <quantity name="cylinder2_outer_radius" type="length" value="101.6" unit="mm"/>
+
+  <quantity name="cylinder3_height" type="length" value="73.51" unit="mm"/>
+  <quantity name="cylinder3_inner_radius" type="length" value="74.21" unit="mm"/>
+  <quantity name="cylinder3_outer_radius" type="length" value="101.6" unit="mm"/>
+
+ </define>
+
+##########################################
+
+ <materials>
+
+
+ </materials>
+
+##########################################
+
+ <solids>
+
+  <cone name="feedthrough_frame" rmin1="cylinder_inner_radius" rmax1="cylinder_outer_radius" rmin2="cylinder_inner_radius" rmax2="cylinder_outer_radius" z="cylinder_height" startphi="0" deltaphi="TWOPI" aunit="rad" />
+
+  <cone name="feedthrough_top" rmin1="cylinder2_inner_radius" rmax1="cylinder2_outer_radius" rmin2="cylinder2_inner_radius" rmax2="cylinder2_outer_radius" z="cylinder2_height" startphi="0" deltaphi="TWOPI" aunit="rad" />
+
+  <cone name="feedthrough_bottom" rmin1="cylinder3_inner_radius" rmax1="cylinder3_outer_radius" rmin2="cylinder3_inner_radius" rmax2="cylinder3_outer_radius" z="cylinder3_height" startphi="0" deltaphi="TWOPI" aunit="rad" />
+
+  <union name="feedthrough_with_top_lip">
+    <first ref="feedthrough_frame" />
+    <second ref="feedthrough_top" />
+    <position x="0" y="0" z="cylinder_height/2.0 - cylinder2_height/2.0" />
+    <rotationref ref="identity"/>
+  </union>
+
+  <union name="feedthrough">
+    <first ref="feedthrough_with_top_lip" />
+    <second ref="feedthrough_bottom" />
+    <position x="0" y="0" z="-cylinder_height/2.0 + cylinder3_height/2.0" />
+    <rotationref ref="identity"/>
+  </union>
+
+ </solids>
+
+##########################################
+
+ <structure>
+
+ <volume name="Feedthrough">
+   <materialref ref="G4_STAINLESS-STEEL"/>
+   <solidref ref="feedthrough"/>
+  </volume>
+
+ </structure>
+
+##########################################
+
+ <setup name="Default" version="1.0">
+  <world ref="Feedthrough"/>
+ </setup>
+</gdml>
+
+

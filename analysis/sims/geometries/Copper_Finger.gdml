@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<gdml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://service-spi.web.cern.ch/service-spi/app/releases/GDML/schema/gdml.xsd">
+
+##########################################
+
+#cylinder_height = copper cold finger's length
+#cylinder_inner_radius = copper cold finger's inner radius
+#cylinder_outer_radius = copper cold finger's outer radius
+
+##########################################
+
+ <define>
+
+  <constant name="HALFPI" value="pi/2."/>
+  <constant name="PI" value="1.*pi"/>
+  <constant name="TWOPI" value="2.*pi"/>
+
+  <position name="center" x="0" y="0" z="0"/>
+  <rotation name="identity" x="0" y="0" z="0" />
+
+  <quantity name="cylinder_height" type="length" value="533.1" unit="mm"/>
+  <quantity name="cylinder_inner_radius" type="length" value="0" unit="mm"/>
+  <quantity name="cylinder_outer_radius" type="length" value="26.63" unit="mm"/>
+
+ </define>
+
+##########################################
+
+ <materials>
+
+
+ </materials>
+
+##########################################
+
+ <solids>
+
+  <cone name="copper_finger" rmin1="cylinder_inner_radius" rmax1="cylinder_outer_radius" rmin2="cylinder_inner_radius" rmax2="cylinder_outer_radius" z="cylinder_height" startphi="0" deltaphi="TWOPI" aunit="rad" />
+
+ </solids>
+
+##########################################
+
+ <structure>
+
+ <volume name="Copper_Finger">
+   <materialref ref="G4_Cu"/>
+   <solidref ref="copper_finger"/>
+  </volume>
+
+ </structure>
+
+##########################################
+
+ <setup name="Default" version="1.0">
+  <world ref="Copper_Finger"/>
+ </setup>
+</gdml>
+

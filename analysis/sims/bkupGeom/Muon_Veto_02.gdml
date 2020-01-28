@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<gdml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://service-spi.web.cern.ch/service-spi/app/releases/GDML/schema/gdml.xsd">
+
+##########################################
+
+#outer_cylinder_height = muon veto's height
+#outer_cylinder_outer_radius = muon veto's outer radius
+#outer_cylinder_inner_radius = muon veto's inner radius
+#top_cylinder_height = height of top of cylinder / thickness of veto
+#bottom_cylinder_height = height of bottom of muon veto / thickness of veto
+#bottom_cylinder_inner_radius = inner radius of bottom veto panel
+
+##########################################
+
+ <define>
+
+  <constant name="HALFPI" value="pi/2."/>
+  <constant name="PI" value="1.*pi"/>
+  <constant name="TWOPI" value="2.*pi"/>
+
+  <position name="center" x="0" y="0" z="0"/>
+  <rotation name="identity" x="0" y="0" z="0" />
+
+  <quantity name="outer_cylinder_height" type="length" value="856" unit="mm"/>
+  <quantity name="outer_cylinder_inner_radius" type="length" value="217" unit="mm"/>
+  <quantity name="outer_cylinder_outer_radius" type="length" value="257" unit="mm"/>
+
+  <quantity name="top_cylinder_height" type="length" value="40" unit="mm"/>
+  <quantity name="top_cylinder_inner_radius" type="length" value="0" unit="mm"/>
+  <quantity name="top_cylinder_outer_radius" type="length" value="237" unit="mm"/>
+
+  <quantity name="bottom_cylinder_height" type="length" value="40" unit="mm"/>
+  <quantity name="bottom_cylinder_inner_radius" type="length" value="195" unit="mm"/>
+  <quantity name="bottom_cylinder_outer_radius" type="length" value="237" unit="mm"/>
+
+ </define>
+
+##########################################
+
+ <materials>
+
+
+ </materials>
+
+##########################################
+
+ <solids>
+
+  <cone name="outer_cylinder" rmin1="outer_cylinder_inner_radius" rmax1="outer_cylinder_outer_radius" rmin2="outer_cylinder_inner_radius" rmax2="outer_cylinder_outer_radius" z="outer_cylinder_height" startphi="0" deltaphi="TWOPI" aunit="rad" />
+
+  <cone name="bottom_cylinder" rmin1="bottom_cylinder_inner_radius" rmax1="bottom_cylinder_outer_radius" rmin2="bottom_cylinder_inner_radius" rmax2="bottom_cylinder_outer_radius" z="bottom_cylinder_height" startphi="0" deltaphi="TWOPI" aunit="rad" />
+
+  <cone name="top_cylinder" rmin1="top_cylinder_inner_radius" rmax1="top_cylinder_outer_radius" rmin2="top_cylinder_inner_radius" rmax2="top_cylinder_outer_radius" z="top_cylinder_height" startphi="0" deltaphi="TWOPI" aunit="rad" />
+
+  <union name="veto_with_bottom">
+    <first ref="outer_cylinder" />
+    <second ref="bottom_cylinder" />
+    <position x="0" y="0" z="-outer_cylinder_height/2.0 + bottom_cylinder_height/2.0" />
+    <rotationref ref="identity"/>
+  </union>
+
+  <union name="muon_veto_02">
+    <first ref="veto_with_bottom" />
+    <second ref="top_cylinder" />
+    <position x="0" y="0" z="outer_cylinder_height/2.0 - top_cylinder_height/2.0" />
+    <rotationref ref="identity"/>
+  </union>
+
+ </solids>
+
+##########################################
+
+ <structure>
+
+ <volume name="Muon_Veto_02">
+   <materialref ref="G4_PLASTIC_SC_VINYLTOLUENE"/>
+   <solidref ref="muon_veto_02"/>
+  </volume>
+
+ </structure>
+
+##########################################
+
+ <setup name="Default" version="1.0">
+  <world ref="Muon_Veto_02"/>
+ </setup>
+</gdml>
+

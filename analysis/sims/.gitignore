@@ -1,0 +1,8 @@
+*.h5
+*.hdf5
+*.jpeg
+*.root
+*.jpeg
+*.png
+*.jpg
+output/

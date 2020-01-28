@@ -1,0 +1,79 @@
+/run/verbose 1
+#/event/verbose 1
+#/tracking/verbose 1
+
+/g4simple/setRandomSeed true
+
+/g4simple/setReferencePhysList Shielding
+#/physics_engine/tailor/MuonNuclear on
+
+##Geometry File to run simulation with
+/g4simple/setDetectorGDML PPCDetectorGeometry.gdml
+
+##Specify output file
+/g4simple/setOutputFormat root
+/analysis/setFileName out
+
+##Set Volume ID's for Geometry Volumes
+/g4simple/setVolID detector_volume_PV 1
+#/g4simple/setVolID collimator_volume_PV 2
+#/g4simple/setVolID source_volume_PV 3
+#/g4simple/setVolID vacuum_volume_PV 4
+
+##initialize the run
+/run/initialize
+
+/g4simple/listPhysVols
+
+##Set Source Specifications
+#/gps/particle ion
+#/gps/ion 26 55 0 0
+#/gps/energy 0.0 MeV
+#/gps/pos/type Volume
+#/gps/pos/shape Sphere
+#/gps/pos/radius 3.5 mm
+#/gps/position 0 0 42 mm
+#/gps/pos/confine source_volume_PV
+
+/gps/particle gamma
+/gps/energy 5.48556 keV
+/gps/ang/type iso
+/gps/pos/type Volume
+/gps/pos/shape Sphere
+/gps/pos/radius 3.5 mm
+/gps/position 20 0 42 mm
+/gps/pos/confine source_volume_PV
+
+#/gps/particle gamma
+#/gps/energy 60.0 keV
+#/gps/position 0 20.9978 87.53 mm
+#/gps/ang/type iso
+
+#/gps/particle gamma
+#/gps/energy 59.54 keV
+#/gps/ang/type iso
+#/gps/pos/type Volume
+#/gps/pos/shape Sphere
+#/gps/pos/centre 20 0 42 mm
+#/gps/pos/radius 3.5 mm
+#/gps/pos/confine source_volume_PV
+
+#/gps/particle alpha
+#/gps/energy 5.48556 MeV
+#/gps/ang/type iso
+#/gps/pos/type Volume
+#/gps/pos/shape Sphere
+#/gps/pos/centre 20 0 42 mm
+#/gps/pos/radius 3.5 mm
+#/gps/pos/confine source_volume_PV
+
+#/gps/particle ion
+#/gps/ion 2 4 0 0
+#/gps/energy 5.0 MeV
+#/gps/position 0 20.9978 87.53 mm
+
+##set number of runs
+/run/beamOn 10000000
+
+
+

@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<gdml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://service-spi.web.cern.ch/service-spi/app/releases/GDML/schema/gdml.xsd">
+
+##########################################
+
+#capsule that holds 241Am source. It is a cylinder with a cut in it that houses the active volume of the source.
+
+##########################################
+
+ <define>
+
+  <constant name="HALFPI" value="pi/2."/>
+  <constant name="PI" value="1.*pi"/>
+  <constant name="TWOPI" value="2.*pi"/>
+
+  <position name="center" x="0" y="0" z="0"/>
+  <rotation name="identity" x="0" y="0" z="0"/>
+
+  <quantity name="capsule_innerradius" type="length" value="0" unit="mm"/>
+  <quantity name="capsule_radius" type="length" value="3.96" unit="mm"/>
+  <quantity name="capsule_height" type="length" value="5.08" unit="mm"/>
+
+  <quantity name="cut_innerradius" type="length" value="0" unit="mm"/>
+  <quantity name="cut_radius" type="length" value="1.8" unit="mm"/>
+  <quantity name="cut_height" type="length" value="0.5" unit="mm"/>
+
+ </define>
+
+##########################################
+
+ <materials>
+
+
+ </materials>
+
+##########################################
+
+ <solids>
+
+  <cone name="main_capsule" rmin1="capsule_innerradius" rmax1="capsule_radius" rmin2="capsule_innerradius" rmax2="capsule_radius" z="capsule_height" startphi="0" deltaphi="TWOPI" aunit="rad"/>
+
+  <cone name="cut" rmin1="cut_innerradius" rmax1="cut_radius" rmin2="cut_innerradius" rmax2="cut_radius" z="cut_height" startphi="0" deltaphi="TWOPI" aunit="rad"/>
+
+  <subtraction name="am_capsule">
+    <first ref="main_capsule" />
+    <second ref="cut" />
+    <position x="0" y="0" z="-capsule_height/2.0 + cut_height/2.0" />
+    <rotationref ref="identity" />
+  </subtraction>
+
+ </solids>
+
+##########################################
+
+ <structure>
+
+ <volume name="Am_Capsule">
+   <materialref ref="G4_STAINLESS-STEEL"/>
+   <solidref ref="am_capsule"/>
+  </volume>
+
+ </structure>
+
+##########################################
+
+ <setup name="Default" version="1.0">
+  <world ref="Am_Capsule"/>
+ </setup>
+</gdml>
+

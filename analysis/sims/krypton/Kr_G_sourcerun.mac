@@ -1,0 +1,224 @@
+/run/verbose 1
+#/event/verbose 1
+#/tracking/verbose 1
+
+/g4simple/setRandomSeed true
+
+/g4simple/setReferencePhysList Shielding
+#/physics_engine/tailor/MuonNuclear on
+
+##Geometry File to run simulation with
+/g4simple/setDetectorGDML gMJ60.gdml
+
+##Specify output file
+/g4simple/setOutputFormat hdf5
+/analysis/setFileName out
+
+##Set Volume ID's for Geometry Volumes (volume.in.geometry.file_PV volID)
+/g4simple/setVolID MJ60_Detector_PV 1
+#/g4simple/setVolID Copper_Can_PV 2
+#/g4simple/setVolID In_Gas_Kr_PV 3
+#/g4simple/setVolID In_Dead_Layer_Kr_PV 4
+#/g4simple/setVolID On_Surface_Kr_PV 5
+
+##initialize the run
+/run/initialize
+
+/g4simple/listPhysVols
+
+# Auger L
+/gps/source/intensity 1.684
+/gps/particle e-
+/gps/ang/type iso
+/gps/ene/mono 1.5 keV
+/gps/pos/type Volume
+/gps/pos/shape Cylinder
+/gps/pos/centre 0 0 44.5 mm
+/gps/pos/radius 120 mm
+/gps/pos/halfz 135 mm
+/gps/pos/confine In_Gas_Kr_PV
+
+# CE L
+/gps/source/add .800
+/gps/particle e-
+/gps/ang/type iso
+/gps/ene/mono 7.4847 keV
+/gps/pos/type Volume
+/gps/pos/shape Cylinder
+/gps/pos/centre 0 0 44.5 mm
+/gps/pos/radius 120 mm
+/gps/pos/halfz 135 mm
+/gps/pos/confine In_Gas_Kr_PV
+
+# CE M
+/gps/source/add .129
+/gps/particle e-
+/gps/ang/type iso
+/gps/ene/mono 9.1177 keV
+/gps/pos/type Volume
+/gps/pos/shape Cylinder
+/gps/pos/centre 0 0 44.5 mm
+/gps/pos/radius 120 mm
+/gps/pos/halfz 135 mm
+/gps/pos/confine In_Gas_Kr_PV
+
+# CE N
+/gps/source/add .0126
+/gps/particle e-
+/gps/ang/type iso
+/gps/ene/mono 9.3817 keV
+/gps/pos/type Volume
+/gps/pos/shape Cylinder
+/gps/pos/centre 0 0 44.5 mm
+/gps/pos/radius 120 mm
+/gps/pos/halfz 135 mm
+/gps/pos/confine In_Gas_Kr_PV
+
+# Auger K
+/gps/source/add .0862
+/gps/particle e-
+/gps/ang/type iso
+/gps/ene/mono 10.8 keV
+/gps/pos/type Volume
+/gps/pos/shape Cylinder
+/gps/pos/centre 0 0 44.5 mm
+/gps/pos/radius 120 mm
+/gps/pos/halfz 135 mm
+/gps/pos/confine In_Gas_Kr_PV
+
+# CE K
+/gps/source/add .248
+/gps/particle e-
+/gps/ang/type iso
+/gps/ene/mono 17.8260 keV
+/gps/pos/type Volume
+/gps/pos/shape Cylinder
+/gps/pos/centre 0 0 44.5 mm
+/gps/pos/radius 120 mm
+/gps/pos/halfz 135 mm
+/gps/pos/confine In_Gas_Kr_PV
+
+# CE L
+/gps/source/add .637
+/gps/particle e-
+/gps/ang/type iso
+/gps/ene/mono 30.2306 keV
+/gps/pos/type Volume
+/gps/pos/shape Cylinder
+/gps/pos/centre 0 0 44.5 mm
+/gps/pos/radius 120 mm
+/gps/pos/halfz 135 mm
+/gps/pos/confine In_Gas_Kr_PV
+
+# CE M
+/gps/source/add .1066
+/gps/particle e-
+/gps/ang/type iso
+/gps/ene/mono 31.8636 keV
+/gps/pos/type Volume
+/gps/pos/shape Cylinder
+/gps/pos/centre 0 0 44.5 mm
+/gps/pos/radius 120 mm
+/gps/pos/halfz 135 mm
+/gps/pos/confine In_Gas_Kr_PV
+
+# CE N
+/gps/source/add .00782
+/gps/particle e-
+/gps/ang/type iso
+/gps/ene/mono 32.1276 keV
+/gps/pos/type Volume
+/gps/pos/shape Cylinder
+/gps/pos/centre 0 0 44.5 mm
+/gps/pos/radius 120 mm
+/gps/pos/halfz 135 mm
+/gps/pos/confine In_Gas_Kr_PV
+
+# XR 1
+/gps/source/add .037
+/gps/particle gamma
+/gps/ang/type iso
+/gps/ene/mono 1.59 keV
+/gps/pos/type Volume
+/gps/pos/shape Cylinder
+/gps/pos/centre 0 0 44.5 mm
+/gps/pos/radius 120 mm
+/gps/pos/halfz 135 mm
+/gps/pos/confine In_Gas_Kr_PV
+
+# XR 1
+/gps/source/add .055
+/gps/particle gamma
+/gps/ang/type iso
+/gps/ene/mono 9.4057 keV
+/gps/pos/type Volume
+/gps/pos/shape Cylinder
+/gps/pos/centre 0 0 44.5 mm
+/gps/pos/radius 120 mm
+/gps/pos/halfz 135 mm
+/gps/pos/confine In_Gas_Kr_PV
+
+# XR ka2
+/gps/source/add .0470
+/gps/particle gamma
+/gps/ang/type iso
+/gps/ene/mono 12.598 keV
+/gps/pos/type Volume
+/gps/pos/shape Cylinder
+/gps/pos/centre 0 0 44.5 mm
+/gps/pos/radius 120 mm
+/gps/pos/halfz 135 mm
+/gps/pos/confine In_Gas_Kr_PV
+
+# XR kb3
+/gps/source/add .0065
+/gps/particle gamma
+/gps/ang/type iso
+/gps/ene/mono 14.104 keV
+/gps/pos/type Volume
+/gps/pos/shape Cylinder
+/gps/pos/centre 0 0 44.5 mm
+/gps/pos/radius 120 mm
+/gps/pos/halfz 135 mm
+/gps/pos/confine In_Gas_Kr_PV
+
+# XR kb1
+/gps/source/add .0127
+/gps/particle gamma
+/gps/ang/type iso
+/gps/ene/mono 14.111 keV
+/gps/pos/type Volume
+/gps/pos/shape Cylinder
+/gps/pos/centre 0 0 44.5 mm
+/gps/pos/radius 120 mm
+/gps/pos/halfz 135 mm
+/gps/pos/confine In_Gas_Kr_PV
+
+# XR kb2
+/gps/source/add .00167
+/gps/particle gamma
+/gps/ang/type iso
+/gps/ene/mono 14.311 keV
+/gps/pos/type Volume
+/gps/pos/shape Cylinder
+/gps/pos/centre 0 0 44.5 mm
+/gps/pos/radius 120 mm
+/gps/pos/halfz 135 mm
+/gps/pos/confine In_Gas_Kr_PV
+
+# XR kb2
+/gps/source/add .00062
+/gps/particle gamma
+/gps/ang/type iso
+/gps/ene/mono 32.1516 keV
+/gps/pos/type Volume
+/gps/pos/shape Cylinder
+/gps/pos/centre 0 0 44.5 mm
+/gps/pos/radius 120 mm
+/gps/pos/halfz 135 mm
+/gps/pos/confine In_Gas_Kr_PV
+
+
+##set number of runs
+/run/beamOn 100000
+

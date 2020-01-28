@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<gdml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://service-spi.web.cern.ch/service-spi/app/releases/GDML/schema/gdml.xsd">
+
+##########################################
+
+
+##########################################
+
+ <define>
+
+  <constant name="HALFPI" value="pi/2."/>
+  <constant name="PI" value="1.*pi"/>
+  <constant name="TWOPI" value="2.*pi"/>
+
+  <position name="center" x="0" y="0" z="0"/>
+  <rotation name="identity" x="0" y="0" z="0" />
+
+  <quantity name="cylinder_1_radius" type="length" value="31.5" unit="mm"/>
+  <quantity name="cylinder_1_height" type="length" value="0.5" unit="mm"/>
+
+ </define>
+
+##########################################
+
+ <materials>
+
+  <element name="hydrogen" formula="H"  Z="1.">  <atom value="1.008"/>  </element>
+
+  <material name="vacuum">
+   <D value="1.e-22" unit="mg/cm3"/>
+   <fraction n="1.0" ref="hydrogen"/>
+  </material>
+
+ </materials>
+
+##########################################
+
+ <solids>
+
+  <cone name="on_surface_kr" rmin1="0" rmax1="cylinder_1_radius" rmin2="0" rmax2="cylinder_1_radius" z="cylinder_1_height" startphi="0" deltaphi="TWOPI" aunit="rad" />
+
+ </solids>
+
+##########################################
+
+ <structure>
+
+ <volume name="On_Surface_Kr">
+   <materialref ref="vacuum"/>
+   <solidref ref="on_surface_kr"/>
+  </volume>
+
+ </structure>
+
+##########################################
+
+ <setup name="Default" version="1.0">
+  <world ref="On_Surface_Kr"/>
+ </setup>
+</gdml>
+

@@ -1,0 +1,36 @@
+# use QGSP_BERT just to have something - this one loads fast.
+/g4simple/setReferencePhysList QGSP_BERT
+
+/g4simple/setDetectorGDML ../geometries/gMJ60.gdml false
+
+/run/initialize
+
+# Use RayTracerX
+/vis/open RayTracerX
+
+# Camera setting
+/vis/viewer/set/style surface
+/vis/viewer/set/upVector 0 0 1
+/vis/viewer/set/viewpointThetaPhi 90 0
+#/vis/viewer/set/viewpointThetaPhi 0 0
+#/vis/viewer/set/viewpointThetaPhi 90 0
+/vis/viewer/set/background white 0.
+/vis/viewer/set/lightsThetaPhi 30 30
+#/vis/viewer/set/lightsVector 0 0 1
+/vis/viewer/zoom 105
+/vis/viewer/pan 0 0
+
+
+/vis/geometry/set/colour vacuum_volume -1 0 0 0 0.01
+/vis/geometry/set/colour MJ60_Detector -1 0.5 1 0.5 1
+/vis/geometry/set/colour Copper_Can 0 0.9 0.7 0.7 0.2
+/vis/geometry/set/colour Cryo_Lid 0 0.9 0.7 0.7 0.2
+/vis/geometry/set/colour source_volume -0.2 0.4 0.4 0.4 1
+/vis/geometry/set/colour encasing_volume -1 0.5 1 0.5 1
+#/vis/geometry/set/colour In_Gas_Kr 0 0.9 0.7 0.7 0.2
+#/vis/geometry/set/colour In_Dead_Layer_Kr 0 0.9 0.7 0.7 0.2
+#/vis/geometry/set/colour On_Surface_Kr 0 0.9 0.7 0.7 0.2
+
+# Camera setting
+/vis/drawVolume
+/vis/viewer/flush

@@ -1,0 +1,39 @@
+/run/verbose 1
+#/event/verbose 1
+#/tracking/verbose 1
+
+/g4simple/setRandomSeed true
+
+/g4simple/setReferencePhysList Shielding
+#/physics_engine/tailor/MuonNuclear on
+
+##Geometry File to run simulation with
+/g4simple/setDetectorGDML gMJ60.gdml
+
+##Specify output file
+/g4simple/setOutputFormat hdf5
+/analysis/setFileName cs_test
+
+##Set Volume ID's for Geometry Volumes (volume.in.geometry.file_PV volID)
+/g4simple/setVolID MJ60_Detector_PV 1
+
+##to track all steps, including steps for which Edep=0
+#/g4simple/recordAllSteps
+
+##initialize the run
+/run/initialize
+
+/g4simple/listPhysVols
+
+##Set Source Specifications; particle type, ion specifications (proton number, nucleon number, ionic charge, excitation energy in keV),  geometrical specifications (3 lines, comment these out to make point source), position of source, what volume in geometry file to confine the source to (will take overlap of source geometry and volume in geometry file to make new source geometry, comment this out to not confine source to any volume in geometry file).
+/gps/particle ion
+/gps/ion 55 137 0 0
+/gps/energy 0 MeV
+/gps/pos/type Volume
+/gps/pos/shape Sphere
+/gps/pos/radius 0.5 mm
+/gps/pos/centre 0 0 -216.725 mm
+/gps/pos/confine Source_Volume_PV
+
+##set number of runs
+/run/beamOn 10000000

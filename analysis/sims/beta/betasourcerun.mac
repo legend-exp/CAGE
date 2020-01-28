@@ -1,0 +1,50 @@
+/run/verbose 1
+#/event/verbose 1
+#/tracking/verbose 1
+
+/g4simple/setRandomSeed true
+
+/g4simple/setReferencePhysList Shielding
+#/physics_engine/tailor/MuonNuclear on
+
+##Geometry File to run simulation with
+/g4simple/setDetectorGDML gscanner.gdml
+
+##Specify output file
+/g4simple/setOutputFormat root
+/analysis/setFileName out
+
+##Set Volume ID's for Geometry Volumes
+/g4simple/setVolID PPC_Germanium_Detector_PV 1
+#/g4simple/setVolID Lead_Collimator_PV 2
+#/g4simple/setVolID Source_Disk_PV 3
+#/g4simple/setVolID Outer_Vessel_PV 4
+#/g4simple/setVolID Cold_Plate_PV 5
+#/g4simple/setVolID Copper_Finger_PV 6
+#/g4simple/setVolID Top_Hat_PV 7
+#/g4simple/setVolID Feedthrough_PV 8
+#/g4simple/setVolID Detector_Rest_PV 9
+#/g4simple/setVolID LN_Dewar_PV 10
+#/g4simple/setVolID Ground_Plane_PV 11
+#/g4simple/setVolID Vertical_Motion_PV 12
+#/g4simple/setVolID vacuum_volume_PV 13
+
+##initialize the run
+/run/initialize
+
+/g4simple/listPhysVols
+
+##Set Source Specifications
+/gps/particle e-
+/gps/energy 0.61 keV
+/gps/ang/type iso
+/gps/pos/type Volume
+/gps/pos/shape Sphere
+/gps/pos/radius 3.5 mm
+/gps/position 0 0 48.15 mm
+/gps/pos/confine Source_Disk_PV
+
+##set number of runs
+/run/beamOn 10
+
+

@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<gdml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://service-spi.web.cern.ch/service-spi/app/releases/GDML/schema/gdml.xsd">
+
+##########################################
+
+#cylinder_height = height of dewar's cylinder section
+#cylinder_inner_radius = inner radius of dewar's cylinder section
+#cylinder_outer_radius = outer radius of dewar's cylinder section
+#cylinder2_height = thickness of bottom of dewar
+#cylinder3_height = thickess of top of dewar
+
+##########################################
+
+ <define>
+
+  <constant name="HALFPI" value="pi/2."/>
+  <constant name="PI" value="1.*pi"/>
+  <constant name="TWOPI" value="2.*pi"/>
+
+  <position name="center" x="0" y="0" z="0"/>
+  <rotation name="identity" x="0" y="0" z="0" />
+
+  <quantity name="cylinder_height" type="length" value="573" unit="mm"/>
+  <quantity name="cylinder_inner_radius" type="length" value="117" unit="mm"/>
+  <quantity name="cylinder_outer_radius" type="length" value="217" unit="mm"/>
+
+  <quantity name="cylinder2_height" type="length" value="100" unit="mm"/>
+  <quantity name="cylinder2_inner_radius" type="length" value="0" unit="mm"/>
+  <quantity name="cylinder2_outer_radius" type="length" value="217" unit="mm"/>
+
+  <quantity name="cylinder3_height" type="length" value="100" unit="mm"/>
+  <quantity name="cylinder3_inner_radius" type="length" value="28.63" unit="mm"/>
+  <quantity name="cylinder3_outer_radius" type="length" value="217" unit="mm"/>
+
+ </define>
+
+##########################################
+
+ <materials>
+
+
+ </materials>
+
+##########################################
+
+ <solids>
+
+  <cone name="dewar_frame" rmin1="cylinder_inner_radius" rmax1="cylinder_outer_radius" rmin2="cylinder_inner_radius" rmax2="cylinder_outer_radius" z="cylinder_height" startphi="0" deltaphi="TWOPI" aunit="rad" />
+
+  <cone name="dewar_bottom" rmin1="cylinder2_inner_radius" rmax1="cylinder2_outer_radius" rmin2="cylinder2_inner_radius" rmax2="cylinder2_outer_radius" z="cylinder2_height" startphi="0" deltaphi="TWOPI" aunit="rad" />
+
+  <cone name="dewar_top" rmin1="cylinder3_inner_radius" rmax1="cylinder3_outer_radius" rmin2="cylinder3_inner_radius" rmax2="cylinder3_outer_radius" z="cylinder3_height" startphi="0" deltaphi="TWOPI" aunit="rad" />
+
+  <union name="ln_dewar_with_bottom">
+    <first ref="dewar_frame" />
+    <second ref="dewar_bottom" />
+    <position x="0" y="0" z="-cylinder_height/2.0 + cylinder2_height/2.0" />
+    <rotationref ref="identity"/>
+  </union>
+
+  <union name="ln_dewar">
+    <first ref="ln_dewar_with_bottom" />
+    <second ref="dewar_top" />
+    <position x="0" y="0" z="cylinder_height/2.0 - cylinder3_height/2.0" />
+    <rotationref ref="identity"/>
+  </union>
+
+ </solids>
+
+##########################################
+
+ <structure>
+
+ <volume name="LN_Dewar">
+   <materialref ref="G4_STAINLESS-STEEL"/>
+   <solidref ref="ln_dewar"/>
+  </volume>
+
+ </structure>
+
+##########################################
+
+ <setup name="Default" version="1.0">
+  <world ref="LN_Dewar"/>
+ </setup>
+</gdml>
+

@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<gdml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://service-spi.web.cern.ch/service-spi/app/releases/GDML/schema/gdml.xsd">
+
+##########################################
+
+#cylinder_height = height of vertical motor
+
+##########################################
+
+ <define>
+
+  <constant name="HALFPI" value="pi/2."/>
+  <constant name="PI" value="1.*pi"/>
+  <constant name="TWOPI" value="2.*pi"/>
+
+  <quantity name="cylinder_height" type="length" value="304.8" unit="mm"/>
+  <quantity name="cylinder_inner_radius" type="length" value="0" unit="mm"/>
+  <quantity name="cylinder_outer_radius" type="length" value="50" unit="mm"/>
+
+ </define>
+
+##########################################
+
+ <materials>
+
+  <element name="hydrogen" formula="H"  Z="1.">  <atom value="1.008"/>  </element>
+  <element name="carbon" formula="C"  Z="6.">  <atom value="12.011"/>  </element>
+
+  <material name="plastic">
+   <D value="750.0" unit="mg/cm3"/>
+   <composite n="2" ref="hydrogen"/>
+   <composite n="1" ref="carbon"/>
+  </material>
+
+ </materials>
+
+##########################################
+
+ <solids>
+
+  <cone name="vertical_motion" rmin1="cylinder_inner_radius" rmax1="cylinder_outer_radius" rmin2="cylinder_inner_radius" rmax2="cylinder_outer_radius" z="cylinder_height" startphi="0" deltaphi="TWOPI" aunit="rad"/>
+
+ </solids>
+
+##########################################
+
+ <structure>
+
+ <volume name="Vertical_Motion">
+   <materialref ref="plastic"/>
+   <solidref ref="vertical_motion"/>
+  </volume>
+
+ </structure>
+
+##########################################
+
+ <setup name="Default" version="1.0">
+  <world ref="Vertical_Motion"/>
+ </setup>
+</gdml>
+
+

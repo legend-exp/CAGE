@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<gdml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://service-spi.web.cern.ch/service-spi/app/releases/GDML/schema/gdml.xsd">
+
+##########################################
+
+#spherical lid with a cut in it for source source capsule.
+
+##########################################
+
+ <define>
+
+  <constant name="HALFPI" value="pi/2."/>
+  <constant name="PI" value="1.*pi"/>
+  <constant name="TWOPI" value="2.*pi"/>
+
+  <position name="center" x="0" y="0" z="0"/>
+  <rotation name="identity" x="0" y="0" z="0"/>
+
+  <quantity name="collimator_innerradius" type="length" value="0" unit="mm"/>
+  <quantity name="collimator_radius" type="length" value="16" unit="mm"/>
+
+  <quantity name="capsule_innerradius" type="length" value="0" unit="mm"/>
+  <quantity name="capsule_radius" type="length" value="4.5" unit="mm"/>
+  <quantity name="capsule_height" type="length" value="5.5" unit="mm"/>
+
+ </define>
+
+##########################################
+
+ <materials>
+
+
+ </materials>
+
+##########################################
+
+ <solids>
+
+    <sphere name="plastic_lid" rmin="collimator_innerradius" rmax="collimator_radius"  starttheta="0" deltatheta="HALFPI" deltaphi="TWOPI" aunit="rad"/>
+
+    <cone name="capsule" rmin1="capsule_innerradius" rmax1="capsule_radius" rmin2="capsule_innerradius" rmax2="capsule_radius" z="capsule_height" startphi="0" deltaphi="TWOPI" aunit="rad"/>
+
+  <subtraction name="plastic_collimator_lid">
+    <first ref="plastic_lid" />
+    <second ref="capsule" />
+    <position x="0" y="0" z="capsule_height/2.0" />
+    <rotationref ref="identity" />
+  </subtraction>
+
+ </solids>
+
+##########################################
+
+ <structure>
+
+ <volume name="Plastic_Collimator_Lid">
+   <materialref ref="G4_POLYETHYLENE"/>
+   <solidref ref="plastic_collimator_lid"/>
+  </volume>
+
+ </structure>
+
+##########################################
+
+ <setup name="Default" version="1.0">
+  <world ref="Plastic_Collimator_Lid"/>
+ </setup>
+</gdml>
+
+
