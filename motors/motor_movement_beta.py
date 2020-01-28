@@ -22,6 +22,8 @@ def movement():
     source_limit_check()
     linear_limit_check()
 
+    exit()
+
     zero = input(' If you haven\'t zeroed the motors to their home positions, would you like to do that now? \n y/n -->')
 
 

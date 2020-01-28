@@ -1,0 +1,6 @@
+#!/Users/mjcenpa/cage/test/bin/python3
+# EASY-INSTALL-DEV-SCRIPT: 'dragonfly===v1.16.2-2-g4fa4d60','dragonfly'
+__requires__ = 'dragonfly===v1.16.2-2-g4fa4d60'
+__import__('pkg_resources').require('dragonfly===v1.16.2-2-g4fa4d60')
+__file__ = '/Users/mjcenpa/cage/dragonfly/dragonfly/bin/dragonfly'
+exec(compile(open(__file__).read(), __file__, 'exec'))

@@ -1,0 +1,11 @@
+name: pinger_service
+broker: localhost
+module: Spimescape
+endpoints:
+  - name: pinger
+    module: Pinger
+    ping_timeout: 10
+    schedule_interval: 240 # define the ping interval
+    delay_start: True
+    services_to_ping:
+      - ardbeg

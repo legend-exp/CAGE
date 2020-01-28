@@ -1,0 +1,13 @@
+name: slack_interface
+module: SlackInterface
+broker: localhost
+prime_speakers: ['dripline','hornet']
+speaking_time: 300
+number_sentence_per_speaking_time: 30
+time_between_warnings: 3600
+mapping:
+  critical: slack_test
+  error: slack_test
+  warning: slack_test
+  notice: slack_test
+
