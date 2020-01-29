@@ -3,22 +3,39 @@ import gclib
 from pprint import pprint
 import spur
 import numpy as np
+import json
 
-
-
-# def main():
-
+def main():
     # test_readout()
+    source_limit_check()
     # source_program()
 
-# def test_readout():
 
-    # print(type(g.GInfo()))
-    # print(g.GAddresses())
-    # motor_name = "DMC2142sH2a"
+def test_readout():
 
-    # print(g.GVersion())
-    # print(g.GInfo())
+    g = gclib.py()
+    g.GOpen('172.25.100.168 --direct')
+
+    print(type(g.GInfo()))
+    print(g.GAddresses())
+    motor_name = "DMC2142sH2a"
+    print(g.GVersion())
+    print(g.GInfo())
+
+
+def source_limit_check():
+    """
+    source motor only has one limit switch
+    """
+    g = gclib.py()
+    g.GOpen('172.25.100.168 --direct')
+
+    # send the command (can check against GalilTools)
+    status = int(float(g.GCommand('MG _LF A')))
+    # status = int(g.GCommand('MG _LR A')) # reverse isn't used
+
+    label = "OFF" if status == 1 else "ON"
+    print(f"Source motor limit switch: {label}")
 
 
 def source_program():
@@ -173,6 +190,24 @@ def source_program():
     g.GClose()
 
 
+def source_set_zero():
+
+    # load credentials
+    with open("../config.json") as f:
+        config = json.load(f)
+    ipa = config["cage_rpi_ipa"]
+    usr = config["cage_rpi_usr"]
+    pwd = config["cage_rpi_pwd"]
+
+    shell = spur.SshShell(hostname=ipa, username=usr, password=pwd)
+    with shell:
+        result = shell.run(["python3", "encoders/set_zero_source.py"])
+
+    ans = float(result.output.decode("utf-8"))
+    print("Encoder set to zero, returned: ", ans)
+    return ans
+
+
 def zero_source_motor():
 
     g = gclib.py()
@@ -233,6 +268,7 @@ def zero_source_motor():
 
     del c #delete the alias
     g.GClose()
+
 
 def center_source_motor():
 
@@ -374,9 +410,10 @@ def center_source_motor():
     del c #delete the alias
     g.GClose()
 
+
 def source_read_pos():
 
-    shell = spur.SshShell(hostname="10.66.193.74",
+    shell = spur.SshShell(hostname="10.66.193.75",
                             username="pi", password="raspberry")
 
     with shell:
@@ -386,35 +423,6 @@ def source_read_pos():
     print("Real position is: ", ans)
     return ans
 
-def source_set_zero():
 
-    shell = spur.SshShell(hostname="10.66.193.74",
-                            username="pi", password="raspberry")
-
-    with shell:
-        result = shell.run(["python3", "set_zero.py"])
-    # answer = result.output
-    ans = float(result.output.decode("utf-8"))
-    print("Encoder set to zero, returned: ", ans)
-    return ans
-
-def source_limit_check():
-
-    g = gclib.py()
-    c = g.GCommand
-    g.GOpen('172.25.100.168 --direct')
-
-    lf_status = float(c('MG _LF C'))
-    lr_status = float(c('MG _LR C'))
-
-    if lf_status == 1:
-        print('Forward switch, source motor: off')
-    else:
-        print('Forward switch, source motor: ON')
-    if lr_status == 1:
-        print('Reverse switch, source motor off')
-    else:
-        print('Reverse switch, source motor: ON')
-
-# if __name__=="__main__":
-#     main()
+if __name__=="__main__":
+    main()

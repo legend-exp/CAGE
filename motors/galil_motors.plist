@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>GalilTools.AutoConnect</key>
+	<true/>
+	<key>GalilTools.WidgetState</key>
+	<data>
+	AAAA/wAAAAH9AAAABAAAAAAAAAHuAAADXvwCAAAAAfsAAAAKAFcAYQB0AGMAaAEAAAAs
+	AAADXgAAAHgA////AAAAAQAAAMgAAANe/AIAAAAC+wAAABAAVABlAHIAbQBpAG4AYQBs
+	AQAAACwAAANeAAAAfgD////7AAAACABGAGkAbgBkAAAAAAD/////AAAAvAD///8AAAAC
+	AAADfAAAAH78AQAAAAH7AAAACgBUAHUAbgBlAHIAAAAAAAAAA3wAAACFAP///wAAAAMA
+	AAN8AAAAJ/wBAAAAAfsAAAAKAFMAYwBvAHAAZQAAAAAAAAADfAAAAIUA////AAAAxAAA
+	A14AAAAEAAAABAAAAAgAAAAI/AAAAAEAAAACAAAAAQAAAA4AVABvAG8AbABiAGEAcgEA
+	AAAA/////wAAAAAAAAAA
+	</data>
+	<key>GalilTools.WindowPosition</key>
+	<string>@Point(-4 23)</string>
+	<key>GalilTools.WindowSize</key>
+	<string>@Size(892 926)</string>
+	<key>Terminal.AutoRepeatRateInMs</key>
+	<integer>1000</integer>
+	<key>Terminal.ShowUnsolicitedTimeStamps</key>
+	<false/>
+	<key>Terminal.SplitterState</key>
+	<data>
+	AAAA/wAAAAAAAAACAAABnAAAAZkBAAAABwEAAAAC
+	</data>
+	<key>Terminal.TerminalFirst</key>
+	<true/>
+</dict>
+</plist>

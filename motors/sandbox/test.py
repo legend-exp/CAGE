@@ -66,7 +66,7 @@ def test_program():
 
 def read_pos():
 
-    shell = spur.SshShell(hostname="10.66.193.74",
+    shell = spur.SshShell(hostname="10.66.193.75",
                             username="pi", password="raspberry")
 
     with shell:
@@ -78,7 +78,7 @@ def read_pos():
 
 def set_zero():
 
-    shell = spur.SshShell(hostname="10.66.193.74",
+    shell = spur.SshShell(hostname="10.66.193.75",
                             username="pi", password="raspberry")
 
     with shell:

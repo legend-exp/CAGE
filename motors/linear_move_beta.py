@@ -4,24 +4,42 @@ from pprint import pprint
 import spur
 import numpy as np
 
-
-
 def main():
 
     # test_readout()
     linear_program()
 
-# def test_readout():
-#
-#     g = gclib.py()
-#     c = g.GCommand
-#     g.GOpen('172.25.100.168 --direct')
-    # print(type(g.GInfo()))
-    # print(g.GAddresses())
-    # motor_name = "DMC2142sH2a"
 
-    # print(g.GVersion())
-    # print(g.GInfo())
+def linear_limit_check():
+
+    g = gclib.py()
+    c = g.GCommand
+    g.GOpen('172.25.100.168 --direct')
+
+    lf_status = float(c('MG _LF B'))
+    lr_status = float(c('MG _LR B'))
+
+    if lf_status == 1:
+        print('Forward switch, linear stage: off')
+    else:
+        print('Forward switch, linear stage: ON')
+    if lr_status == 1:
+        print('Reverse switch, linear stage: off')
+    else:
+        print('Reverse switch, linear stage: ON')
+
+
+def test_readout():
+
+    g = gclib.py()
+    c = g.GCommand
+    g.GOpen('172.25.100.168 --direct')
+    print(type(g.GInfo()))
+    print(g.GAddresses())
+    motor_name = "DMC2142sH2a"
+
+    print(g.GVersion())
+    print(g.GInfo())
 
 
 def linear_program():
@@ -169,6 +187,7 @@ def linear_program():
     print('Motor counter: ', c('PAB=?'))
     del c #delete the alias
     g.GClose()
+
 
 def zero_linear_motor():
 
@@ -352,48 +371,31 @@ def zero_linear_motor():
     g.GClose()
 
 
-
 def linear_read_pos():
 
-    shell = spur.SshShell(hostname="10.66.193.74",
-                            username="pi", password="raspberry")
+    shell = spur.SshShell(hostname="10.66.193.75",
+                            username="pi", password="legendscanner")
 
     with shell:
-        result = shell.run(["python3", "read_pos_linear.py"])
+        result = shell.run(["python3", "encoders/read_pos_linear.py"])
     answer = result.output
     ans = float(answer.decode("utf-8"))
     print("Real position is: ", ans)
     return ans
 
+
 def linear_set_zero():
 
-    shell = spur.SshShell(hostname="10.66.193.74",
-                            username="pi", password="raspberry")
+    shell = spur.SshShell(hostname="10.66.193.75",
+                            username="pi", password="legendscanner")
 
     with shell:
-        result = shell.run(["python3", "set_zero_linear.py"])
+        result = shell.run(["python3", "encoders/set_zero_linear.py"])
     # answer = result.output
     ans = float(result.output.decode("utf-8"))
     print("Encoder set to zero, returned: ", ans)
     return ans
 
-def linear_limit_check():
-
-    g = gclib.py()
-    c = g.GCommand
-    g.GOpen('172.25.100.168 --direct')
-
-    lf_status = float(c('MG _LF B'))
-    lr_status = float(c('MG _LR B'))
-
-    if lf_status == 1:
-        print('Forward switch, linear stage: off')
-    else:
-        print('Forward switch, linear stage: ON')
-    if lr_status == 1:
-        print('Reverse switch, linear stage: off')
-    else:
-        print('Reverse switch, linear stage: ON')
 
 if __name__=="__main__":
     main()

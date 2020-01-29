@@ -1,6 +1,6 @@
 import spur
 
-shell = spur.SshShell(hostname="10.66.193.74", username="pi", password="raspberry")
+shell = spur.SshShell(hostname="10.66.193.75", username="pi", password="raspberry")
 with shell:
     result = shell.run(["python3", "pos.py"])
 answer = result.output

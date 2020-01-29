@@ -1,4 +1,5 @@
 # New additions go at the top!
+config.json # auth file
 *.c
 .DS_Store
 *.npz
