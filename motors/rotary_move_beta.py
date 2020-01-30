@@ -5,28 +5,12 @@ import spur
 import numpy as np
 
 def main():
-
+    """
+    NOTE: rotary motor is Axis D in GalilTools.
+    """
     # test_readout()
+    # zero_rotary_motor()
     rotary_program()
-
-
-def rotary_limit_check():
-
-    g = gclib.py()
-    c = g.GCommand
-    g.GOpen('172.25.100.168 --direct')
-
-    lf_status = float(c('MG _LF D'))
-    lr_status = float(c('MG _LR D'))
-
-    if lf_status == 1:
-        print('Forward switch, rotary stage: off')
-    else:
-        print('Forward switch, rotary stage: ON')
-    if lr_status == 1:
-        print('Reverse switch, rotary stage: off')
-    else:
-        print('Reverse switch, rotary stage: ON')
 
 
 def test_readout():
@@ -37,38 +21,67 @@ def test_readout():
     print(type(g.GInfo()))
     print(g.GAddresses())
     motor_name = "DMC2142sH2a"
-
     print(g.GVersion())
     print(g.GInfo())
 
 
+def rotary_limit_check():
+    """
+    rotary motor only has one limit switch
+    """
+    g = gclib.py()
+    g.GOpen('172.25.100.168 --direct')
+
+    # send the command (can check against GalilTools)
+    status = int(float(g.GCommand('MG _LF D')))
+    # status = int(g.GCommand('MG _LR D')) # reverse isn't used
+
+    label = "OFF" if status == 1 else "ON"
+    print(f"Rotary motor limit switch: {label}")
+
+
 def rotary_program():
+    """
+    NOTE: the values the encoder is returning are pretty wack.
+    Especially if you run the loop "read_rotary.py" on the pi concurrently.
+    We need much more careful handling of the values the encoder reads
+    back (assuming there isn't a hardware issue).  I think it's solvable,
+    but it requires attention to get this right.
+    """
 
     g = gclib.py()
     c = g.GCommand
     g.GOpen('172.25.100.168 --direct')
 
+    # load = int(input(' If you are starting a move, type 0. \n If you are moving back to 0 position, type 1(test, do not use) \n -->'))
+
+    # set the current encoder position to zero (measures relative motion)
     zero = rotary_set_zero()
     while (zero > 10) and (zero < 16374):
         zero = rotary_set_zero()
 
-    load = int(input(' If you are starting a move, type 0. \n If you are moving back to 0 position, type 1(test, do not use) \n -->'))
+    # if load == 0:
+    #     angle = float(input(' How many degrees would you like to rotate the rotary motor?\n NOTE:negative angles rotate away from limit switch \n -->'))
+    #     pos = np.asarray([angle])
+    #     np.savez('rotary_pos', pos)
+    #
+    # if load == 1:
+    #     print(' Setting motor back to 0 position')
+    #     file = np.load('./rotary_pos.npz')
+    #     angle1 = file['arr_0']
+    #     angle = -angle1[0]
 
-    if load == 0:
-        angle = float(input(' How many degrees would you like to rotate the rotary motor?\n NOTE:negative angles rotate away from limit switch \n -->'))
-        pos = np.asarray([angle])
-        np.savez('rotary_pos', pos)
-    if load == 1:
-        print(' Setting motor back to 0 position')
-        file = np.load('./rotary_pos.npz')
-        angle1 = file['arr_0']
-        angle = -angle1[0]
+    # debug, deleteme!
+    load = 0
+    # angle = -45 # doesn't work, can't make it through the while loop
+    angle = 1
+
     if abs(angle) > 330:
         print('Too great of an angle, no angles greater than 330.')
         exit()
+
+    # convert degrees into number of steps
     cts = angle * 12500
-
-
     if angle < 0:
         checks, rem = divmod(-cts, 25000)
         move = -25000
@@ -76,14 +89,12 @@ def rotary_program():
     else:
         checks, rem = divmod(cts, 25000)
         move = 25000
+
+
     b = False
     i = 0
-    # print(checks, rem)
-    # del c #delete the alias
-    # g.GClose()
-    # exit()
 
-
+    # send commands to motor
     c('AB')
     c('MO')
     c('SHD')
@@ -97,11 +108,13 @@ def rotary_program():
     if checks != 0:
         while i < checks:
 
+            print(f"i {i}  n_checks {checks}  cts {cts}  move {move}")
+
             c('PRD={}'.format(move))
             c('BGD') #begin motion
             g.GMotionComplete('D')
-            print(' encoder check')
             enc_pos = rotary_read_pos()
+            print(f' encoder check: {enc_pos}')
 
             if b == False:
                 if (enc_pos > 8092) and (enc_pos < 8292):
@@ -110,7 +123,6 @@ def rotary_program():
                     print(theta, ' compared with 180')
                 else:
                     print(' WARNING: Motor did not move designated counts, aborting move')
-                    del c #delete the alias
                     g.GClose()
                     exit()
             if b == True:
@@ -121,7 +133,6 @@ def rotary_program():
                 else:
                     print(' WARNING1: Motor did not move designated counts, aborting move')
                     print((checks, rem, move, enc_pos, theta, b))
-                    del c #delete the alias
                     g.GClose()
                     exit()
             b = not b
@@ -190,7 +201,7 @@ def rotary_program():
 
     print(' Motor has moved to designated position')
     print('Motor counter: ', c('PAD=?'))
-    del c #delete the alias
+
     g.GClose()
 
 
@@ -200,12 +211,12 @@ def zero_rotary_motor():
     c = g.GCommand
     g.GOpen('172.25.100.168 --direct')
 
-    zero = rotary_set_zero()
-    while (zero > 10) and (zero < 16374):
-        zero = rotary_set_zero()
-
     print(' Attempting to zero the rotary motor now, sudden error or break in code expected')
     print(' Rerun motor_movement.py to continue')
+
+    # zero = rotary_set_zero()
+    # while (zero > 10) and (zero < 16374):
+    #     zero = rotary_set_zero()
 
     b = False
     move = 25000
@@ -224,8 +235,10 @@ def zero_rotary_motor():
             c('PRD={}'.format(move))
             c('BGD') #begin motion
             g.GMotionComplete('D')
-            print(' encoder check')
             enc_pos = rotary_read_pos()
+
+            print(f"encoder position: {enc_pos}")
+
 
             if b == False:
                 if (enc_pos > 8092) and (enc_pos < 8292):
@@ -234,9 +247,9 @@ def zero_rotary_motor():
                     print(theta, ' compared with 180')
                 else:
                     print(' WARNING: Motor did not move designated counts, aborting move')
-                    del c #delete the alias
                     g.GClose()
                     exit()
+
             if b == True:
                 if (enc_pos < 100) or (enc_pos > 16284):
                     print(' encoder position good, continuing')
@@ -244,7 +257,6 @@ def zero_rotary_motor():
                     print(theta, ' compared with 0 or 360')
                 else:
                     print(' WARNING1: Motor did not move designated counts, aborting move')
-                    del c #delete the alias
                     g.GClose()
                     exit()
             b = not b
@@ -252,17 +264,18 @@ def zero_rotary_motor():
     except gclib.GclibError:
             print('Rotary stage is zeroed')
 
-    del c #delete the alias
     g.GClose()
 
 
 def rotary_read_pos():
 
     shell = spur.SshShell(hostname="10.66.193.75",
-                            username="pi", password="raspberry")
+                          username="pi", password="raspberry")
 
     with shell:
-        result = shell.run(["python3", "read_pos_rotary.py"])
+        # this has type: spur.results.ExecutionResult
+        result = shell.run(["python3", "encoders/pos_rotary.py"])
+
     answer = result.output
     ans = float(answer.decode("utf-8"))
     print("Real position is: ", ans)
@@ -272,11 +285,11 @@ def rotary_read_pos():
 def rotary_set_zero():
 
     shell = spur.SshShell(hostname="10.66.193.75",
-                            username="pi", password="raspberry")
+                          username="pi", password="raspberry")
 
     with shell:
-        result = shell.run(["python3", "set_zero_rotary.py"])
-    # answer = result.output
+        result = shell.run(["python3", "encoders/pos_rotary.py"])
+
     ans = float(result.output.decode("utf-8"))
     print("Encoder set to zero, returned: ", ans)
     return ans

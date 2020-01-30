@@ -6,6 +6,10 @@ import numpy as np
 import json
 
 def main():
+    """
+    NOTE: Source motor is Axis A in GalilTools.
+    """
+
     # test_readout()
     source_limit_check()
     # source_program()
@@ -44,6 +48,7 @@ def source_program():
     c = g.GCommand
     g.GOpen('172.25.100.168 --direct')
 
+    # set the current encoder position to zero (measures relative motion)
     zero = source_set_zero()
     while (zero > 10) and (zero < 16374):
         zero = source_set_zero()
@@ -56,7 +61,7 @@ def source_program():
         np.savez('source_pos', pos)
     if load == 1:
         print(' Setting motor back to 0 position')
-        file = np.load('./source_pos.npz')
+        file = np.load('./source_pos.npz') # DEBUG - deleteme & replace w/ pandas dataframe with full history.
         angle1 = file['arr_0']
         angle = -angle1[0]
     cts = angle / 360 * 50000
@@ -80,7 +85,6 @@ def source_program():
     # del c #delete the alias
     # g.GClose()
     # exit()
-
 
     c('AB')
     c('MO')
@@ -209,17 +213,22 @@ def source_set_zero():
 
 
 def zero_source_motor():
-
+    """
+    NOTE/TODO: The zeroing motion for the source motor just "taps"
+    the limit switch (_LFA, line 170, Axis A forward limit switch).
+    We need to have some kind of active "listener" that displays
+    a message when the limit switch is briefly tapped.
+    """
     g = gclib.py()
     c = g.GCommand
     g.GOpen('172.25.100.168 --direct')
 
+    # set the current encoder position to zero (measures relative motion)
     zero = source_set_zero()
     while (zero > 10) and (zero < 16374):
         zero = source_set_zero()
 
-    print(' Attempting to zero the source motor now, sudden error or break in code expected')
-    print(' Rerun motor_movement.py to continue')
+    print(' Attempting to zero the source motor now, sudden error or break in code expected.  May need to re-run to continue.')
 
     b = False
     move = 25000
@@ -248,7 +257,6 @@ def zero_source_motor():
                     print(theta, ' compared with 180')
                 else:
                     print(' WARNING: Motor did not move designated counts, aborting move')
-                    del c #delete the alias
                     g.GClose()
                     exit()
             if b == True:
@@ -258,7 +266,6 @@ def zero_source_motor():
                     print(theta, ' compared with 0 or 360')
                 else:
                     print(' WARNING: Motor did not move designated counts, aborting move')
-                    del c #delete the alias
                     g.GClose()
                     exit()
             b = not b
@@ -266,17 +273,16 @@ def zero_source_motor():
     except gclib.GclibError:
             print('Source Motor is zeroed')
 
-    del c #delete the alias
     g.GClose()
 
 
 def center_source_motor():
 
-    zero = source_set_zero()
-    while (zero > 10) and (zero < 16374):
-        zero = source_set_zero()
-
     print(' Centering source beam, normal to the detector surface.')
+
+    # zero = source_set_zero()
+    # while (zero > 10) and (zero < 16374):
+    #     zero = source_set_zero()
 
     g = gclib.py()
     c = g.GCommand
@@ -286,7 +292,6 @@ def center_source_motor():
     b = False
     angle = -180
     cts = -25502
-
 
     if angle < 0:
         checks, rem = divmod(-cts, 25000)
@@ -414,13 +419,14 @@ def center_source_motor():
 def source_read_pos():
 
     shell = spur.SshShell(hostname="10.66.193.75",
-                            username="pi", password="raspberry")
+                          username="pi", password="raspberry")
 
     with shell:
-        result = shell.run(["python3", "pos.py"])
-    answer = result.output
-    ans = float(answer.decode("utf-8"))
+        result = shell.run(["python3", "encoders/pos_source.py"])
+
+    ans = float(result.output.decode("utf-8"))
     print("Real position is: ", ans)
+
     return ans
 
 
