@@ -4,6 +4,8 @@ config.json # auth file
 .DS_Store
 *.npz
 *.pdf
+!motors/manuals/DMC_manual.pdf
+!motors/manuals/cui_amt22_manual.pdf
 *.swp
 *.root
 *.h5
