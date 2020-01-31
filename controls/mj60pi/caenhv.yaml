@@ -1,0 +1,65 @@
+name: caenhv_service
+module: Spimescape
+broker: 10.66.193.71
+endpoints:
+  - name: caenhv
+    module: SerialProvider
+    module_path: serial_provider.py
+    port: '/dev/ttyUSB.CAEN'
+    command_terminator: "\r\n"
+    response_terminator: "\r\n"
+    endpoints:
+      - name: mj60_hv_status
+        module: CAENHVFormatSpime
+        module_path: serial_provider.py
+        get_str: '$BD:00,CMD:MON,CH:1,PAR:STAT'
+        set_str: '$BD:00,CMD:SET,CH:1,PAR:{}'
+        calibration: 'status_calibration({})'
+        set_value_map:
+            0: 'OFF'
+            1: 'ON'
+        get_on_set: True
+        log_on_set: True
+        log_interval: 1200
+      - name: mj60_hv_vset
+        module: CAENHVSpime
+        module_path: serial_provider.py
+        base_str: '$BD:00,CMD:{},CH:1,PAR:VSET'
+        calibration: '1*{}'
+        get_on_set: True
+        log_on_set: True
+        log_interval: 1200
+      - name: mj60_hv_vmon
+        module: CAENHVGetSpime
+        module_path: serial_provider.py
+        base_str: '$BD:00,CMD:{},CH:1,PAR:VMON'
+        calibration: '1*{}'
+        log_interval: 30
+      - name: mj60_hv_imon
+        module: CAENHVGetSpime
+        module_path: serial_provider.py
+        base_str: '$BD:00,CMD:{},CH:1,PAR:IMON'
+        calibration: '1*{}'
+        log_interval: 30
+      - name: mj60_hv_rup
+        module: CAENHVSpime
+        module_path: serial_provider.py
+        base_str: '$BD:00,CMD:{},CH:1,PAR:RUP'
+        calibration: '1*{}'
+        get_on_set: True
+        log_on_set: True
+        log_interval: 1200
+      - name: mj60_hv_rdown
+        module: CAENHVSpime
+        module_path: serial_provider.py
+        base_str: '$BD:00,CMD:{},CH:1,PAR:RDW'
+        calibration: '1*{}'
+        get_on_set: True
+        log_on_set: True
+        log_interval: 1200
+setup_calls:
+  - target: caenhv
+    method: on_set
+    args: "on"
+    kwargs:
+        routing_key_specifier: schedule_status

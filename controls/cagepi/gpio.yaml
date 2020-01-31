@@ -1,0 +1,51 @@
+name: cagepi_service
+module: Spimescape
+broker: 10.66.193.71
+endpoints:
+  - name: cagepi
+    module: RPiGPIOProvider
+    pinmap: 11
+    endpoints:
+      - name: cage_pressure
+        module: ADS1115Spime
+        measurement: single
+        read_option: 1
+        gain: 1 # +/- 4.096 VDC
+        gain_conversion: 0.000125 # to VDC in value_raw
+        calibration: '10**(5.3189*{}-11.7082)'
+        log_interval: 30
+      - name: cage_coldPlate_temp
+        module: Max31865Spime
+        module_path: max_spime.py
+        calibration: '1*{}'
+        nwires: 4
+        cspin: 5
+        log_interval: 30
+      - name: cage_topHat_temp
+        module: Max31865Spime
+        module_path: max_spime.py
+        calibration: '1*{}'
+        nwires: 4
+        cspin: 6
+        log_interval: 30
+      - name: cage_motor_temp
+        module: Max31865Spime
+        module_path: max_spime.py
+        calibration: '1*{}'
+        nwires: 4
+        cspin: 13
+        log_interval: 30
+      - name: cage_baseline
+        module: ADS1115Spime
+        measurement: single
+        read_option: 0
+        gain: 1
+        gain_conversion: 0.000125
+        calibration: '6*{}-11.66'
+        log_interval: 10
+setup_calls:
+  - target: cagepi
+    method: on_set
+    args: "on"
+    kwargs:
+        routing_key_specifier: schedule_status
