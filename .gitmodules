@@ -1,0 +1,8 @@
+[submodule "controls/dragonfly/dragonfly"]
+	path = controls/dragonfly/dragonfly
+	url = https://github.com/project8/dragonfly.git
+	branch = master
+[submodule "controls/dragonfly/dripline-python"]
+	path = controls/dragonfly/dripline-python
+	url = https://github.com/driplineorg/dripline-python.git
+	branch = master

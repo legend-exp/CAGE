@@ -1,5 +1,6 @@
 # New additions go at the top!
 config.json # auth file
+controls/project8_authentications.json
 *.c
 .DS_Store
 *.npz
