@@ -37,7 +37,7 @@ services:
         ## to use them, you must connect and execute `python setup.py develop`
         ## in each to build the requisite python objects (one time only)
         volumes:
-            - ./cage_config.json:/root/.cage_config.json
+            - ./project8_authentications.json:/root/.project8_authentications.json
             # the following mount is the dragonfly config files
             - ./dragonfly/config:/config
           #  - ./dragonfly/dripline:/code/dripline
