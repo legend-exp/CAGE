@@ -4,9 +4,9 @@
 
 (Click the links for quick navigation)
 
-* [What is it?](#what-is-it?)
-    * [How does the broker work?](#how-does-the-broker-work?)
-    * [Where does the database save the data?](#where-does-the-database-save-the-data?)
+* [What is it?](#what-is-it)
+    * [How does the broker work?](#how-does-the-broker-work)
+    * [Where does the database save the data?](#where-does-the-database-save-the-data)
 * [User Guide](#user-guide)
   * [Operations on mjcenpa](#operations-on-mjcenpa)
     * [Installing broker software](#installing-broker-software)
