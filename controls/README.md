@@ -20,9 +20,6 @@
     * [Manual background processes with tmux](#manual-background-processes-with-tmux)
     * [The HV interlock system](#the-hv-interlock-system)
       
-    
-  
-  
 
 ## What is it?
 
@@ -89,8 +86,7 @@
 
   From there, you can click "Ask a question" and "Native Query" to bring up a SQL interface that can display values from the database.
 
-  A few useful commands are below.
-  Note that asterisks are "wildcards" here, and will return all available columns (timestamp, value_raw, value_cal, memo, etc.)
+  A few useful commands are below. Note that asterisks are "wildcards" here, and will return all available columns (timestamp, value_raw, value_cal, memo, etc.) Also, SQL often uses uppercase to denote keywords, but lowercase often works as well.
   
   ```
   select * from endpoint_id_map;
@@ -99,13 +95,15 @@
   This will display a list of all "endpoints" in the database, i.e. "columns" in the table that are written to if their subsystem (typically the CAGE RPi or MJ60 RPi) is active.
 
   ```
-  select value_cal, timestamp from numeric_data where endpoint_name = 'mj60_baseline' and timestamp > '2020-01-30T00:00';
+  SELECT value_cal, timestamp FROM numeric_data WHERE endpoint_name = 'mj60_baseline' 
+  AND timestamp > '2020-01-30T00:00';
   ```  
   
   This can be modified to includ a date range (two `and` statments).  To display a plot with Metabase, change "Visualization" from Table (the default) to Line and set the appropriate X and Y axes.
 
   ```
-  SELECT value_cal, timestamp, timestamp at time zone 'gmt' at time zone 'pst' as time FROM numeric_data WHERE endpoint_name='cage_topHat_temp' AND timestamp>'2020-01-30T00:00';
+  SELECT value_cal, timestamp, timestamp at time zone 'gmt' at time zone 'pst' as time 
+  FROM numeric_data WHERE endpoint_name='cage_topHat_temp' AND timestamp>'2020-01-30T00:00';
   ```
   
   By default, `timestamp` is in GMT time.  This statement converts the timestamp to Pacific Standard Time.
