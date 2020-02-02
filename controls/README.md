@@ -198,7 +198,6 @@
   * `supervisorctl status` : list running (or failed!) processes
   * `supervisorctl` : enter an interactive control so you can run any command without prefixing it
   * `supervisor [start/stop/reload]` : useful to restart processes and look for bugs without rebooting the RPi
-
   * **Accessing log files:** These are stored in `/var/log/supervisor`.  Note, each process has a `processname-stdout-uniqueid.log` (and stderr) file which you can `vi` or `tail`.  
 
 
