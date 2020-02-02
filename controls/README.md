@@ -2,8 +2,6 @@
 
 ## Contents
 
-(Click the links for quick navigation)
-
 * [What is it?](#what-is-it)
     * [How does the broker work?](#how-does-the-broker-work)
     * [Where does the database save the data?](#where-does-the-database-save-the-data)
@@ -48,9 +46,7 @@
 
 #### Where does the database save the data?
 
-  Both `psql_db` and `metabase` use "docker volumes" so that their data is persistent across multiple cycles of the container.  
-
-  This means that the containers can be restarted without losing any database information.
+  Both `psql_db` and `metabase` use "docker volumes" so that their data is persistent across multiple cycles of the container.  This means that the containers can be restarted without losing any database information.
   The build directive of these containers tests if the volume has been configured properly for the application, and will only rebuild if this is not true.
 
   Both dragonfly and cesi have shared files with your machine's directory structure to allow for local modifications and to preserve these in a git repo.
@@ -65,6 +61,8 @@
 
 ## Operations on mjcenpa
 
+**NOTE:** Docker must be running (check the icon in the system tray).
+
 #### Installing broker software
   ```
   cd ~/software
@@ -73,11 +71,9 @@
   git submodule update --init --recursive
   ```
 
-  **NOTE:** the git submodules in the `dragonfly` folder will be downloaded in "detached HEAD" state, which means they will be "frozen" at that particular commit, no matter what other changes are made to the repository.
+  The git submodules in the `dragonfly` folder will be downloaded in "detached HEAD" state, which means they will be "frozen" at that particular commit, no matter what other changes are made to the repository.
 
   Also, if you are developing code on your laptop, you likely will not need to run the submodule command, since only the RPis and broker computer need an actively working copy of `dragonfly` and its dependencies.
-
-  **NOTE:** Docker must be running (check the icon in the system tray).
 
 
 #### Querying the database
@@ -128,15 +124,10 @@
   Several relevant commands are given below, and must be run in the directory containing the file `docker-compose.yaml`.
 
   * `docker-compose down`: bring down an active or misbehaving system
-
   * `docker-compose ps`, or `docker ps`: List containers, status, and the port forward structure
-
   * `docker-compose up -d`: restart the container system in the background.
-
   * `docker-compose exec [container_name] <cmd>` will execute a bash command in a specific container.
-
     * `<cmd>` can open a persistent terminal in that container if it has no definite completion (e.g., `bash`)
-    
     * `<cmd>` can promptly return a value if it has defined completion (e.g., `date`)
 
 
@@ -215,23 +206,22 @@
 
   All commands involving `dragonfly` must be run from the Python virtual environment, `cage_venv`.
 
-  **Remote biasing of detectors:**
+  ##### Remote biasing of detectors:
   * `[ssh into cagepi or mj60pi]`
   * `source ~/cage_venv/bin/activate`
   * `dragonfly get [mj60,cage]_hv_vmon -b mjcenpa`: displays current bias
   * `dragonfly set [mj60,cage]_hv_vset [integer] -b mjcenpa`: changes V_bias
 
-  **Changing database logging interval (in seconds)**
+  
+  ##### Changing database logging intervals
   * `dragonfly get mj60_baseline.schedule_interval -b mjcenpa`: This can be done with any endpoint.  Typically slow controls values report once every 30 seconds, and should generally not report faster than once every 5 seconds for extended periods of time.
   * `dragonfly set mj60_baseline.schedule_interval 5 -b mjcenpa`: Sets the report rate for this endpoint in seconds.
 
 
-  **Working with the CAENHV service:** This is the USB communication between the CAGE RPi and the CAEN HV card which controls the detector bias.  It is typically run by `supervisorctl` on the CAGE RPi.
-
+  ##### Working with the CAENHV service 
+  This is the USB communication between the CAGE RPi and the CAEN HV card which controls the detector bias.  It is typically run by `supervisorctl` on the CAGE RPi.
   * `supervisorctl status` :check if "caenhv" is already running. If not, ask Walter or someone what to do / what's going on
-
-  * dragonfly get cage_hv_status -b mjcenpa` : see if HV controls are "Killed", "Disabled", "Off", or "On".  If "Killed" or "Disabled": flip the switch up on the front panel of the CAEN HV (have someone show you if you haven't done it before). Re-check status and verify that you get "Off".
-
+  * `dragonfly get cage_hv_status -b mjcenpa` : see if HV controls are "Killed", "Disabled", "Off", or "On".  If "Killed" or "Disabled": flip the switch up on the front panel of the CAEN HV (have someone show you if you haven't done it before). Re-check status and verify that you get "Off".
   * `dragonfly set cage_hv_status 1 -b mjcenpa` : if status was "Off"
   * `dragonfly set cage_hv_vset [value] -b mjcenpa` : set a new HV set point
   * `dragonfly get cage_hv_rdown -b mjcenpa`: show the rampdown speed (in V/sec)
