@@ -207,6 +207,7 @@
   All commands involving `dragonfly` must be run from the Python virtual environment, `cage_venv`.
 
   ##### Remote biasing of detectors:
+  
   * `[ssh into cagepi or mj60pi]`
   * `source ~/cage_venv/bin/activate`
   * `dragonfly get [mj60,cage]_hv_vmon -b mjcenpa`: displays current bias
@@ -214,11 +215,13 @@
 
   
   ##### Changing database logging intervals
+  
   * `dragonfly get mj60_baseline.schedule_interval -b mjcenpa`: This can be done with any endpoint.  Typically slow controls values report once every 30 seconds, and should generally not report faster than once every 5 seconds for extended periods of time.
   * `dragonfly set mj60_baseline.schedule_interval 5 -b mjcenpa`: Sets the report rate for this endpoint in seconds.
 
 
   ##### Working with the CAENHV service 
+  
   This is the USB communication between the CAGE RPi and the CAEN HV card which controls the detector bias.  It is typically run by `supervisorctl` on the CAGE RPi.
   * `supervisorctl status` :check if "caenhv" is already running. If not, ask Walter or someone what to do / what's going on
   * `dragonfly get cage_hv_status -b mjcenpa` : see if HV controls are "Killed", "Disabled", "Off", or "On".  If "Killed" or "Disabled": flip the switch up on the front panel of the CAEN HV (have someone show you if you haven't done it before). Re-check status and verify that you get "Off".
@@ -237,16 +240,21 @@
   * **[A Gentle Introduction to tmux](https://hackernoon.com/a-gentle-introduction-to-tmux-8d784c404340)**
   * **[StackOverflow: tmux vs. screen](https://superuser.com/questions/236158/tmux-vs-screen)**
 
+  
   Useful tmux commands:
   * `tmux ls` : show running sessions 
   * `tmux new -s [name]` : start a new tmux session with [name]
   * `tmux a -t [name]` : attach to a running session
   * `tmux kill-session -t [name]` : kill a running tmux session
 
+  
   From within a tmux session:
   * `Ctrl-b d` : detach from session
   * `Ctrl-b [arrow keys]` : scroll backwards/forwards in the tmux history
 
+  
+  #### The HV interlock system
+  
   **OUR RULE:** The HV interlock for each detector (CAGE or MJ60) must be run on its respective RPi.  **DO NOT** run the MJ60 interlock from the CAGE RPi, it will only create confusion.
 
   The HV interlock system `[cagepi,mj60pi]/interlock.yaml`, is an example of a process which should be manually activated and deactivated by users.  
