@@ -13,10 +13,16 @@
     * [Advanced usage](#advanced-usage)
   * [Operations on a Raspberry Pi](#operations-on-a-raspberry-pi)
     * [Installation](#installation)
-    * [Automatic background processes with supervisorctl](#automatic-background-processes-with-supervisorctl)
+    * [Automatic background processes](#automatic-background-processes)
+    * [Common supervisorctl commands](#common-supervisorctl-commands)
     * [Using dragonfly](#using-dragonfly)
+    * [Changing database logging intervals](#changing-database-logging-intervals)
     * [Manual background processes with tmux](#manual-background-processes-with-tmux)
-
+    * [The HV interlock system](#the-hv-interlock-system)
+      
+    
+  
+  
 
 ## What is it?
 
@@ -28,7 +34,7 @@
   * **An "auxiliary system" (usually a Raspberry Pi)** connected to slow controls equipment, that periodically posts messages to the database. (`cagepi, mj60pi`)  Typically these processes are started with the RPi using the `supervisorctl` utility.  Other processes can be managed interactively with `tmux`.
 
 
-#### How does the broker work?
+### How does the broker work?
 
   The principal ingredients are four Docker containers, run on the "main" or "broker" computer.  In the CAGE lab, this computer is `mjcenpa`.  
   They are controlled by the file `cage/controls/docker-compose.yaml`. 
@@ -44,7 +50,7 @@
   * **cesi** : This container builds CeSI for observing the status of processes across the broader controls ecosystem.  *This can eventually be deprecated in favor or a centralized container deployment like Kubernetes.*
 
 
-#### Where does the database save the data?
+### Where does the database save the data?
 
   Both `psql_db` and `metabase` use "docker volumes" so that their data is persistent across multiple cycles of the container.  This means that the containers can be restarted without losing any database information.
   The build directive of these containers tests if the volume has been configured properly for the application, and will only rebuild if this is not true.
@@ -61,9 +67,10 @@
 
 ## Operations on mjcenpa
 
-**NOTE:** Docker must be running (check the icon in the system tray).
+  **NOTE:** Docker must be running (check the icon in the system tray).
 
-#### Installing broker software
+
+### Installing broker software
   ```
   cd ~/software
   git clone [https://github.com/legend-exp/CAGE.git] (or a personal fork)
@@ -76,7 +83,7 @@
   Also, if you are developing code on your laptop, you likely will not need to run the submodule command, since only the RPis and broker computer need an actively working copy of `dragonfly` and its dependencies.
 
 
-#### Querying the database
+### Querying the database
 
   If the database is active, on `mjcenpa` you can use a web browser to navigate to **[localhost:3000](localhost:3000)**, or if you are on your laptop on the UW network, **[mjcenpa_ip_address]:3000** will work.
 
@@ -84,18 +91,40 @@
 
   A few useful commands are below.
   Note that asterisks are "wildcards" here, and will return all available columns (timestamp, value_raw, value_cal, memo, etc.)
+  
+  ```
+  select * from endpoint_id_map;
+  ``` 
+  
+  This will display a list of all "endpoints" in the database, i.e. "columns" in the table that are written to if their subsystem (typically the CAGE RPi or MJ60 RPi) is active.
 
-  * `select * from endpoint_id_map;` this will display a list of all "endpoints" in the database, i.e. "columns" in the table that are written to if their subsystem (typically the CAGE RPi or MJ60 RPi) is active.
+  ```
+  select value_cal, timestamp from numeric_data where endpoint_name = 'mj60_baseline' and timestamp > '2020-01-30T00:00';
+  ```  
+  
+  This can be modified to includ a date range (two `and` statments).  To display a plot with Metabase, change "Visualization" from Table (the default) to Line and set the appropriate X and Y axes.
 
-  * `select value_cal, timestamp from numeric_data where endpoint_name = 'mj60_baseline' and timestamp > '2020-01-30T00:00';`  This can be modified to includ a date range (two `and` statments).  To display a plot with Metabase, change "Visualization" from Table (the default) to Line and set the appropriate X and Y axes.
+  ```
+  SELECT value_cal, timestamp, timestamp at time zone 'gmt' at time zone 'pst' as time FROM numeric_data WHERE endpoint_name='cage_topHat_temp' AND timestamp>'2020-01-30T00:00';
+  ```
+  
+  By default, `timestamp` is in GMT time.  This statement converts the timestamp to Pacific Standard Time.
 
-  * `SELECT value_cal, timestamp, timestamp at time zone 'gmt' at time zone 'pst' as time FROM numeric_data WHERE endpoint_name='cage_topHat_temp' AND timestamp>'2020-01-30T00:00';` By default, `timestamp` is in GMT time.  This statement converts the timestamp to Pacific Standard Time.
+  ```
+  SELECT * FROM numeric_data WHERE endpoint_name='mj60_baseline' ORDER BY timestamp DESC;
+  ```
+  
+  This shows recent data.
 
-  * `SELECT * FROM numeric_data WHERE endpoint_name='mj60_baseline' ORDER BY timestamp DESC;`  This shows recent data.
-
-  * `SELECT to_timestamp(AVG(extract(epoch from timestamp))),AVG(value_cal) FROM numeric_data
-  WHERE endpoint_name='mj60_temp' AND value_cal<100 AND timestamp > '2019-06-01' AND timestamp < '2019-08-10'
-  GROUP BY FLOOR(extract(epoch from timestamp)/3600) ORDER BY MIN(timestamp) ASC;` : This is a really neat command from Walter, that downsamples the data and only returns one point per hour (averaged from all the points in the range).  This way you can get more than 3 days of data to display on Metabase, with a selectable downsample range.
+  ```
+  SELECT to_timestamp(AVG(extract(epoch from timestamp))), AVG(value_cal) 
+  FROM numeric_data WHERE endpoint_name='mj60_temp' 
+  AND value_cal < 100 AND timestamp > '2019-06-01' 
+  AND timestamp < '2019-08-10'
+  GROUP BY FLOOR(extract(epoch from timestamp)/3600)
+  ORDER BY MIN(timestamp) ASC;
+  ```
+  This is a really neat command from Walter, that downsamples the data and only returns one point per hour (averaged from all the points in the range).  This way you can get more than 3 days of data to display on Metabase, with a selectable downsample range.
 
   **NOTE:** The `CAGE/examples` folder contains a routine **[sql_to_pandas.py](https://github.com/legend-exp/CAGE/blob/master/examples/sql_to_pandas.py)** which provides a few simple examples of reading the database in Python, and converting to Pandas/DataFrame formats, which is an excellent starting point for making custom plots and performing more complicated analyses.
 
@@ -114,33 +143,34 @@
 
   Endpoint names can be corrected:
   ```
-  UPDATE endpoint_id_map SET endpoint_name='cage_magic' WHERE endpoint_name='cage_sparkles'
+  UPDATE endpoint_id_map SET endpoint_name='cage_magic' 
+  WHERE endpoint_name='cage_sparkles'
   ```
 
 
-#### Operating the container system`
+### Operating the container system`
 
   The framework is built on docker-compose, which manages an ecosystem of Docker containers, storage volumes, and networks.
   Several relevant commands are given below, and must be run in the directory containing the file `docker-compose.yaml`.
 
-  * `docker-compose down`: bring down an active or misbehaving system
-  * `docker-compose ps`, or `docker ps`: List containers, status, and the port forward structure
-  * `docker-compose up -d`: restart the container system in the background.
-  * `docker-compose exec [container_name] <cmd>` will execute a bash command in a specific container.
-    * `<cmd>` can open a persistent terminal in that container if it has no definite completion (e.g., `bash`)
-    * `<cmd>` can promptly return a value if it has defined completion (e.g., `date`)
+  * `docker-compose down` Bring down an active or misbehaving system
+  * `docker-compose ps`, or `docker ps` List containers, status, and the port forward structure
+  * `docker-compose up -d`  Restart the container system in the background.
+  * `docker-compose exec [container_name] <cmd>` Execute a bash command in a specific container.
+    * `<cmd>` can open a persistent terminal in that container if it has no definite completion (e.g. `bash`)
+    * `<cmd>` can promptly return a value if it has defined completion (e.g. `date`)
 
 
 #### Advanced usage
 
-  Under the hood, dragonfly uses a service called RabbitMQ.  (Clint loves this.)
-  It has a web interface that can be run from `mjcenpa` at the web address **[cageIP]:5672**.  
+  Under the hood, dragonfly uses a service called RabbitMQ.  (Clint loves this.) It has a web interface that can be run from `mjcenpa` at the web address **[cageIP]:5672**.  
 
   Some quick notes:
   * This shows the various running queues of the database system
   * All the data goes into the `alerts` exchange
   * A message to the requests exchange expects a response
 
+  
   We can also get a live display via terminal of the data going into the `alerts` exchange on mjcenpa, by running a command directly inside the dragonfly container:
   ```
   cd ~/software/cage/controls
@@ -156,7 +186,7 @@
   ssh pi@[IP ADDRESS]
   ```
 
-#### Installation
+### Installation
 
   First, you will need to obtain the `config.json` and `project8_authentications.json` files from a member of the CAGE group.
 
@@ -164,6 +194,7 @@
   * `python3 -m venv cage_venv` : creates a folder automatically
   * `source ~/cage_venv/bin/activate` : activates the venv.
   * `deactivate` : removes a user from the venv.
+
 
   To install the CAGE repo and its dependencies:
   ```
@@ -187,12 +218,12 @@
   This is typically done for passive sensors such as temperature readouts, LN weights, and pressure gauges, which have no active controls -- they either work or they don't.
 
 
-#### Automatic background processes with supervisorctl
+### Automatic background processes
 
   The `.yaml` files in the folders `CAGE/controls/[cagepi,mj60pi]` manage which sensors post messages to the database, and how often they do so.  Both RPis are configured to post messages automatically on startup using the `supervisorctl` utility.
 
 
-  **Common `supervisorctl` commands**:
+#### Common supervisorctl commands
 
   * `supervisorctl help` : tells you the list of commands
   * `supervisorctl status` : list running (or failed!) processes
@@ -201,35 +232,36 @@
   * **Accessing log files:** These are stored in `/var/log/supervisor`.  Note, each process has a `processname-stdout-uniqueid.log` (and stderr) file which you can `vi` or `tail`.  
 
 
-#### Using dragonfly
+### Using dragonfly
 
   All commands involving `dragonfly` must be run from the Python virtual environment, `cage_venv`.
 
-  ##### Remote biasing of detectors:
   
-  * `[ssh into cagepi or mj60pi]`
-  * `source ~/cage_venv/bin/activate`
-  * `dragonfly get [mj60,cage]_hv_vmon -b mjcenpa`: displays current bias
-  * `dragonfly set [mj60,cage]_hv_vset [integer] -b mjcenpa`: changes V_bias
-
-  
-  ##### Changing database logging intervals
+#### Changing database logging intervals
   
   * `dragonfly get mj60_baseline.schedule_interval -b mjcenpa`: This can be done with any endpoint.  Typically slow controls values report once every 30 seconds, and should generally not report faster than once every 5 seconds for extended periods of time.
+  
   * `dragonfly set mj60_baseline.schedule_interval 5 -b mjcenpa`: Sets the report rate for this endpoint in seconds.
 
 
   ##### Working with the CAENHV service 
   
-  This is the USB communication between the CAGE RPi and the CAEN HV card which controls the detector bias.  It is typically run by `supervisorctl` on the CAGE RPi.
-  * `supervisorctl status` :check if "caenhv" is already running. If not, ask Walter or someone what to do / what's going on
-  * `dragonfly get cage_hv_status -b mjcenpa` : see if HV controls are "Killed", "Disabled", "Off", or "On".  If "Killed" or "Disabled": flip the switch up on the front panel of the CAEN HV (have someone show you if you haven't done it before). Re-check status and verify that you get "Off".
-  * `dragonfly set cage_hv_status 1 -b mjcenpa` : if status was "Off"
-  * `dragonfly set cage_hv_vset [value] -b mjcenpa` : set a new HV set point
-  * `dragonfly get cage_hv_rdown -b mjcenpa`: show the rampdown speed (in V/sec)
-  * `dragonfly set cage_hv_rdown [value] -b mjcenpa` : set the rampdown speed
-  * `dragonfly get cage_hv_rup -b mjcenpa`: show the ramp up speed (in V/sec)
-  * `dragonfly set cage_hv_rup [value] -b mjcenpa` : set the ramp up speed
+  This is the USB communication between the CAGE RPi and the CAEN HV card which controls the detector bias.  It is typically run by `supervisorctl` on the CAGE RPi.  Users should ALWAYS check the status of the HV service before attempting to bias a detector.
+
+  
+  * `supervisorctl status` Check if "caenhv" is already running. If not, the service needs to be restarted.  If you are unfamiliar with this process, please first contact Clint, Walter, or Jason.
+
+  * `dragonfly get cage_hv_status -b mjcenpa` See if HV controls are "Killed", "Disabled", "Off", or "On".  If "Killed" or "Disabled": flip the switch up on the front panel of the CAEN HV card.  Please have someone show you if you haven't done this before.  Then re-check status and verify that you get "Off".
+
+  * `dragonfly set cage_hv_status 1 -b mjcenpa` If status was "Off"
+  
+  
+  Biasing commands:
+  * `dragonfly set cage_hv_vset [value] -b mjcenpa` Set a new HV set point
+  * `dragonfly get cage_hv_rdown -b mjcenpa` Show the rampdown speed (in V/sec)
+  * `dragonfly set cage_hv_rdown [value] -b mjcenpa` Set the rampdown speed
+  * `dragonfly get cage_hv_rup -b mjcenpa` Show the ramp up speed (in V/sec)
+  * `dragonfly set cage_hv_rup [value] -b mjcenpa` Set the ramp up speed
 
 
 #### Manual background processes with tmux
@@ -241,24 +273,22 @@
 
   
   Useful tmux commands:
-  * `tmux ls` : show running sessions 
-  * `tmux new -s [name]` : start a new tmux session with [name]
-  * `tmux a -t [name]` : attach to a running session
-  * `tmux kill-session -t [name]` : kill a running tmux session
+  * `tmux ls` Show running sessions 
+  * `tmux new -s [name]` Start a new tmux session with [name]
+  * `tmux a -t [name]` Attach to a running session
+  * `tmux kill-session -t [name]` Kill a running tmux session
 
   
   From within a tmux session:
-  * `Ctrl-b d` : detach from session
-  * `Ctrl-b [arrow keys]` : scroll backwards/forwards in the tmux history
+  * `Ctrl-b d` Detach from session
+  * `Ctrl-b [arrow keys]` Scroll backwards/forwards in the tmux history
 
   
-  #### The HV interlock system
+#### The HV interlock system
   
-  **OUR RULE:** The HV interlock for each detector (CAGE or MJ60) must be run on its respective RPi.  **DO NOT** run the MJ60 interlock from the CAGE RPi, it will only create confusion.
+  **HOUSE RULE:** The HV interlock for each detector (CAGE or MJ60) must be run on its respective RPi.  **DO NOT** run the MJ60 interlock from the CAGE RPi, it will only create confusion.
 
-  The HV interlock system `[cagepi,mj60pi]/interlock.yaml`, is an example of a process which should be manually activated and deactivated by users.  
-  It should only be engaged during stable periods of operation, not when the bias voltage of a detector is being actively changed by an operator.  
-  This is why `tmux` is used for this process.
+  The HV interlock system `[cagepi,mj60pi]/interlock.yaml`, is an example of a process which should be manually activated and deactivated by users.  It should only be engaged during stable periods of operation, not when the bias voltage of a detector is being actively changed by an operator.  **This is why `tmux` is used for this process.**
 
   **To start/stop the interlock** (using the MJ60 RPi as an example):
   ```
