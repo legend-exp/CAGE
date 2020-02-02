@@ -82,6 +82,8 @@
 
 ### Querying the database
 
+  **NOTE:** The `CAGE/examples` folder contains a routine **[sql_to_pandas.py](https://github.com/legend-exp/CAGE/blob/master/examples/sql_to_pandas.py)** which provides a few simple examples of reading the database in Python, and converting to Pandas/DataFrame formats, which is an excellent starting point for making custom plots and performing more complicated analyses.
+
   If the database is active, on `mjcenpa` you can use a web browser to navigate to **[localhost:3000](localhost:3000)**, or if you are on your laptop on the UW network, **[mjcenpa_ip_address]:3000** will work.
 
   From there, you can click "Ask a question" and "Native Query" to bring up a SQL interface that can display values from the database.
@@ -124,8 +126,7 @@
   ```
   This is a really neat command from Walter, that downsamples the data and only returns one point per hour (averaged from all the points in the range).  This way you can get more than 3 days of data to display on Metabase, with a selectable downsample range.
 
-  **NOTE:** The `CAGE/examples` folder contains a routine **[sql_to_pandas.py](https://github.com/legend-exp/CAGE/blob/master/examples/sql_to_pandas.py)** which provides a few simple examples of reading the database in Python, and converting to Pandas/DataFrame formats, which is an excellent starting point for making custom plots and performing more complicated analyses.
-
+  
   The database can also be accessed via terminal (and SSH) alone:
   ```
   [ssh into mjcenpa]
