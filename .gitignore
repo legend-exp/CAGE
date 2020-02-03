@@ -1,5 +1,5 @@
 # New additions go at the top!
-config.json # auth file
+config.json 
 controls/project8_authentications.json
 *.c
 .DS_Store
