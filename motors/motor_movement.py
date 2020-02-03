@@ -1,9 +1,13 @@
 #!/usr/bin/env python3
 import argparse
+import gclib
 
 def main():
     """
-    to-do routines:
+    REFERENCE:
+    https://elog.legend-exp.org/UWScanner/200130_140616/cage_electronics.pdf
+    
+    TODO functions:
     - limit_switch_check
     """
     par = argparse.ArgumentParser(description="a program that does a thing")
@@ -14,13 +18,35 @@ def main():
     args = vars(par.parse_args())
     
     config = {
-        'source' = {'rpi_pin':11},
-        'linear' = {'rpi_pin':11},
-        'rotary' = {'rpi_pin':11},
+        'controller': {'ip':'172.25.100.168', 'model':'DMC2142sH2a'},
+        'source': {'rpi_pin':13, 'axis':'A'},
+        'linear': {'rpi_pin':7, 'axis':'B'},
+        'rotary': {'rpi_pin':11, 'axis':'D'},
         }
+    
+    # handy globals (used by almost all routines)
+    global gcpy, gcmd
+    gcpy = gclib.py()
+    gcmd = gcpy.GCommand
 
+    # run routines.  TODO: run via argparse
+    test_readout()
     
     
+
+def test_readout():
+    """ 
+    Verify that we're connected to the Newmark motor controller.
+    """
+    g = gclib.py()
+    c = g.GCommand
+    g.GOpen('172.25.100.168 --direct')
+    print(type(g.GInfo()))
+    print(g.GAddresses())
+    print(g.GVersion())
+    print(g.GInfo())
+
+
 
     
     

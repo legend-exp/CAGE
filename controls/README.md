@@ -84,9 +84,7 @@
 
   **NOTE:** The `CAGE/examples` folder contains a routine **[sql_to_pandas.py](https://github.com/legend-exp/CAGE/blob/master/examples/sql_to_pandas.py)** which provides a few simple examples of reading the database in Python, and converting to Pandas/DataFrame formats, which is an excellent starting point for making custom plots and performing more complicated analyses.
 
-  If the database is active, on `mjcenpa` you can use a web browser to navigate to **[localhost:3000](localhost:3000)**, or if you are on your laptop on the UW network, **[mjcenpa_ip_address]:3000** will work.
-
-  From there, you can click "Ask a question" and "Native Query" to bring up a SQL interface that can display values from the database.
+  If the database is active, on `mjcenpa` you can use a web browser to navigate to **[localhost:3000](localhost:3000)**, or if you are on your laptop on the UW network, **[mjcenpa_ip_address]:3000** will work.  From there, you can click "Ask a question" and "Native Query" to bring up a SQL interface that can display values from the database.
 
   A few useful commands are below. Note that asterisks are "wildcards" here, and will return all available columns (timestamp, value_raw, value_cal, memo, etc.) Also, SQL often uses uppercase to denote keywords, but lowercase often works as well.
   

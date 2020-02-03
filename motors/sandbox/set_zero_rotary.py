@@ -3,50 +3,53 @@ import spidev
 import time
 
 GPIO.setmode(GPIO.BOARD)
-
+GPIO.setwarnings(False)
 GPIO.setup(11, GPIO.OUT)
 GPIO.output(11, GPIO.HIGH)
 
 spi = spidev.SpiDev()
 spi.open(0, 0)
 spi.max_speed_hz = 200000
+t_sleep = 0.1
 
 pos = [0x00, 0x00]
 reset = [0x00, 0x60]
 zero = [0x00, 0x70]
 
+# communicate with the encoder
 GPIO.output(11, GPIO.LOW)
-time.sleep(0.075)
-
+time.sleep(t_sleep)
 val = spi.xfer2(pos)
-
-time.sleep(0.075)
+time.sleep(t_sleep)
 GPIO.output(11, GPIO.HIGH)
-
 if len(val) != 2:
     print("ERROR")
     sleep(1)
+
+# bitshift to get answer -- why don't we return or print this?
 reply = val[0]<<8
 reply |= val[1]
-time.sleep(2)
+time.sleep(t_sleep)
 
+# zero the encoder
 GPIO.output(11, GPIO.LOW)
-time.sleep(0.075)
-
-val = spi.xfer2(zero)
-
-time.sleep(0.075)
+time.sleep(t_sleep)
+# val = spi.xfer2(zero) # this one is iffy
+val = spi.xfer2(reset) # seems like this one works better
+time.sleep(t_sleep)
 GPIO.output(11, GPIO.HIGH)
-
-time.sleep(3)
 if len(val) != 2:
     print("ERROR")
     sleep(1)
+
+# bitshift to get answer
 reply = val[0]<<8
 reply |= val[1]
-print(reply & 0x3FFF)
-time.sleep(2)
 
+# this is our result.
+print(reply & 0x3FFF)
+
+time.sleep(t_sleep)
 GPIO.cleanup()
 spi.close()
 exit()
