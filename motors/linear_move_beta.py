@@ -45,6 +45,9 @@ def linear_program():
         file = np.load('./linear_pos.npz')
         mm1 = file['arr_0']
         mm = -mm1[0]
+    if mm > 33:
+        print('WARNING, no linear moves past 33 mm!!')
+        exit()
     cts = mm * 31573
 
 
