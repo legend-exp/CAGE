@@ -177,7 +177,7 @@ def set_zero(rpi_pin, n_max=3, t_sleep=0.01, com_spd=10000, verbose=True):
         print("ERROR, couldn't zero the encoder. UGGG. Final pos:", zeroed_pos)
         
     # these values are read by motor_movement
-    print(f"{start_pos} {zeroed_pos} {zeroed}")
+    print(start_pos, zeroed_pos, zeroed)
     
     # cleanup and return
     GPIO.cleanup()
