@@ -326,8 +326,9 @@ def move_motor(motor_name, input_val, angle_check=180, constraints=True, verbose
                                         mconf['t_sleep'], mconf['com_spd'],
                                         verbose=False).rstrip())
 
+            # NOTE: add actual motion
             pct = 100 * abs(moved/desired)
-            print(f'{i_cyc}/{n_cyc}  attempting: {move}  total: {moved}  {pct:.1f}%  encoder: {enc_pos}')
+            print(f"{i_cyc}/{n_cyc}  attempting: {move}/{moved}  ({pct:.1f}%)  encoder: {enc_pos}  actual pos: XX steps['move_type']")
 
             # begin motion
             gc(f'PR{axis}={move}')
