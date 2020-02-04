@@ -97,9 +97,9 @@ def read_pos(rpi_pin, t_sleep=0.01, com_spd=10000, verbose=True):
     rep1 |= enc_val[1]
     result = rep1 & 0x3FFF
     
-    if verbose:
-        print(result)
-
+    # this value is needed by motor_movement.py
+    print(result)
+        
     # cleanup and return
     GPIO.cleanup()
     spi.close()

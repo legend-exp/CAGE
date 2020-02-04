@@ -287,7 +287,7 @@ def linear_program():
         while i < checks:
 
             c('PRB={}'.format(move))
-            c('BGB') #begin motion
+            c('BGB') # begin motion
             g.GMotionComplete('B')
             enc_pos = linear_read_pos()
             print(f"encoder pos: {enc_pos}")

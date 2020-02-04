@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import os
+import time
 import json
 import shlex
 import argparse
@@ -261,11 +262,11 @@ def get_steps(motor_name, input_val, angle_check=180, constraints=True, verbose=
               f"\n  Will check encoder every {angle_check} degrees"
               f"\n  Steps: {n_steps}  n_cycles: {n_cycles}  remainder: {r_steps}")
         
-    return {"dir":direction, 
-            "n_cycles":n_cycles, 
-            "n_steps":n_steps, 
-            "r_steps":r_steps,
-            "step_check",step_check}
+    return {"dir": direction, 
+            "n_cycles": n_cycles, 
+            "n_steps": n_steps, 
+            "r_steps": r_steps,
+            "step_check": step_check}
     
     
 def move_motor(motor_name, input_val, angle_check=180, constraints=True, verbose=False):
@@ -276,44 +277,62 @@ def move_motor(motor_name, input_val, angle_check=180, constraints=True, verbose
     steps = get_steps(motor_name, input_val, angle_check, constraints, verbose)
     pprint(steps)
     
-    # # zero the encoder (measure relative motion)
-    # result = query_encoder(mconf[motor_name]['rpi_pin'], mconf['t_sleep'],
-    #                        mconf['com_spd'], verbose, mconf['max_reads'], 
-    #                        zero=True)
-    # tmp = result.split("\n")[-2].split(" ")
-    # start_pos, zeroed_pos, zeroed = int(tmp[0]), int(tmp[1]), bool(tmp[2])
-    # if not zeroed:
-    #     print("ERROR! read_encoders was unable to zero the encoder.")
-    #     exit()
-    # if verbose:
-    #     print(f"Zeroed {motor_name} encoder.  Beginning move ...")
-    #     exit()
+    # zero the encoder (measure relative motion)
+    result = query_encoder(mconf[motor_name]['rpi_pin'], mconf['t_sleep'],
+                           mconf['com_spd'], verbose, mconf['max_reads'], 
+                           zero=True)
+    tmp = result.split("\n")[-2].split(" ")
+    start_pos, zeroed_pos, zeroed = int(tmp[0]), int(tmp[1]), bool(tmp[2])
+    if not zeroed:
+        print("ERROR! read_encoders was unable to zero the encoder.")
+        exit()
+    if verbose:
+        print(f"Zeroed {motor_name} encoder.  Beginning move ...")
         
-    # # send initial setup commands to the controller
-    # axis = mconf[motor_name]['axis']
-    # mspd = mconf[motor_name]['motor_spd']
-    # gc('AB')
-    # gc('MO')
-    # gc(f'SH{axis}')
-    # gc(f'SP{axis}={mspd}')
-    # gc(f'DP{axis}=0')
-    # gc(f'AC{axis}={mspd}')
-    # gc(f'BC{axis}={mspd}')
+    # send initial setup commands to the controller
+    axis = mconf[motor_name]['axis']
+    mspd = mconf[motor_name]['motor_spd']
+    gc('AB')
+    gc('MO')
+    gc(f'SH{axis}')
+    gc(f'SP{axis}={mspd}')
+    gc(f'DP{axis}=0')
+    gc(f'AC{axis}={mspd}')
+    gc(f'BC{axis}={mspd}')
     
     # start movement
-    steps_moved = 0
-    for i_cycle in range(0, steps['n_cycles']):
+    desired, n_cyc = steps['n_steps'], abs(steps['n_cycles'])
+    moved = 0
+    try:
+        for i_cyc in range(0, n_cyc):
+            move = int(steps['dir'] * steps['step_check'])
+            gc(f'PR{axis}={move}')
+            gc(f'BG{axis}') 
+            gp.GMotionComplete(axis)
+            
+            enc_pos = query_encoder(mconf[motor_name]['rpi_pin'], 
+                                    mconf['t_sleep'], mconf['com_spd'], 
+                                    verbose=False)
+            print("encoder pos: ", result)
+            
+            time.sleep(0.1)
+            moved += move
+            pct = 100 * abs(moved/desired)
+            print(f'{i_cyc}/{n_cyc}  {move}  {moved}  {desired}  {pct:.1f}%')
         
-        move = steps['dir'] * steps['step_check']
-        
+        # move the remainder
+        move = steps['r_steps']
         gc(f'PR{axis}={move}')
         gc(f'BG{axis}') 
         gp.GMotionComplete(axis)
-        
-        print(i_cycle, move, steps_moved)
-        steps_moved += move
+        moved += move
+        i_cyc += 1
+        print(f'{i_cyc}/{n_cyc}  {move}  {moved}  {desired}  {pct:.2f}%')
+
+    except gclib.GclibError:
+        print("The motor hit the limit switch")
     
-    # move the remainder
+    print(f"steps moved: {moved}  desired total: {desired}")
         
         
 
