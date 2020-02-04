@@ -190,11 +190,14 @@ def query_encoder(rpi_pin, t_sleep=0.01, com_spd=10000, verbose=True, max_reads=
         # send the command and decode the output
         tmp = shell.run(shlex.split(cmd))
         ans = tmp.output.decode("utf-8")
-        print('answer is', ans)
 
     if verbose:
         enc_name = rpins[rpi_pin]
-        print(f"\n{enc_name} encoder (pin {rpi_pin}) position: {ans}")
+        if zero:
+            print(f"\nZeroing {enc_name} encoder (pin {rpi_pin}).\nRPi output:")
+        else:
+            print(f"\nReading {enc_name} encoder position (pin {rpi_pin}).\nRPi output:")
+        print(ans)
     
     return ans
 
@@ -273,11 +276,21 @@ def move_motor(motor_name, input_val, angle_check=180, constraints=True, verbose
     # pprint(steps)
     
     # zero the encoder (measure relative motion)
-    rpi_pin = mconf[motor_name]['rpi_pin']
-    result = query_encoder(rpi_pin, mconf['t_sleep'], mconf['com_spd'], verbose, 
-                           mconf['max_reads'], zero=True)
+    result = query_encoder(mconf[motor_name]['rpi_pin'], mconf['t_sleep'],
+                           mconf['com_spd'], verbose, mconf['max_reads'], 
+                           zero=True)
+    tmp = result.split("\n")[-2].split(" ")
+    start_pos, zeroed_pos, zeroed = int(tmp[0]), int(tmp[1]), bool(tmp[2])
+    if not zeroed:
+        print("ERROR! read_encoders was unable to zero the encoder.")
+        exit()
+    if verbose:
+        print(f"Zeroed {motor_name} encoder.  Beginning move ...")
+        exit()
+
     
-    print(result)
+
+    
     
     
     

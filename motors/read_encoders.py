@@ -153,10 +153,10 @@ def set_zero(rpi_pin, n_max=3, t_sleep=0.01, com_spd=10000, verbose=True):
         
         # send command to zero the encoder
         GPIO.output(rpi_pin, GPIO.LOW)
-        time.sleep(t_sleep)
-        enc_val = spi.xfer2(enc_address['reset'])
         # time.sleep(t_sleep)
-        # enc_val = spi.xfer2(enc_address['zero'])
+        # enc_val = spi.xfer2(enc_address['reset'])
+        time.sleep(t_sleep)
+        enc_val = spi.xfer2(enc_address['zero']) # tim says this should work
         time.sleep(t_sleep)
         GPIO.output(rpi_pin, GPIO.HIGH)
         if len(enc_val) != 2:
