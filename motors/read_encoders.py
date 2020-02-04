@@ -15,8 +15,9 @@ def main():
         
     NOTES: 
     * CAGE RPi currently runs Python 3.5.3, so no f-strings are allowed.
-    * trick to quickly sync (helps to have SSH keys added)
-        $ rsync -av ./ pi@10.66.193.75:/home/pi/encoders
+    * trick to quickly sync, assuming you're in the cage/motors directory:
+      (it helps to have SSH keys set up)
+        $ rsync -av ./ pi@10.66.193.75:/home/pi/cage/motors
     """
     par = argparse.ArgumentParser(description='CAGE encoder readout utility')
     arg, st, sf = par.add_argument, 'store_true', 'store_false'
@@ -24,7 +25,7 @@ def main():
     # encoder functions
     arg('-p', '--pos', nargs=1, type=int, help='single-read encoder on RPi pin')
     arg('-l', '--loop', nargs=1, type=int, help='continuous-read on RPi pin')
-    arg('-z', '--zero', nargs=1, type=int, help='reset encoder value to zero')
+    arg('-z', '--zero', nargs=1, type=int, help='set encoder value to zero')
     
     # encoder settings (override defaults)
     arg('-s', '--sleep', nargs=1, type=float, help='set sleep time')
@@ -174,6 +175,9 @@ def set_zero(rpi_pin, n_max=3, t_sleep=0.01, com_spd=10000, verbose=True):
         
     if not zeroed and counter == n_max:
         print("ERROR, couldn't zero the encoder. UGGG. Final pos:", zeroed_pos)
+        
+    # these values are read by motor_movement
+    print(f"{start_pos} {zeroed_pos} {zeroed}")
     
     # cleanup and return
     GPIO.cleanup()
