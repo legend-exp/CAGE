@@ -14,16 +14,16 @@ def main():
     https://elog.legend-exp.org/UWScanner/200130_140616/cage_electronics.pdf
     http://www.galilmc.com/sw/pub/all/doc/gclib/html/python.html
     """
-    # load configuration (uses globals)
+    # load configuration (uses globals, it's bad practice but who cares)
     global gp, gc, conf, ipconf, mconf, rpins
     gp = gclib.py()
     gc = gp.GCommand
     with open('../config.json') as f:
         ipconf = json.load(f)
     mconf = {
-        'source': {'rpi_pin':13, 'axis':'A'},
-        'linear': {'rpi_pin':7, 'axis':'B'},
-        'rotary': {'rpi_pin':11, 'axis':'D'},
+        'source': {'rpi_pin':13, 'axis':'A', 'motor_spd':5000},
+        'linear': {'rpi_pin':7, 'axis':'B', 'motor_spd':300000},
+        'rotary': {'rpi_pin':11, 'axis':'D', 'motor_spd':300000},
         }
     rpins = {key['rpi_pin'] : name for name, key in mconf.items()}
     
@@ -60,7 +60,7 @@ def main():
     verbose = args['verbose'] # overall verbosity (currently T/F)
     constraints = args['constraints'] # DISABLE motor step checks (DON'T!)
 
-    # update motor config dict (variable names must match)
+    # update motor config (variable names must match)
     for key, val in locals().items():
         if key in args:
             mconf[key] = val
@@ -264,35 +264,60 @@ def get_steps(motor_name, input_val, angle_check=180, constraints=True, verbose=
     return {"dir":direction, 
             "n_cycles":n_cycles, 
             "n_steps":n_steps, 
-            "r_steps":r_steps}
+            "r_steps":r_steps,
+            "step_check",step_check}
     
     
 def move_motor(motor_name, input_val, angle_check=180, constraints=True, verbose=False):
     """
     $ python motor_movement.py --move [name] [input_val] [options]
     """
-    # calculate the number of stps to move
+    # calculate the number of steps to move
     steps = get_steps(motor_name, input_val, angle_check, constraints, verbose)
-    # pprint(steps)
+    pprint(steps)
     
-    # zero the encoder (measure relative motion)
-    result = query_encoder(mconf[motor_name]['rpi_pin'], mconf['t_sleep'],
-                           mconf['com_spd'], verbose, mconf['max_reads'], 
-                           zero=True)
-    tmp = result.split("\n")[-2].split(" ")
-    start_pos, zeroed_pos, zeroed = int(tmp[0]), int(tmp[1]), bool(tmp[2])
-    if not zeroed:
-        print("ERROR! read_encoders was unable to zero the encoder.")
-        exit()
-    if verbose:
-        print(f"Zeroed {motor_name} encoder.  Beginning move ...")
-        exit()
+    # # zero the encoder (measure relative motion)
+    # result = query_encoder(mconf[motor_name]['rpi_pin'], mconf['t_sleep'],
+    #                        mconf['com_spd'], verbose, mconf['max_reads'], 
+    #                        zero=True)
+    # tmp = result.split("\n")[-2].split(" ")
+    # start_pos, zeroed_pos, zeroed = int(tmp[0]), int(tmp[1]), bool(tmp[2])
+    # if not zeroed:
+    #     print("ERROR! read_encoders was unable to zero the encoder.")
+    #     exit()
+    # if verbose:
+    #     print(f"Zeroed {motor_name} encoder.  Beginning move ...")
+    #     exit()
+        
+    # # send initial setup commands to the controller
+    # axis = mconf[motor_name]['axis']
+    # mspd = mconf[motor_name]['motor_spd']
+    # gc('AB')
+    # gc('MO')
+    # gc(f'SH{axis}')
+    # gc(f'SP{axis}={mspd}')
+    # gc(f'DP{axis}=0')
+    # gc(f'AC{axis}={mspd}')
+    # gc(f'BC{axis}={mspd}')
+    
+    # start movement
+    steps_moved = 0
+    for i_cycle in range(0, steps['n_cycles']):
+        
+        move = steps['dir'] * steps['step_check']
+        
+        gc(f'PR{axis}={move}')
+        gc(f'BG{axis}') 
+        gp.GMotionComplete(axis)
+        
+        print(i_cycle, move, steps_moved)
+        steps_moved += move
+    
+    # move the remainder
+        
+        
 
-    
 
-    
-    
-    
     
 if __name__=="__main__":
     main()
