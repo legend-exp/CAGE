@@ -49,7 +49,7 @@ def main():
     arg('-s', '--t_sleep', nargs=1, type=float, help='set sleep time')
     arg('-c', '--com_spd', nargs=1, type=int, help='set RPi comm speed (Hz)')
     arg('-m', '--max_reads', nargs=1, type=int, help='set num. tries to zero encoder')
-    arg('-d', '--constraints', action=sf, help="DISABLE constraints (bad idea!)")
+    arg('--constraints', action=sf, help="DISABLE constraints (bad idea!)")
     
     args = vars(par.parse_args())
     
@@ -100,9 +100,13 @@ def main():
         input_val = float(args['move'][1])
         move_motor(motor_name, input_val, angle_check, constraints, verbose)
     
-    # if args['zero']:
-    #     zero_motor(motor_name, verbose)
-    
+    if args['zero']:
+        motor_name = args['move'][0]
+        zero_motor(motor_name, angle_check, verbose)
+        
+    if args['center']:
+        motor_name = args['move'][0]
+        center_motor(motor_name, angle_check, verbose)
     
 
 def connect_to_controller(verbose=True):
@@ -253,8 +257,8 @@ def get_steps(motor_name, input_val, angle_check=180, constraints=True, verbose=
      
     # calculate how many times to check the encoders (default: every 180 degrees)
     n_cycles, r_steps = divmod(n_steps, step_check)
-    n_cycles = int(n_cycles)
-    n_steps = int(direction * n_steps)
+    n_cycles = abs(int(n_cycles))
+    n_steps = int(n_steps)
     r_steps = int(direction * r_steps) # don't forget the remainder!
 
     if verbose:
@@ -266,7 +270,9 @@ def get_steps(motor_name, input_val, angle_check=180, constraints=True, verbose=
             "n_cycles": n_cycles, 
             "n_steps": n_steps, 
             "r_steps": r_steps,
-            "step_check": step_check}
+            "step_check": step_check,
+            "move_type": move_type,
+            "input_val": input_val}
     
     
 def move_motor(motor_name, input_val, angle_check=180, constraints=True, verbose=False):
@@ -275,19 +281,17 @@ def move_motor(motor_name, input_val, angle_check=180, constraints=True, verbose
     """
     # calculate the number of steps to move
     steps = get_steps(motor_name, input_val, angle_check, constraints, verbose)
-    pprint(steps)
     
     # zero the encoder (measure relative motion)
     result = query_encoder(mconf[motor_name]['rpi_pin'], mconf['t_sleep'],
                            mconf['com_spd'], verbose, mconf['max_reads'], 
                            zero=True)
-    tmp = result.split("\n")[-2].split(" ")
-    start_pos, zeroed_pos, zeroed = int(tmp[0]), int(tmp[1]), bool(tmp[2])
+    zeroed = bool(result.split("\n")[-2].split(" ")[2]) # ugly string parse
     if not zeroed:
         print("ERROR! read_encoders was unable to zero the encoder.")
         exit()
     if verbose:
-        print(f"Zeroed {motor_name} encoder.  Beginning move ...")
+        print(f"Zeroed {motor_name} encoder.")
         
     # send initial setup commands to the controller
     axis = mconf[motor_name]['axis']
@@ -300,43 +304,121 @@ def move_motor(motor_name, input_val, angle_check=180, constraints=True, verbose
     gc(f'AC{axis}={mspd}')
     gc(f'BC{axis}={mspd}')
     
-    # start movement
-    desired, n_cyc = steps['n_steps'], abs(steps['n_cycles'])
+    # useful counters
+    n_checks = int(360 / angle_check)
+    i_check = 1
+    enc_tol = 10
+    enc_fail = False
+    n_cyc = abs(steps['n_cycles'])
+    desired = steps['n_steps']
     moved = 0
+
+    # start movement
+    print("Beginning move ...")
     try:
-        for i_cyc in range(0, n_cyc):
+        for i_cyc in range(1, n_cyc+1):
+
+            # goal: move this many motor steps
             move = int(steps['dir'] * steps['step_check'])
+            
+            # take current reading of encoder position (quiet)
+            enc_pos = int(query_encoder(mconf[motor_name]['rpi_pin'], 
+                                        mconf['t_sleep'], mconf['com_spd'], 
+                                        verbose=False).rstrip())
+            
+            pct = 100 * abs(moved/desired)
+            print(f'{i_cyc}/{n_cyc}  attempting: {move}  total: {moved}  {pct:.1f}%  encoder: {enc_pos}')
+            
+            # begin motion
             gc(f'PR{axis}={move}')
             gc(f'BG{axis}') 
             gp.GMotionComplete(axis)
             
-            enc_pos = query_encoder(mconf[motor_name]['rpi_pin'], 
-                                    mconf['t_sleep'], mconf['com_spd'], 
-                                    verbose=False)
-            print("encoder pos: ", result)
+            # cross-check encoder position with motor step commands
+            if constraints:
+                enc_fail = False
+                mod = i_cyc % n_checks
+                exp_pos = int(mod * 2**14 / n_checks) # expected enc position
+                # print(i_cyc, mod, exp_pos) # useful debug, don't delete this
+                
+                if mod == 0:
+                    # full rotation (360 deg)
+                    if (enc_pos > enc_tol) or (enc_pos < 2**14 - enc_tol):
+                        enc_fail = True
+                else:
+                    # partial rotation 
+                    if not exp_pos - enc_tol < enc_pos < enc + enc_tol:
+                        enc_fail = True
+                if enc_fail:
+                    print("Encoder position check failed!\nAborting move ...")
+                    break
             
-            time.sleep(0.1)
+            # increment total steps counter
             moved += move
-            pct = 100 * abs(moved/desired)
-            print(f'{i_cyc}/{n_cyc}  {move}  {moved}  {desired}  {pct:.1f}%')
-        
-        # move the remainder
-        move = steps['r_steps']
-        gc(f'PR{axis}={move}')
-        gc(f'BG{axis}') 
-        gp.GMotionComplete(axis)
-        moved += move
-        i_cyc += 1
-        print(f'{i_cyc}/{n_cyc}  {move}  {moved}  {desired}  {pct:.2f}%')
+            
+        # move the final remainder
+        if not enc_fail:
+            move = steps['r_steps']
+            gc(f'PR{axis}={move}')
+            gc(f'BG{axis}') 
+            gp.GMotionComplete(axis)
+            moved += move
+            i_cyc += 1
+            print(f'{i_cyc}/{n_cyc}  {move}  {moved}  {desired}  {pct:.2f}%')
 
     except gclib.GclibError:
-        print("The motor hit the limit switch")
+        print("The motor probably hit the limit switch.")
     
-    print(f"steps moved: {moved}  desired total: {desired}")
+    # show a final summary
+    cap = motor_name.capitalize()
+    input_val = steps['input_val']
+    move_type = steps['move_type']
+    
+    # convert back
+    if motor_name == "source":
+        final_val = moved / (50000 / 360)
+    if motor_name == "linear":
+        final_val = moved / 31573
+    if motor_name == "rotary":
+        final_val = moved / (50000 / 360 * 90)
+    
+    # print final warning
+    if not constraints:
+        print("\nConstraints are OFF, the following summary is probably wrong:")
+    
+    # final summary.  TODO: save these results to DataFrame with iloc (ask Clint)
+    print(f"\n{cap} motor movement summary:"
+          f"\n  Attempted: {input_val} {move_type}"
+          f"\n  Equivalent motor steps: {desired}"
+          f"\n  Total steps moved: {moved}"
+          f"\n  Final position: {final_val} {move_type}")
+    
+    
+def zero_motor(motor_name, angle_check, verbose):
+    """
+    run the motors backwards (or forwards ;-) to their limit switches
+    """
+    zeros = {
+        'source' : -360, # go BACKWARDS 360 degrees (the full amt)
+        'linear' : -51,  # the full backwards travel (2 inches)
+        'rotary' : -360  # go FORWARDS 360 degrees (b/c of our convention)
+        }
+    move_motor(motor_name, zeros[motor_name], 
+    
+    
+def center_motor(motor_name, verbose):
+    """
+    this function should be fairly simple and just call move_motor appropriately
+    """
+    # first, zero the motor
+    zero_motor(motor_name, angle_check=mconf['angle_check'], verbose)
+    
+    if motor_name == "linear":
+        print("move the thing forward 3.175 mm")
+        # move_motor("linear", etc.)
+    else:
+        print("Other motors aren't special, leave me alone")
         
-        
-
-
     
 if __name__=="__main__":
     main()
