@@ -10,7 +10,9 @@ import numpy as np
 from pprint import pprint
 
 def main():
-    """
+    doc="""
+    CAGE motor movement suite.
+    
     REFERENCES:
     https://elog.legend-exp.org/UWScanner/200130_140616/cage_electronics.pdf
     http://www.galilmc.com/sw/pub/all/doc/gclib/html/python.html
@@ -29,7 +31,7 @@ def main():
     rpins = {key['rpi_pin'] : name for name, key in mconf.items()}
 
     # parse user args
-    par = argparse.ArgumentParser(description="a program that does a thing")
+    par = argparse.ArgumentParser(description=doc)
     arg, st, sf = par.add_argument, "store_true", "store_false"
 
     # motor functions
