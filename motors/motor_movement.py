@@ -8,17 +8,18 @@ import gclib
 import spur
 import numpy as np
 from pprint import pprint
+import pandas as pd
 
 def main():
     doc="""
     CAGE motor movement suite.
-    
+
     REFERENCES:
     https://elog.legend-exp.org/UWScanner/200130_140616/cage_electronics.pdf
     http://www.galilmc.com/sw/pub/all/doc/gclib/html/python.html
     """
     # load configuration (uses globals, it's bad practice but who cares)
-    global gp, gc, conf, ipconf, mconf, rpins
+    global gp, gc, conf, ipconf, mconf, rpins, history_df, f_history
     gp = gclib.py()
     gc = gp.GCommand
     with open('../config.json') as f:
@@ -29,6 +30,15 @@ def main():
         'rotary': {'rpi_pin':11, 'axis':'D', 'motor_spd':300000},
         }
     rpins = {key['rpi_pin'] : name for name, key in mconf.items()}
+    try:
+        f_history = "motor_movement_history.h5"
+        history_df = pd.read_hdf(f_history)
+    except:
+        print(f'ERROR: Cannot find {f_history}')
+        ans = input(f'Would you like to initialize {f_history}? y/n \n -->')
+        if ans == 'y':
+            init_history_df()
+        exit()
 
     # parse user args
     par = argparse.ArgumentParser(description=doc)
@@ -52,6 +62,7 @@ def main():
     arg('-c', '--com_spd', nargs=1, type=int, help='set RPi comm speed (Hz)')
     arg('-m', '--max_reads', nargs=1, type=int, help='set num. tries to zero encoder')
     arg('--constraints', action=sf, help="DISABLE constraints (bad idea!)")
+    arg('--init_df', action=st, help='initialize the motor history dataframe')
 
     args = vars(par.parse_args())
 
@@ -71,6 +82,12 @@ def main():
     # ==========================================================================
     connect_to_controller(verbose) # check Newmark and RPi by default
 
+    if not constraints:
+        ans = input('WARNING: Are you sure you want constraints off? Danger of damaging system! y/n \n -->')
+        ans = ans.lower()
+        if ans != 'y':
+            exit()
+
     if args['config']:
         connect_to_controller(verbose=True)
         print("\nCredentials:")
@@ -78,8 +95,11 @@ def main():
         print("\nCAGE motor system settings:")
         pprint(mconf)
 
+    if args['init_df']:
+        init_history_df()
+
     if args['status']:
-        # TODO: add more here, like print(df_history)
+        # TODO: add more here, like print(history_df)
         check_limit_switches(verbose=True)
 
     if args['read_enc']:
@@ -98,9 +118,14 @@ def main():
 
     if args['move']:
         # Actually move motors
+        check = input('WARNING, did you lift the motor assembly with the rack and pinion? y/n \n -->')
+        if check != 'y':
+            print('Please lift!')
+            exit()
         motor_name = args['move'][0]
         input_val = float(args['move'][1])
-        move_motor(motor_name, input_val, angle_check, constraints, verbose)
+        check_history(history_df, motor_name, input_val, constraints)
+        move_motor(motor_name, input_val, history_df, angle_check, constraints, verbose)
 
     if args['zero']:
         motor_name = args['move'][0]
@@ -277,10 +302,11 @@ def get_steps(motor_name, input_val, angle_check=180, constraints=True, verbose=
             "input_val": input_val}
 
 
-def move_motor(motor_name, input_val, angle_check=180, constraints=True, verbose=False):
+def move_motor(motor_name, input_val, history_df, angle_check=180, constraints=True, verbose=False, zero=False):
     """
     $ python motor_movement.py --move [name] [input_val] [options]
     """
+
     # calculate the number of steps to move
     steps = get_steps(motor_name, input_val, angle_check, constraints, verbose)
 
@@ -394,19 +420,20 @@ def move_motor(motor_name, input_val, angle_check=180, constraints=True, verbose
           f"\n  Attempted: {input_val} {move_type}"
           f"\n  Equivalent motor steps: {desired}"
           f"\n  Total steps moved: {moved}"
-          f"\n  Final position: {final_val} {move_type}")
+          f"\n  Final position: {final_val} {move_type}") #Probably use final_val for running totals?
 
+    # update_history(motor_name, finalval, running_total, moved, zero, *steps)
 
 def zero_motor(motor_name, angle_check, verbose, constraints=True):
     """
-    run the motors backwards (or forwards ;-) to their limit switches
+    run the motors backwards (or forwards) to their limit switches
     """
     zeros = {
         'source' : 360, # go FORWARDS 360 degrees (the full amt)
         'linear' : -51,  # the full backwards travel (2 inches)
         'rotary' : 360  # go FORWARDS 360 degrees (b/c of our convention)
         }
-    move_motor(motor_name, zeros[motor_name])
+    move_motor(motor_name, zeros[motor_name], zero=True)
 
 
 def center_motor(motor_name, verbose, constraints=True):
@@ -419,13 +446,145 @@ def center_motor(motor_name, verbose, constraints=True):
 
     if motor_name == "linear":
         print("move the thing forward 3.175 mm")
-        # move_motor("linear", etc.)
+        move_motor("linear", 3.175)
     if motor_name == "source":
         print('do the special limit checks')
-        move_motor()
+        move_motor("source", -180)
         # zero_motor("source",...)
     else:
         print("Other motors aren't special, leave me alone")
+
+
+def init_history_df():
+    """
+    Initialize the motor movement history dataframe in h5 format
+    """
+
+    print('WARNING: You are about to create a new motor history dataframe.')
+    ans = input('Are you sure you want to do this? y/n \n -->')
+    if ans != 'y':
+        print('Cool')
+        exit()
+
+    init_columns = ['motor_name', 'distance_steps', 'distance_real', 'move_type', 'source_total',
+                    'linear_total', 'rotary_total']
+    init_values = [['Bob_motor', 0, 0, 'angle', 0, 0, 0]]
+
+
+    df = pd.DataFrame(init_values, columns=init_columns)
+    print(df)
+    df.to_hdf('./motor_movement_history.h5', key="motor_history", mode='w', format='table')
+
+
+def check_history(history_df, motor_name, input_val, constraints=True):
+    """
+     make sure no motors hit anything they shouldn't.  Use constraints relative to
+     zero positions, then query history dataframe to subtract off current positions
+     from constraints
+    """
+
+    source_constraint = -25
+    linear_constraint = 36
+    rotary_constraint = -330
+
+    if not constraints:
+        print('WARNING: MOTORS CAN HIT LIMITS AND DAMAGE PARTS')
+
+    if constraints:
+        if motor_name == 'source':
+            ans = input('Did you just park the source motor? y/n \n -->')
+            ans = ans.lower()
+            if ans != 'n':
+                print('Please center the source motor before a movement')
+                exit()
+            source_constraint = -(history_df.iloc[-1,:]['source_total'] - source_constraint)
+            if input_val < source_constraint:
+                print('WARNING: CANNOT DO THIS MOVE\n Source motor switch will hit encoder')
+                print(f'Only {source_constraint} degree movement away from center position allowed')
+                exit()
+
+        if motor_name == 'linear':
+            ans = input('Did you just move the linear motor to its 0 position at 3.175 mm from switch? y/n \n -->')
+            ans = ans.lower()
+            if ans != 'y':
+                print('Please set linear motor to its 0 position')
+                exit()
+            linear_constraint = history_df.iloc[-1,:]['linear_total'] - linear_constraint
+            if input_val > linear_constraint:
+                print(f'WARNING: CANNOT DO THIS MOVE\n Linear motor cannot exceed {linear_constraint} mm movement')
+                exit()
+
+        if motor_name == 'rotary':
+            rotary_constraint = -(history_df.iloc[-1,:]['rotary_total'] - rotary_constraint)
+            if input_val < rotary_constraint:
+                print(f'WARNING CANNOT DO THIS MOVE \n Rotary motion cannot be more negative than {rotary_constraint} degrees')
+                exit()
+
+
+def update_history(motor_name, finalval, moved, move_type, zero, *steps):
+# def update_history():
+
+    # test variables
+    # motor_name = 'source'
+    # moved = 3453463
+    # final_val = 32
+    # zero = False
+
+    df_idx, df_ncols = history_df.shape
+
+    new_row = history_df.iloc[-1].copy()
+
+    if zero:
+        running_total = 0
+    if not zero:
+        running_total = final_val + new_row.loc[f'{motor_name}_total']
+
+    new_vals = {
+        "motor_name":motor_name,
+        "distance_steps": moved,
+        "distance_real": final_val,
+        "move_type": move_type,
+        f'{motor_name}_total': running_total
+    }
+    for k, v in new_vals.items():
+        new_row[k] = v
+
+    history_df.loc[df_idx+1] = new_row
+
+    print(history_df)
+
+    # save_to_file
+    history_df.to_hdf(f_history, key="motor_history")
+
+    # new_vals = {
+    #     'motor_name':motor_name,
+    #     'distance_steps': steps["n_steps"]
+    # }
+    #
+    # my_cols = history_df.columns
+    # tmp_list = history_df.iloc[df_idx].tolist()
+    # history_df.iloc[df_idx+1] = [list_of_vals_matching_columns_list]
+
+
+    # temp_df = history_df.iloc[-1,:]
+    # df_idx = history_df.shape[0] # rows
+
+    # if zero:
+    #     other_list = {'motor_name': motor_name,
+    #                   'distance_steps': steps["n_steps"],
+    #                   'distance_real': final_val,
+    #                   'move_type': move_type,
+    #                   f'{motor_name}_total': 0}
+    #     for key, val in other_list.items():
+    #         history_df[key][df_idx] = val
+
+
+        # list = {'source_total': 0, 'linear_total': 0, 'rotary_total': 0} #if zeroing is successfull, want running total to be 0 for the motor
+        ##also, use final val for how far it actually moved
+
+    # if not zero:
+    #     list = [] ##use final vals
+    #     history_df = history_df.append(list)
 
 
 if __name__=="__main__":
