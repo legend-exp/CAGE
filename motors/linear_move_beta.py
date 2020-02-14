@@ -24,6 +24,7 @@ def test_readout():
     print(g.GAddresses())
     motor_name = "DMC2142sH2a"
 
+"""
 <<<<<<< HEAD
     print(g.GVersion())
     print(g.GInfo())
@@ -77,7 +78,7 @@ def test_readout():
     if checks != 0:
         while i < checks:
 >>>>>>> 762bfc26e222f87b8f1c7c006349a9ceb2ac1259
-
+"""
 
 def linear_limit_check():
     """

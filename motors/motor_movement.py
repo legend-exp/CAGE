@@ -48,6 +48,7 @@ def main():
     arg('--steps', nargs='*', help="get steps to move [motor_name] a [value]")
     arg('--zero', nargs=1, type=str, help="zero motor: [source,linear,rotary]")
     arg("--move", nargs='*', help="move [motor_name] a distance [value]")
+    arg("--center", nargs='*', help="center source or linear motor")
 
     # encoder functions & settings
     arg('-re', '--read_enc', nargs=1, type=int, help='read encoder at rpi pin')
@@ -128,12 +129,22 @@ def main():
         move_motor(motor_name, input_val, history_df, angle_check, constraints, verbose)
 
     if args['zero']:
-        motor_name = args['move'][0]
-        zero_motor(motor_name, angle_check, verbose)
+        check = input('WARNING, did you lift the motor assembly with the rack and pinion? y/n \n -->')
+        if check != 'y':
+            print('Please lift!')
+            exit()
+        motor_name = args['zero'][0]
+        check_history(history_df, motor_name, input_val, constraints)
+        zero_motor(motor_name, angle_check, history_df, verbose, constraints)
 
-    # if args['center']:
-    #     motor_name = args['move'][0]
-    #     center_motor(motor_name, angle_check, verbose)
+    if args['center']:
+        check = input('WARNING, did you lift the motor assembly with the rack and pinion? y/n \n -->')
+        if check != 'y':
+            print('Please lift!')
+            exit()
+        motor_name = args['move'][0]
+        check_history(history_df, motor_name, input_val, center=True, constraints)
+        center_motor(motor_name, angle_check, verbose)
 
 
 def connect_to_controller(verbose=True):
@@ -356,7 +367,7 @@ def move_motor(motor_name, input_val, history_df, angle_check=180, constraints=T
 
             # NOTE: add actual motion
             pct = 100 * abs(moved/desired)
-            print(f"{i_cyc}/{n_cyc}  attempting: {move}/{moved}  ({pct:.1f}%)  encoder: {enc_pos}  actual pos: XX steps['move_type']")
+            print(f"{i_cyc}/{n_cyc}  attempting: {move}/{moved}  ({pct:.1f}%)  encoder: {enc_pos}  actual pos: XX {steps['move_type']}")
 
             # begin motion
             gc(f'PR{axis}={move}')
@@ -377,6 +388,7 @@ def move_motor(motor_name, input_val, history_df, angle_check=180, constraints=T
                 else:
                     # partial rotation
                     if not exp_pos - enc_tol < enc_pos < exp_pos + enc_tol:
+                        print(exp_pos, enc_tol, enc_pos)
                         enc_fail = True
                 if enc_fail:
                     print("Encoder position check failed!\nAborting move ...")
@@ -422,9 +434,10 @@ def move_motor(motor_name, input_val, history_df, angle_check=180, constraints=T
           f"\n  Total steps moved: {moved}"
           f"\n  Final position: {final_val} {move_type}") #Probably use final_val for running totals?
 
-    # update_history(motor_name, finalval, running_total, moved, zero, *steps)
+    update_history(motor_name, final_val, running_total, moved, zero, *steps)
 
-def zero_motor(motor_name, angle_check, verbose, constraints=True):
+
+def zero_motor(motor_name, angle_check, history_df, verbose, constraints=True):
     """
     run the motors backwards (or forwards) to their limit switches
     """
@@ -433,10 +446,10 @@ def zero_motor(motor_name, angle_check, verbose, constraints=True):
         'linear' : -51,  # the full backwards travel (2 inches)
         'rotary' : 360  # go FORWARDS 360 degrees (b/c of our convention)
         }
-    move_motor(motor_name, zeros[motor_name], zero=True)
+    move_motor(motor_name, input_val, history_df, angle_check, constraints, verbose, zero=True)
 
 
-def center_motor(motor_name, verbose, constraints=True):
+def center_motor(motor_name, angle_check, history_df, verbose, constraints=True):
     """
     here's where the user has to say "Y", etc.
     this function should be fairly simple and just call move_motor appropriately
@@ -446,10 +459,10 @@ def center_motor(motor_name, verbose, constraints=True):
 
     if motor_name == "linear":
         print("move the thing forward 3.175 mm")
-        move_motor("linear", 3.175)
+        move_motor("linear", 3.175, history_df, angle_check, constraints, verbose)
     if motor_name == "source":
         print('do the special limit checks')
-        move_motor("source", -180)
+        move_motor("source", -180, history_df, angle_check, constraints, verbose)
         # zero_motor("source",...)
     else:
         print("Other motors aren't special, leave me alone")
@@ -476,49 +489,59 @@ def init_history_df():
     df.to_hdf('./motor_movement_history.h5', key="motor_history", mode='w', format='table')
 
 
-def check_history(history_df, motor_name, input_val, constraints=True):
+def check_history(history_df, motor_name, input_val, center=False, constraints=True):
     """
      make sure no motors hit anything they shouldn't.  Use constraints relative to
      zero positions, then query history dataframe to subtract off current positions
      from constraints
     """
 
-    source_constraint = -25
-    linear_constraint = 36
+    source_constraint = -205
+    linear_constraint = 39.175
     rotary_constraint = -330
 
     if not constraints:
         print('WARNING: MOTORS CAN HIT LIMITS AND DAMAGE PARTS')
 
     if constraints:
-        if motor_name == 'source':
-            ans = input('Did you just park the source motor? y/n \n -->')
-            ans = ans.lower()
-            if ans != 'n':
-                print('Please center the source motor before a movement')
-                exit()
-            source_constraint = -(history_df.iloc[-1,:]['source_total'] - source_constraint)
-            if input_val < source_constraint:
-                print('WARNING: CANNOT DO THIS MOVE\n Source motor switch will hit encoder')
-                print(f'Only {source_constraint} degree movement away from center position allowed')
+
+        if center:
+            check_zero = history_df.iloc[-1,:][f'{motor_name}_total']
+            if check_zero != 0:
+                print(f'ERROR: Cannot center {motor_name} motor if last move was not zeroing the motor')
+                print('Please zero motor first')
                 exit()
 
-        if motor_name == 'linear':
-            ans = input('Did you just move the linear motor to its 0 position at 3.175 mm from switch? y/n \n -->')
-            ans = ans.lower()
-            if ans != 'y':
-                print('Please set linear motor to its 0 position')
-                exit()
-            linear_constraint = history_df.iloc[-1,:]['linear_total'] - linear_constraint
-            if input_val > linear_constraint:
-                print(f'WARNING: CANNOT DO THIS MOVE\n Linear motor cannot exceed {linear_constraint} mm movement')
-                exit()
 
-        if motor_name == 'rotary':
-            rotary_constraint = -(history_df.iloc[-1,:]['rotary_total'] - rotary_constraint)
-            if input_val < rotary_constraint:
-                print(f'WARNING CANNOT DO THIS MOVE \n Rotary motion cannot be more negative than {rotary_constraint} degrees')
-                exit()
+        if not center:
+            if motor_name == 'source':
+                ans = input('Did you just park the source motor? y/n \n -->')
+                ans = ans.lower()
+                if ans != 'n':
+                    print('Please center the source motor before a movement')
+                    exit()
+                source_constraint = -(history_df.iloc[-1,:]['source_total'] - source_constraint)
+                if input_val < source_constraint:
+                    print('WARNING: CANNOT DO THIS MOVE\n Source motor switch will hit encoder')
+                    print(f'Only {source_constraint} degree movement away from center position allowed')
+                    exit()
+
+            if motor_name == 'linear':
+                ans = input('Did you just move the linear motor to its 0 position at 3.175 mm from switch? y/n \n -->')
+                ans = ans.lower()
+                if ans != 'y':
+                    print('Please set linear motor to its 0 position')
+                    exit()
+                linear_constraint = history_df.iloc[-1,:]['linear_total'] - linear_constraint
+                if input_val > linear_constraint:
+                    print(f'WARNING: CANNOT DO THIS MOVE\n Linear motor cannot exceed {linear_constraint} mm movement')
+                    exit()
+
+            if motor_name == 'rotary':
+                rotary_constraint = -(history_df.iloc[-1,:]['rotary_total'] - rotary_constraint)
+                if input_val < rotary_constraint:
+                    print(f'WARNING CANNOT DO THIS MOVE \n Rotary motion cannot be more negative than {rotary_constraint} degrees')
+                    exit()
 
 
 def update_history(motor_name, finalval, moved, move_type, zero, *steps):
