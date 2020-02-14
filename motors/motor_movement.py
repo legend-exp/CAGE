@@ -101,7 +101,7 @@ def main():
         move_motor(motor_name, input_val, angle_check, constraints, verbose)
 
     if args['zero']:
-        motor_name = args['move'][0]
+        motor_name = args['zero'][0]
         zero_motor(motor_name, angle_check, verbose)
 
     # if args['center']:
@@ -250,10 +250,10 @@ def get_steps(motor_name, input_val, angle_check=180, constraints=True, verbose=
         move_type = "degrees"
         direction = np.sign(input_val)
         n_steps = input_val * 50000 / 360 * 90 # 90:1 gear ratio
-        if abs(input_val) > 330:
-            print(f"Angle {input_val} is too big!  No angles greater than 330.")
-            print("\nI can't believe you picked that.  How dare you!  jk ;-)")
-            exit()
+        # if abs(input_val) > 330 and constraints:
+        #     print(f"Angle {input_val} is too big!  No angles greater than 330.")
+        #     print("\nI can't believe you picked that.  How dare you!  jk ;-)")
+        #     exit()
 
     # calculate how many times to check the encoders (default: every 180 degrees)
     n_cycles, r_steps = divmod(n_steps, step_check)
