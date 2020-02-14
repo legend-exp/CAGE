@@ -17,7 +17,7 @@ def main():
     rotary_limit_check()
     source_limit_check()
     linear_limit_check()
-    exit()
+
 
     zero = input(' If you haven\'t zeroed the motors to their home positions, would you like to do that now? \n y/n -->')
 
@@ -48,13 +48,13 @@ def main():
     if rotary_move == 'y':
         rotary_program()
 
-    # linear_move = input(' Move linear motor? \n y/n -->')
-    # if linear_move == 'y':
-    #     linear_program()
+    linear_move = input(' Move linear motor? \n y/n -->')
+    if linear_move == 'y':
+        linear_program()
 
-    # source_move = input(' Move source motor? \n y/n -->')
-    # if source_move == 'y':
-    #     source_program()
+    source_move = input(' Move source motor? \n y/n -->')
+    if source_move == 'y':
+        source_program()
 
     print("motor movement done.")
 
