@@ -24,9 +24,61 @@ def test_readout():
     print(g.GAddresses())
     motor_name = "DMC2142sH2a"
 
+"""
+<<<<<<< HEAD
     print(g.GVersion())
     print(g.GInfo())
+=======
+    zero = linear_set_zero()
+    while (zero > 10) and (zero < 16374):
+        zero = linear_set_zero()
 
+    load = int(input(' If you are starting a move, type 0. \n If you are moving back to 0 position,(test, do not use) type 1 \n -->'))
+
+    if load == 0:
+        mm = float(input(' How many mm would you like to move the linear motor?\n -->'))
+        pos = np.asarray([mm])
+        np.savez('linear_pos', pos)
+    if load == 1:
+        print(' Setting motor back to 0 position')
+        file = np.load('./linear_pos.npz')
+        mm1 = file['arr_0']
+        mm = -mm1[0]
+    if mm > 33:
+        print('WARNING, no linear moves past 33 mm!!')
+        exit()
+    cts = mm * 31573
+
+
+    if mm < 0:
+        checks, rem = divmod(-cts, 25000)
+        move = -25000
+        rem = -1 * rem
+    else:
+        checks, rem = divmod(cts, 25000)
+        move = 25000
+    b = False
+    i = 0
+    # print(checks, rem)
+    # del c #delete the alias
+    # g.GClose()
+    # exit()
+
+
+    c('AB')
+    c('MO')
+    c('SHB')
+    c('SPB=300000')
+    if load == 0:
+        c('DPB=0')
+    c('ACB=300000')
+    c('BCB=300000')
+    print(' Starting move...')
+
+    if checks != 0:
+        while i < checks:
+>>>>>>> 762bfc26e222f87b8f1c7c006349a9ceb2ac1259
+"""
 
 def linear_limit_check():
     """
