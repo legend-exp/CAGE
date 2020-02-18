@@ -12,7 +12,7 @@
 
 ##Specify output file
 /g4simple/setOutputFormat hdf5
-#/analysis/setFileName ./alpha/raw_out/Pb_241Am_10000000.hdf5
+#/analysis/setFileName ./alpha/raw_out/ICPC_Pb_241Am_10000000.hdf5
 /analysis/setFileName ./alpha/raw_out/test.hdf5
 
 ##Set Volume ID's for Geometry Volumes (volume.in.geometry.file_PV volID)
@@ -47,4 +47,4 @@
 #/gps/pos/confine Am_sourceDeposition_PV
 
 ##set number of runs
-/run/beamOn 10
+/run/beamOn 10000000
