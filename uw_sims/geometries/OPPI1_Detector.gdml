@@ -59,7 +59,7 @@
  <structure>
 
  <volume name="OPPI1_Detector">
-   <materialref ref="natGe"/>
+   <materialref ref="G4_Ge"/>
    <solidref ref="detector"/>
   </volume>
 

@@ -15,7 +15,7 @@
   <constant name="PI" value="1.*pi"/>
   <constant name="TWOPI" value="2.*pi"/>
 
-  <quantity name="source_radius" type="length" value="25.0" unit="mm"/>
+  <quantity name="source_radius" type="length" value="25.0/2" unit="mm"/>
   <quantity name="source_thickness" type="length" value="0.5" unit="mm"/>
 
  </define>

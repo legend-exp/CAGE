@@ -26,12 +26,25 @@ def main():
 	# filename = '../alpha/processed_out/processed_30mm_collimated_241Am_10000000.hdf5'
 	# filename = '../alpha/raw_out/22mm_collimated_241Am_10000000.hdf5'
 	# filename = '../alpha/raw_out/16mm_collimated_241Am_10000000.hdf5'
+
 	# filename = '../alpha/processed_out/processed_22mm_collimated_241Am_10000000.hdf5'
 	# filename = '../alpha/processed_out/processed_16mm_collimated_241Am_10000000.hdf5'
 
 	# filename = '../alpha/raw_out/noDet_Cu_22mm_collimated_241Am_100000.hdf5'
-	filename = '../alpha/processed_out/processed_noDet_Cu_22mm_collimated_241Am_100000.hdf5'
+	# filename = '../alpha/processed_out/processed_noDet_Cu_22mm_collimated_241Am_100000.hdf5'
 
+	# filename = '../alpha/raw_out/noDet_Cu_22mm_collimated_241Am_10000000.hdf5'
+	# filename = '../alpha/processed_out/processed_noDet_Cu_22mm_collimated_241Am_10000000.hdf5'
+
+
+	# filename = '../alpha/raw_out/newTest_Pb_241Am_1000000.hdf5'
+	# filename = '../alpha/processed_out/processed_newTest_Pb_241Am_1000000.hdf5'
+	# filename = '../alpha/raw_out/topHat_Test_Pb_241Am_1000000.hdf5'
+	# filename = '../alpha/processed_out/processed_topHat_Test_Pb_241Am_1000000.hdf5'
+
+
+	# filename = '../alpha/raw_out/topHat_Test2_Pb_241Am_1000000.hdf5'
+	filename = '../alpha/processed_out/processed_topHat_Test2_Pb_241Am_1000000.hdf5'
 
 
 
@@ -39,7 +52,8 @@ def main():
 
 	# plotHist(filename)
 	# post_process(filename)
-	plotSpot(filename)
+	# plotSpot(filename)
+	ZplotSpot(filename)
 	# plot1DSpot(filename)
 	# testFit(filename)
 
@@ -60,19 +74,21 @@ def main():
 def post_process(filename):
 	df = pandarize(filename)
 	# df.to_hdf('../alpha/processed_out/processed_30mm_notcollimated_241Am_700000.hdf5', key='procdf', mode='w')
-	df.to_hdf('../alpha/processed_out/processed_noDet_Cu_22mm_collimated_241Am_100000.hdf5', key='procdf', mode='w')
+	df.to_hdf('../alpha/processed_out/processed_topHat_Test2_Pb_241Am_1000000.hdf5', key='procdf', mode='w')
 
 
 def plotHist(filename):
 	# df = pandarize(filename)
 	df = pd.read_hdf(filename, keys='procdf')
+	energy = np.array(df['energy'])
+	# print(energy)
+	# exit()
+	# pid = np.array(df['pid'])
+
+
+	# alpha_df = df.loc[df.energy > 5]
+	# energy = np.array(alpha_df['energy']*1000)
 	energy = np.array(df['energy']*1000)
-	print(energy)
-	exit()
-	pid = np.array(df['pid'])
-
-
-	alpha_df = df.loc[df.energy > 5]
 	# print(tmp['pid'].astype(int).unique)
 	# print(df['pid'].astype(int).unique)
 	# exit()
@@ -80,58 +96,115 @@ def plotHist(filename):
 	# y = np.array(df['y'])
 	# z = np.array(df['z'])
 
-	x = np.array(alpha_df['x'])
-	y = np.array(alpha_df['y'])
-	z = np.array(alpha_df['z'])
+	# x = np.array(alpha_df['x'])
+	# y = np.array(alpha_df['y'])
+	# z = np.array(alpha_df['z'])
 
 	fig, ax = plt.subplots()
 	plt.hist(energy, range = [0.0, 6000], bins=600)
 	plt.yscale('log')
+	ax.set_xlabel('Energy (keV)', fontsize=16)
+	ax.set_ylabel('Counts/10 keV', fontsize=16)
+	plt.setp(ax.get_xticklabels(), fontsize=14)
+	plt.setp(ax.get_yticklabels(), fontsize=14)
 	# plt.title('Collimated, $^{241}$Am 7*10$^5$ Primaries, 16 mm above detector', fontsize=18)
-	plt.title('Collimated, $^{241}$Am 10$^7$ Primaries, 22 mm above detector (10 keV bins, no E-res func)', fontsize=18)
+	plt.title('$^{241}$Am 10$^7$ Primaries, Coll. 22 mm above detector (no E-res func)', fontsize=18)
+	plt.show()
+
+def ZplotSpot(filename):
+	# df = pandarize(filename)
+	df = pd.read_hdf(filename, keys='procdf')
+	energy = np.array(df['energy']*1000)
+	# alpha_df = df.loc[df.energy > 5]
+	# gamma_df = df.loc[(df.energy > .04) & (df.energy > 0.08)]
+
+	x = np.array(df['x'])
+	y = np.array(df['y'])
+	z = np.array(df['z'])
+	# x = np.array(alpha_df['x'])
+	# y = np.array(alpha_df['y'])
+	# z = np.array(alpha_df['z'])
+	# x = np.array(gamma_df['x'])
+	# y = np.array(gamma_df['y'])
+	# z = np.array(gamma_df['z'])
+
+
+	# energy = np.array(alpha_df['energy']*1000)
+	# energy = np.array(gamma_df['energy']*1000)
+	energy = np.array(df['energy']*1000)
+
+	fig, ax = plt.subplots()
+	# spot_hist = ax.hist2d(x, y, range = [[-32., 32.],[-32., 32.]], weights=energy, norm=LogNorm(), bins=6000) #, range = [[-20., 20.],[-20., 20.]]
+	# spot_hist = ax.hist2d(x, y, range = [[-32., 32.],[-32., 32.]], norm=LogNorm(), bins=6000) #, range = [[-20., 20.],[-20., 20.]]
+	# plt.colorbar(spot_hist[3], ax=ax)
+	# plt.title('Collimated, $^{241}$Am 7*10$^5$ Primaries, 16 mm above detector', fontsize=18)
+
+
+	# plt.scatter(x, y, c=energy, s=1, cmap='plasma', norm=LogNorm(1,6000))
+	plt.scatter(y, z, c=energy, s=1, cmap='plasma')
+	cb = plt.colorbar()
+	cb.set_label("Energy (keV)", ha = 'right', va='center', rotation=270, fontsize=14)
+	cb.ax.tick_params(labelsize=12)
+	plt.xlim(-100,100)
+	plt.ylim(-100,100)
+	ax.set_xlabel('x position (mm)', fontsize=16)
+	ax.set_ylabel('z position (mm)', fontsize=16)
+	plt.setp(ax.get_xticklabels(), fontsize=14)
+	plt.setp(ax.get_yticklabels(), fontsize=14)
+	# plt.title('Spot Size, $^{241}$Am 10$^7$ Primaries, Coll. 22 mm above detector, energy 40-80 keV', fontsize=16)
+	plt.title('Spot Size, $^{241}$Am 10$^6$ Primaries', fontsize=16)
 	plt.show()
 
 def plotSpot(filename):
 	# df = pandarize(filename)
 	df = pd.read_hdf(filename, keys='procdf')
 	energy = np.array(df['energy']*1000)
-	alpha_df = df.loc[df.energy > 5]
+	# alpha_df = df.loc[df.energy > 5]
+	# gamma_df = df.loc[(df.energy > .04) & (df.energy > 0.08)]
 
-	# x = np.array(df['x'])
-	# y = np.array(df['y'])
-	# z = np.array(df['z'])
-	x = np.array(alpha_df['x'])
-	y = np.array(alpha_df['y'])
-	z = np.array(alpha_df['z'])
+	x = np.array(df['x'])
+	y = np.array(df['y'])
+	z = np.array(df['z'])
+	# x = np.array(alpha_df['x'])
+	# y = np.array(alpha_df['y'])
+	# z = np.array(alpha_df['z'])
+	# x = np.array(gamma_df['x'])
+	# y = np.array(gamma_df['y'])
+	# z = np.array(gamma_df['z'])
 
-	energy = np.array(alpha_df['energy']*1000)
+
+	# energy = np.array(alpha_df['energy']*1000)
+	# energy = np.array(gamma_df['energy']*1000)
+	energy = np.array(df['energy']*1000)
 
 	fig, ax = plt.subplots()
 	# spot_hist = ax.hist2d(x, y, range = [[-32., 32.],[-32., 32.]], weights=energy, norm=LogNorm(), bins=6000) #, range = [[-20., 20.],[-20., 20.]]
-	spot_hist = ax.hist2d(x, y, range = [[-80., 80.],[-80., 80.]], norm=LogNorm(), bins=6000) #, range = [[-20., 20.],[-20., 20.]]
-	plt.colorbar(spot_hist[3], ax=ax)
+	# spot_hist = ax.hist2d(x, y, range = [[-32., 32.],[-32., 32.]], norm=LogNorm(), bins=6000) #, range = [[-20., 20.],[-20., 20.]]
+	# plt.colorbar(spot_hist[3], ax=ax)
 	# plt.title('Collimated, $^{241}$Am 7*10$^5$ Primaries, 16 mm above detector', fontsize=18)
 
 
 	# plt.scatter(x, y, c=energy, s=1, cmap='plasma', norm=LogNorm(1,6000))
-	# plt.scatter(x, y, c=energy, s=1, cmap='plasma')
-	# cb = plt.colorbar()
-	# cb.set_label("Energy (keV)", ha = 'right', va='center', rotation=270, fontsize=14)
-	# cb.ax.tick_params(labelsize=12)
-	plt.xlim(-31,31)
-	plt.ylim(-31,31)
+	plt.scatter(x, y, c=energy, s=1, cmap='plasma')
+	cb = plt.colorbar()
+	cb.set_label("Energy (keV)", ha = 'right', va='center', rotation=270, fontsize=14)
+	cb.ax.tick_params(labelsize=12)
+	plt.xlim(-40,40)
+	plt.ylim(-40,40)
 	ax.set_xlabel('x position (mm)', fontsize=16)
 	ax.set_ylabel('y position (mm)', fontsize=16)
 	plt.setp(ax.get_xticklabels(), fontsize=14)
 	plt.setp(ax.get_yticklabels(), fontsize=14)
-	plt.title('$^{241}$Am 10$^7$ Primaries, 22 mm above detector, energy $>$ 5 MeV', fontsize=16)
+	# plt.title('Spot Size, $^{241}$Am 10$^7$ Primaries, Coll. 22 mm above detector, energy 40-80 keV', fontsize=16)
+	plt.title('Spot Size, $^{241}$Am 10$^6$ Primaries', fontsize=16)
 	plt.show()
 
 def plot1DSpot(filename):
 	# df = pandarize(filename)
 	df = pd.read_hdf(filename, keys='procdf')
-	energy = np.array(df['energy']*1000)
+	energy = np.array(df['energy'])
 	alpha_df = df.loc[df.energy > 5]
+	gamma_df = df.loc[(df.energy > .04) & (df.energy > 0.06)]
 
 	# x = np.array(df['x'])
 	# y = np.array(df['y'])
@@ -140,9 +213,11 @@ def plot1DSpot(filename):
 	y = np.array(alpha_df['y'])
 	z = np.array(alpha_df['z'])
 
-	energy = np.array(alpha_df['energy']*1000)
+	# energy = np.array(alpha_df['energy']*1000)
+	energy = np.array(gamma_df['energy']*1000)
 
 	(mu, sigma) = norm.fit(x)
+	fwhm = sigma*2.355
 
 	fig, ax = plt.subplots()
 	plt.hist(x, bins=100)
@@ -165,7 +240,7 @@ def plot1DSpot(filename):
 	# ax.set_ylabel('y position (mm)', fontsize=14)
 	plt.setp(ax.get_xticklabels(), fontsize=12)
 	plt.setp(ax.get_yticklabels(), fontsize=12)
-	plt.title('$^{241}$Am 10$^7$ Primaries, 16 mm above detector, energy $>$ 5 MeV', fontsize=14)
+	plt.title('Spot Size, $^{241}$Am 10$^7$ Primaries, Coll. 22 mm above detector, energy $>$ 5 MeV. FWHM: %.2f mm' % fwhm, fontsize=14)
 	print(mu, ', ', sigma)
 	print('FWHM: ', sigma*2.355)
 	plt.show()

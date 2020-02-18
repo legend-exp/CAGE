@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<gdml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://service-spi.web.cern.ch/service-spi/app/releases/GDML/schema/gdml.xsd">
+
+##########################################
+
+This file is a "mother file" to insert other gdml file geometries into.
+This file itself contains a vacuum inside of a larger world. GDML Modules are inserted as physical volumes
+in the vacuum logical volume. See 'structure' section of this file to insert other geometries.
+
+As written here, the origin of the simulation (0, 0, 0) is located inside the collimator, where the source is to be placed
+in the run macro. The collimator is placed inside the volume "sourceRotationVolume," so that it can be rotated independently
+of the rest of the geometry to simulate different positions of the source, as will be in the case in the CAGE scanner.
+
+The rotation point/axis (0,0,0) in the simulation differs from the rotation axis in the real setup. This was done intentionally
+so that placing the source in the run macro at the correct rotation angle will be easy-- simply put it at the angle the collimator
+will be rotated, since it is at the center in the simulation. In real life, the center of rotation is axis 2, as illustrated
+in this elog: https://elog.legend-exp.org/UWScanner/135. This will introduce an offset in the location where the beam comes
+out of the collimator in the simulation-- in real life it will actually be closer to the detector. To correct for that, we offset
+the "z" position of the detector and all other components in the simulation (other than the collimator) up by r*cos(rotation_angle),
+where r=3.5 mm is the distance between the real rotation axis and the simulation rotation axis.
+
+Distance from the top of the ICPC blank to the top of the nylon screw of the LMFE mount is approx. 4 mm: https://elog.legend-exp.org/UWScanner/148
+
+##########################################
+
+ <define>
+
+  <constant name="HALFPI" value="pi/2."/>
+  <constant name="PI" value="1.*pi"/>
+  <constant name="TWOPI" value="2.*pi"/>
+
+  <position name="center" x="0" y="0" z="0"/>
+  <rotation name="identity" x="0" y="0" z="0"/>
+
+  <quantity name="world_size" type="length" value="3" unit="m"/>
+  <quantity name="vacuum_radius" type="length" value="1" unit="m"/>
+  <quantity name="vacuum_height" type="length" value="2" unit="m"/>
+
+  # offsets for various rotation angles. See the general description above for more detail. this value is r*cos(rotation_angle), where
+  # r=3.5 mm is the distance between the real rotation axis and the simulation rotation axis.
+  <quantity name="offset_65" type="length" value="1.48" unit="mm"/>
+  <quantity name="offset_45" type="length" value="2.47" unit="mm"/>
+  <quantity name="offset_25" type="length" value="3.17" unit="mm"/>
+  <quantity name="offset_normalIncidence" type="length" value="3.5" unit="mm"/>
+
+  <rotation name="source45" x="-45" unit="deg"/>
+  <rotation name="source35" x="-35" unit="deg"/>
+  <rotation name="source25" x="-25" unit="deg"/>
+
+ </define>
+
+##########################################
+
+ <materials>
+
+  <element name="hydrogen" formula="H"  Z="1.">  <atom value="1.008"/>  </element>
+
+  <material name="vacuum">
+   <D value="1.e-22" unit="mg/cm3"/>
+   <fraction n="1.0" ref="hydrogen"/>
+  </material>
+
+ </materials>
+
+##########################################
+
+<solids>
+
+  <box name="world_box" x="world_size" y="world_size" z="world_size"/>
+
+  <cone name="mother_vacuum_cylinder" rmin1="0" rmax1="vacuum_radius" rmin2="0" rmax2="vacuum_radius" z="vacuum_height" startphi="0" deltaphi="TWOPI" aunit="rad"/>
+
+ </solids>
+
+##########################################
+
+ <structure>
+
+  <volume name="mother_vacuum_volume">
+   <materialref ref="G4_Galactic"/>
+   <solidref ref="mother_vacuum_cylinder"/>
+
+   <physvol>
+     <file name="./geometries/sourceRotationVolume.gdml"/>
+     <positionref ref="center"/>
+     <rotationref ref="identity"/>
+   </physvol>
+
+   <physvol>
+     <file name="./geometries/PPM_Detector.gdml"/>
+     <position name= "PPM_center" x="0" y="0" z="-65.7" unit="mm"/>
+     <rotation name="PPM_Rotation" x="0" y="0" z="0" unit="deg"/>
+   </physvol>
+
+   <!-- <physvol>
+    <file name="./geometries/Am_Capsule.gdml"/>
+     <position name="Am_Capsule_Position" x="0" y="0" z="58.54" unit="mm"/>
+     <rotation name="Am_Capsule_Rotation" x="0" y="0" z="0" unit="deg"/>
+   </physvol> -->
+   <physvol>
+     <file name="./geometries/Outer_Vessel.gdml"/>
+     <position name="Outer_Vessel_Position" x="0" y="0" z="0" unit="mm"/>
+     <rotationref ref="identity"/>
+   </physvol>
+   <physvol>
+     <file name="./geometries/Cold_Plate.gdml"/>
+     <position name="Cold_Plate_Position" x="0" y="0" z="-121.6" unit="mm"/>
+     <rotationref ref="identity"/>
+   </physvol>
+   <!-- <physvol>
+     <file name="./geometries/Copper_Finger.gdml"/>
+     <position name="Copper_Finger_Position" x="0" y="0" z="-314.45" unit="mm"/>
+     <rotationref ref="identity"/>
+   </physvol> -->
+   <physvol>
+     <file name="./geometries/Top_Hat.gdml"/>
+     <position name="Top_Hat_Position" x="0" y="0" z="-28.85" unit="mm"/>
+     <rotationref ref="identity"/>
+   </physvol>
+   <!-- <physvol>
+     <file name="./geometries/Feedthrough.gdml"/>
+     <position name="Feedthrough_Position" x="0" y="0" z="-178.5" unit="mm"/>
+     <rotationref ref="identity"/>
+   </physvol> -->
+   <!-- <physvol> -->
+     <!-- <file name="./geometries/Detector_Rest.gdml"/>
+     <position name="Detector_Rest_Position" x="0" y="0" z="-55.6" unit="mm"/>
+     <rotationref ref="identity"/>
+   </physvol> -->
+   <!-- <physvol>
+     <file name="./geometries/LN_Dewar.gdml"/>
+     <position name="LN_Dewar_Position" x="0" y="0" z="-567.5" unit="mm"/>
+     <rotationref ref="identity"/>
+   </physvol> -->
+   <!-- <physvol> --> -->
+     <!-- <file name="./geometries/Muon_Veto_02.gdml"/> -->
+     <!-- <position name="Muon_Veto_01_Position" x="0" y="0" z="352" unit="mm"/> -->
+     <!-- <rotationref ref="identity"/> -->
+   <!-- </physvol> -->
+   <!-- <physvol>
+     <file name="./geometries/Vertical_Motion.gdml"/>
+     <position name="Vertical_Motion_Position" x="0" y="0" z="597.1" unit="mm"/>
+     <rotationref ref="identity"/>
+   </physvol> -->
+  </volume>
+
+  <volume name="world">
+   <materialref ref="G4_Galactic"/>
+   <solidref ref="world_box"/>
+   <physvol>
+     <volumeref ref="mother_vacuum_volume"/>
+     <positionref ref="center"/>
+     <rotationref ref="identity"/>
+   </physvol>
+  </volume>
+
+ </structure>
+
+##########################################
+
+ <setup name="Default" version="1.0">
+  <world ref="world"/>
+ </setup>
+</gdml>
