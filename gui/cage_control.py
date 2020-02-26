@@ -10,6 +10,7 @@ import numpy as np
 from pprint import pprint
 import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
+from functools import partial
 
 from dateutil import parser
 from datetime import datetime, timedelta
@@ -20,13 +21,11 @@ from PyQt5 import QtGui
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 import pyqtgraph.console
-motor_dir = os.path.expanduser("~/software/CAGE/motors")
-sys.path.append(motor_dir)
-from source_move_beta import *
-from linear_move_beta import *
-from rotary_move_beta import *
-import motor_movement_beta as mp
 
+# have to do this since 'cage' isn't a python package yet
+# motor_dir = os.path.expanduser("~/software/CAGE/motors")
+# sys.path.append(motor_dir)
+# import ..motor_movement as mp
 
 
 # === PRIMARY EVENT LOOP =======================================================
@@ -53,7 +52,7 @@ def main():
     # connect the RabbitPlot emit signal for live updating
     pool = QThreadPool()
     listener = RabbitListener()
-    listener.signals.target.connect(cm.dbmon.rp.update_data)
+    listener.signals.target.connect(cm.dbmon.update_rp)
     pool.start(listener)
 
     # start the main Qt loop
@@ -108,7 +107,6 @@ class DBMonitor(QWidget):
     """
     def __init__(self):
         super().__init__()
-        self.show()
 
         print("Connecting to DB ...")
 
@@ -136,18 +134,18 @@ class DBMonitor(QWidget):
         for endpt in self.endpt_types:
             self.endpts_enabled.append({'name':endpt, 'type':'bool', 'value':False})
 
-        # HACK: set the default endpoint to look at here.  Uggggh, cw
+        # set the default endpoint
         self.endpts_enabled[1]['value'] = True
 
         # default time window
-        t_later = datetime.utcnow()
-        t_earlier = datetime.utcnow() - timedelta(hours=2)
+        self.t_later = datetime.utcnow()
+        self.t_earlier = datetime.utcnow() - timedelta(hours=2)
 
         # create a parameter tree widget from the DB endpoints
         pt_initial = [
             {'name': 'Run Query', 'type': 'group',
              'children': [
-               {'name': 'Date (earlier)', 'type':'str', 'value': t_earlier.isoformat()},
+               {'name': 'Date (earlier)', 'type':'str', 'value': self.t_earlier.isoformat()},
                {'name': 'Date (later)', 'type':'str', 'value': "now"},
                {'name': 'Query DB', 'type': 'action'}
             ]},
@@ -163,45 +161,66 @@ class DBMonitor(QWidget):
 
 
         # ---- PLOTTING ----
-
-        # -- create a wabbit plot --
-        # pass our intitial list of endpoints to this
-        self.rp = RabbitPlot(self.endpts_enabled, t_earlier, t_later, self.cursor)
-        # def rab():
-        #     RabbitPlot(self.endpts_enabled, t_earlier, t_later, self.cursor)
-
         # reinitialize the plot when the user clicks the "Query DB" button.
-        # TODO: add a flag w/ functools partial to turn live update on/off
-        self.p.param('Run Query', 'Query DB').sigActivated.connect(self.rp.__init__)
-        # self.p.param('Run Query', 'Query DB').sigActivated.connect(rab)
-
-        # could put a second plot with an independent parameter tree here,
-        # that listens to the same (or different?) rabbit queue.
+        self.rp = RabbitPlot(self.endpts_enabled, self.t_earlier, self.t_later,
+                             self.cursor)
+        self.p.param('Run Query', 'Query DB').sigActivated.connect(self.update_plot)
 
 
         # ---- LAYOUT ----
         # https://doc.qt.io/archives/qt-4.8/qgridlayout.html#public-functions
         # NOTE: addWidget(widget, fromRow, fromColumn, rowSpan, columnSpan)
-        layout = QGridLayout(self)
-        layout.setColumnStretch(0, 2) # stretch column 0 by 2
-        layout.setColumnStretch(1, 5)
-        layout.addWidget(self.pt, 0, 0)
-        layout.addWidget(self.rp, 0, 1)
-        # layout.addWidget(plot2, 2, 1, 2, 2)
-        self.setLayout(layout)
+        self.layout = QGridLayout(self)
+        self.setLayout(self.layout)
+        self.layout.setColumnStretch(0, 2) # stretch column 0 by 2
+        self.layout.setColumnStretch(1, 5)
+        self.layout.addWidget(self.pt, 0, 0)
+        self.layout.addWidget(self.rp, 0, 1)
+        self.show()
 
 
     def tree_change(self, param, changes):
         """
-        print a message anytime something in the tree changes.
+        watch for changes in the ParameterTree and update self variables
         """
         for param, change, data in changes:
             path = self.p.childPath(param)
             child_name = '.'.join(path) if path is not None else param.name()
+
             print(f'  parameter: {child_name}')
             print(f'  change:    {change}')
-            print(f'  data:      {str(data)}')
+            print(f'  data:      {data}')
+            
+            if child_name == "Run Query.Date (earlier)":
+                self.t_earlier = str(data)
+            
+            if child_name == "Run Query.Date (later)":
+                self.t_later = str(data)
+            
+            if "Endpoint Select" in path:
+                for i, ept in enumerate(self.endpt_list):
+                    if path[-1] == ept:
+                        self.endpts_enabled[i]['value'] = data
 
+
+    def update_plot(self):
+        """
+        """
+        self.layout.removeWidget(self.rp)
+        self.rp.deleteLater()
+        self.rp = RabbitPlot(self.endpts_enabled, self.t_earlier, self.t_later,
+                             self.cursor)
+        self.layout.addWidget(self.rp, 0,1)
+        self.show()
+        
+    
+    def update_rp(self, *args):
+        """
+        called by the main thread's listener function
+        """
+        # print(args)
+        self.rp.update_data(*args)
+        
 
 
 class MotorMonitor(QWidget):
@@ -209,7 +228,6 @@ class MotorMonitor(QWidget):
     MotorMonitor is a set of widgets to control the movement and readout the
     positions of the motors.
     """
-
     def __init__(self):
         super(QWidget, self).__init__()
         # self.layout = QVBoxLayout(self)
@@ -217,9 +235,9 @@ class MotorMonitor(QWidget):
 
         with open("config.json") as f:
             self.config = json.load(f)
-        ip_address = self.config["encoder_ip"]
-        username = self.config["encoder_usr"]
-        password = self.config["encoder_pwd"]
+        # ip_address = self.config["encoder_ip"]
+        # username = self.config["encoder_usr"]
+        # password = self.config["encoder_pwd"]
 
         # self.pushButton1 = QPushButton("Initialize Motor Control")
         # self.layout.addWidget(self.pushButton1)
@@ -255,25 +273,25 @@ class MotorMonitor(QWidget):
 
         self.p.sigTreeStateChanged.connect(self.tree_change)
 
-        def zero_rotary():
-            zero_rotary_motor()
-        def zero_linear():
-            zero_linear_motor()
-        def zero_source():
-            zero_source_motor()
-        def rotary_switch():
-            rotary_limit_check()
-        def linear_switch():
-            linear_limit_check()
-        def source_switch():
-            source_limit_check()
+        # def zero_rotary():
+        #     zero_rotary_motor()
+        # def zero_linear():
+        #     zero_linear_motor()
+        # def zero_source():
+        #     zero_source_motor()
+        # def rotary_switch():
+        #     rotary_limit_check()
+        # def linear_switch():
+        #     linear_limit_check()
+        # def source_switch():
+        #     source_limit_check()
 
-        self.p.param('Zero Motors', 'Rotary').sigActivated.connect(zero_rotary)
-        self.p.param('Zero Motors', 'Linear').sigActivated.connect(zero_linear)
-        self.p.param('Zero Motors', 'Source').sigActivated.connect(zero_source)
-        self.p.param('Limit Switch Check', 'Rotary').sigActivated.connect(rotary_switch)
-        self.p.param('Limit Switch Check', 'Linear').sigActivated.connect(linear_switch)
-        self.p.param('Limit Switch Check', 'Source').sigActivated.connect(source_switch)
+        # self.p.param('Zero Motors', 'Rotary').sigActivated.connect(zero_rotary)
+        # self.p.param('Zero Motors', 'Linear').sigActivated.connect(zero_linear)
+        # self.p.param('Zero Motors', 'Source').sigActivated.connect(zero_source)
+        # self.p.param('Limit Switch Check', 'Rotary').sigActivated.connect(rotary_switch)
+        # self.p.param('Limit Switch Check', 'Linear').sigActivated.connect(linear_switch)
+        # self.p.param('Limit Switch Check', 'Source').sigActivated.connect(source_switch)
 
         # self.layout.addWidget(self.pt)
 
@@ -284,13 +302,12 @@ class MotorMonitor(QWidget):
                 by either clicking the zero motor button, or running through the terminal
                 command in mp.movement().
                 """
-        namespace = {'pg': pg, 'np': np, 'mp':mp}
+        # namespace = {'pg': pg, 'np': np, 'mp':mp}
+        namespace = {'pg': pg, 'np': np}
 
         self.c = pyqtgraph.console.ConsoleWidget(namespace=namespace, text=text)
-        # c.show()
+        self.c.show()
         self.c.setWindowTitle('Motor Movement Console')
-
-
 
         layout = QGridLayout(self)
         layout.addWidget(self.c,0,1)
@@ -299,6 +316,7 @@ class MotorMonitor(QWidget):
         # self.pushButton1.clicked.connect(self.on_motor_clicked)
 
         self.setLayout(layout)
+
 
     def tree_change(self, param, changes):
         """
@@ -311,6 +329,7 @@ class MotorMonitor(QWidget):
             print(f'  change:    {change}')
             print(f'  data:      {str(data)}')
 
+
     def on_motor_clicked(self):
 
         print('Connecting to Motor Controller')
@@ -322,11 +341,14 @@ class MotorMonitor(QWidget):
 
 # === RABBITMQ LIVE DB PLOT ====================================================
 
-class RabbitPlot(pg.PlotWidget):
+class RabbitPlot(pg.GraphicsLayoutWidget):
+    """
+    inherits from GraphicsLayoutWidget to support multiple sub-plots.
+    """
     def __init__(self, endpoints, t_earlier=None, t_later=None, db_cursor=None):
         super().__init__()
         self.show()
-
+        
         self.n_days = 1
         self.n_deque = 10000 # should add a check if one exceeds the other
         self.cursor = db_cursor
@@ -336,34 +358,27 @@ class RabbitPlot(pg.PlotWidget):
         self.t_earlier = t_earlier
         self.t_later = t_later
 
+        print("Selected endpoints:", self.endpoints)
+
         # data for each endpoint goes into circular buffers (aka deques)
         self.deques = {}
         self.plots = {}
-
-        # set up plot colors (0.0: black, 1.0: white)
-        colors = np.arange(0.2, 1.0, len(self.endpoints))
-
-        # set up deques and plots
         for i, ept in enumerate(self.endpoints):
             self.deques[ept] = collections.deque([], maxlen=self.n_deque)
-            self.plots[ept] = self.plot()
-            # self.plots[ept] = self.plot(symbolBrush=(255,255,255), symbolPen='w')
-            self.plots[ept].setPen('g', width=3)
-
-        self.setLabel('left', 'Value', units="arb. units")
-        self.setLabel('bottom', 'Time', units="sec")
-
-        # can we handle this from the UI?
-        # self.p1.setLogMode(xMode=False, yMode=True)
+            self.plots[ept] = self.addPlot(i, 0, title=ept)
+            self.plots[ept].showGrid(True, True)
+            self.plots[ept].setLogMode(False, False)
 
         # run the initial DB query
         self.query_db()
-
+    
 
     def query_db(self):
         """
         query DB for each endpoint, reset/fill the deques, and plot values.
         """
+        pen_colors = ['g', 'r', 'c', 'b', 'm', 'y', 'w']
+        
         for i, ept in enumerate(self.endpoints):
             str_start = self.t_earlier.isoformat()
             str_end = self.t_later.isoformat()
@@ -389,25 +404,31 @@ class RabbitPlot(pg.PlotWidget):
             self.deques[ept + "_ts"] = collections.deque(xv, maxlen=self.n_deque)
 
             # show the plot in pyqtgraph
-            self.plots[ept].setData(y=yv, x = xv-self.t_offset)
+            self.plots[ept].plot(y=yv, x=xv-self.t_offset, 
+                                 pen=pg.mkPen(pg.intColor(i), width=5))
 
 
     def update_data(self, ept=None, xv=None, yv=None):
         """
-        every time we get a new value from rabbit, update the plot
-        TODO: need to avoid re-copying the whole array
-        https://stackoverflow.com/questions/37079864/reading-live-data-using-pyqtgraph-without-appending-the-data
+        every time we get a new value from rabbit, update the plot.
+        we have to convert to array because collections.deque doesn't have
+        a 'view' function
         """
         if ept in self.endpoints:
             ts = xv.utcnow().timestamp()
+            
+            # print(ept, ts, yv)
 
             self.deques[ept].append(yv)
             self.deques[ept+"_ts"].append(ts)
+            
+            i_ept = self.endpoints.index(ept)
 
-            # this array copy step is bad
-            self.plots[ept].setData(y=np.array(self.deques[ept]),
-                                    x=np.array(self.deques[ept+"_ts"]))
-
+            self.plots[ept].plot(y=np.array(self.deques[ept]),
+                                 x=np.array(self.deques[ept+"_ts"])-self.t_offset,
+                                 pen=pg.mkPen(pg.intColor(i_ept), width=5))
+            
+            
 
 class RabbitListener(QRunnable):
     """
@@ -417,6 +438,7 @@ class RabbitListener(QRunnable):
     def __init__(self):
         super().__init__()
         self.signals = RabbitSignal()
+
 
     def run(self):
         with open("config.json") as f:
@@ -460,11 +482,6 @@ class RabbitSignal(QObject):
     "if you want to define your own signals, they have to be class variables"
     """
     target = pyqtSignal(str, datetime, float)
-
-
-# ===
-
-
 
 
 if __name__=="__main__":
