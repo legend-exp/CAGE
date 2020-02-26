@@ -1,0 +1,23 @@
+{
+  "elog":"https://elog.legend-exp.org/UWScanner/",
+
+  "mconf":{
+    "source": {
+      "rpi_pin":13, "axis":"A", "motor_spd":5000, "constraint":-205,
+      "enc_slip":100
+    },
+    "linear": {
+      "rpi_pin":7, "axis":"B", "motor_spd":300000, "constraint":39.175,
+      "enc_slip":30
+    },
+    "rotary": {
+      "rpi_pin":11, "axis":"D", "motor_spd":300000, "constraint":-330,
+      "enc_slip":50
+    }
+  },
+
+  "campaign": {
+    "1":["air_tests"],
+    "2":["icpc_ditch"]
+  }
+}
