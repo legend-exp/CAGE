@@ -220,7 +220,10 @@ class DBMonitor(QWidget):
         """
         # print(args)
         self.rp.update_data(*args)
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5c0845e4073302f3cc6ac925d0d0298c5e623ca0
 
 
 class MotorMonitor(QWidget):
@@ -338,7 +341,6 @@ class MotorMonitor(QWidget):
         linear_limit_check()
 
 
-
 # === RABBITMQ LIVE DB PLOT ====================================================
 
 class RabbitPlot(pg.GraphicsLayoutWidget):
@@ -427,8 +429,12 @@ class RabbitPlot(pg.GraphicsLayoutWidget):
             self.plots[ept].plot(y=np.array(self.deques[ept]),
                                  x=np.array(self.deques[ept+"_ts"])-self.t_offset,
                                  pen=pg.mkPen(pg.intColor(i_ept), width=5))
+<<<<<<< HEAD
 
 
+=======
+            
+>>>>>>> 5c0845e4073302f3cc6ac925d0d0298c5e623ca0
 
 class RabbitListener(QRunnable):
     """
