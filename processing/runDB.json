@@ -2,9 +2,9 @@
   "elog":"https://elog.legend-exp.org/UWScanner/",
 
   "daq_prefix":"",
-  "raw_prefix":"raw_run",
-  "dsp_prefix":"dsp_run",
-  "suffix":".lh5",
+  "raw_prefix":"raw",
+  "dsp_prefix":"dsp",
+  "suffix":"lh5",
 
   "loc_dir":"$DATADIR/CAGE",
   "daq_dir":"$DATADIR/CAGE/Data",
