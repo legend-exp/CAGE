@@ -18,6 +18,7 @@
 
   "campaign": {
     "1":["air_tests"],
-    "2":["icpc_ditch"]
+    "2":["source_tests"],
+    "3":["icpc_ditch"]
   }
 }

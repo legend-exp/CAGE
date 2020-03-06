@@ -31,7 +31,7 @@ def main():
     rpins = {key['rpi_pin'] : name for name, key in mconf.items()}
 
     # TODO: change this when we want to do a new campaign
-    campaign_number = "1"
+    campaign_number = "2"
 
     # parse user args
     par = argparse.ArgumentParser(description=doc, formatter_class=rthf)
