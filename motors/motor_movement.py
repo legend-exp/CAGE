@@ -31,7 +31,7 @@ def main():
     rpins = {key['rpi_pin'] : name for name, key in mconf.items()}
 
     # TODO: change this when we want to do a new campaign
-    campaign_number = "1"
+    campaign_number = "2"
 
     # parse user args
     par = argparse.ArgumentParser(description=doc, formatter_class=rthf)
@@ -491,7 +491,7 @@ def init_history_df():
     init_columns = [
         'motor_name', 'move_completed', 'distance_steps', 'distance_real', 'move_type',
         'source_total', 'linear_total', 'rotary_total']
-    init_values = [['Bob_motor', False, 0, 0, 'angle', 0, 0, 0]]
+    init_values = [['Init_motor', False, 0, 0, 'angle', 0, 0, 0]]
 
 
     df = pd.DataFrame(init_values, columns=init_columns)
