@@ -190,13 +190,13 @@ class DBMonitor(QWidget):
             print(f'  parameter: {child_name}')
             print(f'  change:    {change}')
             print(f'  data:      {data}')
-            
+
             if child_name == "Run Query.Date (earlier)":
                 self.t_earlier = str(data)
-            
+
             if child_name == "Run Query.Date (later)":
                 self.t_later = str(data)
-            
+
             if "Endpoint Select" in path:
                 for i, ept in enumerate(self.endpt_list):
                     if path[-1] == ept:
@@ -212,15 +212,15 @@ class DBMonitor(QWidget):
                              self.cursor)
         self.layout.addWidget(self.rp, 0,1)
         self.show()
-        
-    
+
+
     def update_rp(self, *args):
         """
         called by the main thread's listener function
         """
         # print(args)
         self.rp.update_data(*args)
-        
+
 
 
 class MotorMonitor(QWidget):
@@ -348,7 +348,7 @@ class RabbitPlot(pg.GraphicsLayoutWidget):
     def __init__(self, endpoints, t_earlier=None, t_later=None, db_cursor=None):
         super().__init__()
         self.show()
-        
+
         self.n_days = 1
         self.n_deque = 10000 # should add a check if one exceeds the other
         self.cursor = db_cursor
@@ -371,14 +371,14 @@ class RabbitPlot(pg.GraphicsLayoutWidget):
 
         # run the initial DB query
         self.query_db()
-    
+
 
     def query_db(self):
         """
         query DB for each endpoint, reset/fill the deques, and plot values.
         """
         pen_colors = ['g', 'r', 'c', 'b', 'm', 'y', 'w']
-        
+
         for i, ept in enumerate(self.endpoints):
             str_start = self.t_earlier.isoformat()
             str_end = self.t_later.isoformat()
@@ -404,7 +404,7 @@ class RabbitPlot(pg.GraphicsLayoutWidget):
             self.deques[ept + "_ts"] = collections.deque(xv, maxlen=self.n_deque)
 
             # show the plot in pyqtgraph
-            self.plots[ept].plot(y=yv, x=xv-self.t_offset, 
+            self.plots[ept].plot(y=yv, x=xv-self.t_offset,
                                  pen=pg.mkPen(pg.intColor(i), width=5))
 
 
@@ -416,19 +416,19 @@ class RabbitPlot(pg.GraphicsLayoutWidget):
         """
         if ept in self.endpoints:
             ts = xv.utcnow().timestamp()
-            
+
             # print(ept, ts, yv)
 
             self.deques[ept].append(yv)
             self.deques[ept+"_ts"].append(ts)
-            
+
             i_ept = self.endpoints.index(ept)
 
             self.plots[ept].plot(y=np.array(self.deques[ept]),
                                  x=np.array(self.deques[ept+"_ts"])-self.t_offset,
                                  pen=pg.mkPen(pg.intColor(i_ept), width=5))
-            
-            
+
+
 
 class RabbitListener(QRunnable):
     """
