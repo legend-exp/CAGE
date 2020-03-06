@@ -8,7 +8,7 @@ from pprint import pprint
 from pygama import DataSet
 import pygama.utils as pu
 from pygama.dsp.ProcessingChain import ProcessingChain
-from pygama.dsp.transforms import *
+from pygama.dsp.processors import *
 from pygama.dsp.units import *
 from pygama.io import io_base as io
 
@@ -136,7 +136,7 @@ def raw_to_dsp(ds, overwrite=False, nevt=None, test=False, verbose=2, block=8,
         proc.add_processor(np.divide, "A_10", "trapE", "AoE")
 
         # Set up the LH5 output
-        lh5_out = io.LH5Table(size=proc.__buffer_len__)
+        lh5_out = io.LH5Table(size=proc._buffer_len)
         lh5_out.add_field("trapE", io.LH5Array(proc.get_output_buffer("trapE"),
                                                attrs={"units":"ADC"}))
         lh5_out.add_field("bl", io.LH5Array(proc.get_output_buffer("bl"),
