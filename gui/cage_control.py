@@ -216,7 +216,7 @@ class DBMonitor(QWidget):
         called by the main thread's listener function
         """
         # print(args)
-        self.rp.update_data(*args)
+
 
 
 class MotorMonitor(QWidget):
@@ -422,7 +422,6 @@ class RabbitPlot(pg.GraphicsLayoutWidget):
             self.plots[ept].plot(y=np.array(self.deques[ept]),
                                  x=np.array(self.deques[ept+"_ts"])-self.t_offset,
                                  pen=pg.mkPen(pg.intColor(i_ept), width=5))
-
 
 class RabbitListener(QRunnable):
     """
