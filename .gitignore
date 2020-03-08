@@ -2,7 +2,7 @@
 config.json
 controls/project8_authentications.json
 *.c
-.DS_Store
+*.DS_Store
 *.npz
 *.pdf
 !motors/manuals/DMC_manual.pdf
@@ -15,7 +15,7 @@ controls/project8_authentications.json
 *.jpg
 *.jpeg
 *.hdf5
-
+*.csv
 # -------------------- github-generated stuff -------------------
 # Byte-compiled / optimized / DLL files
 __pycache__/
