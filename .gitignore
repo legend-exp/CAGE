@@ -12,6 +12,9 @@ controls/project8_authentications.json
 *.h5
 *.lh5
 *.png
+*.jpg
+*.jpeg
+*.hdf5
 
 # -------------------- github-generated stuff -------------------
 # Byte-compiled / optimized / DLL files

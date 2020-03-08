@@ -8,16 +8,19 @@
 #/physics_engine/tailor/MuonNuclear on
 
 ##Geometry File to run simulation with
-/g4simple/setDetectorGDML ../geometries/gscanner_241Am.gdml
+/g4simple/setDetectorGDML ./geometries/noDet_gscanner_241Am.gdml
 
 ##Specify output file
 /g4simple/setOutputFormat hdf5
-/analysis/setFileName ./raw_out/test_e10000.hdf5
+/analysis/setFileName ./alpha/raw_out/noDet_Cu_22mm_collimated_241Am_10000000.hdf5
 
 ##Set Volume ID's for Geometry Volumes (volume.in.geometry.file_PV volID)
-/g4simple/setVolID OPPI1_Detector_PV 1
-#/g4simple/setVolID Source_Disk_PV 2
-#/g4simple/setVolID vacuum_volume_PV 3
+
+/g4simple/setVolID Cold_Plate_PV 1
+#/g4simple/setVolID OPPI1_Detector_PV 1
+#/g4simple/setVolID Am_sourceDeposition_PV 2
+##/g4simple/setVolID Am_Collimator_sebastian_PV 3
+##/g4simple/setVolID vacuum_volume_PV 4
 
 ##to track all steps, including steps for which Edep=0
 #/g4simple/recordAllSteps
@@ -33,11 +36,15 @@
 /gps/ion 95 241 0 0
 /grdm/nucleusLimits 241 241 95 95
 /gps/energy 0 MeV
+
+/gps/ang/type iso
+/gps/pos/centre 0 0 51.0005 mm #detector height/2+ 22 mm above detector + collimator bottom + collimator middle + source deposition height/2
 /gps/pos/type Volume
-/gps/pos/shape Sphere
-/gps/pos/radius 5.0 mm
-/gps/pos/centre 0 0 45.4 mm #detector height/2+ 16 mm above detector + collimator bottom + collimator middle + source disk height/2
-/gps/pos/confine Source_Disk_PV
+/gps/pos/shape Para
+/gps/pos/halfx 3.5 mm
+/gps/pos/halfy 3.5 mm
+/gps/pos/halfz 0.0005 mm
+#/gps/pos/confine Am_sourceDeposition_PV
 
 ##set number of runs
-/run/beamOn 10000
+/run/beamOn 10000000

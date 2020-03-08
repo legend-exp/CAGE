@@ -3,7 +3,9 @@
 
 ##########################################
 
-#Source disk defined by radius 'source_radius', and thickness 'source_thickness'. Disk is made of plastic, with the actual source is confined to it in run file. If one wishes to place the source behind a collimator with certain thickness, position, and rotation then see 'Source_Placement' file to determine necessary coordinates for source disk.
+#Source disk defined by radius 'source_radius', and thickness 'source_thickness'. Disk is made of plastic, with the actual
+#source is confined to it in run file. If one wishes to place the source behind a collimator with certain thickness, position, and rotation then see
+#'Source_Placement' file to determine necessary coordinates for source disk.
 
 ##########################################
 
