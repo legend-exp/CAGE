@@ -1,0 +1,37 @@
+name: mj60pi_service
+module: Spimescape
+broker: 10.66.193.71
+endpoints:
+  - name: mj60pi
+    module: RPiGPIOProvider
+    pinmap: 11
+    endpoints:
+      - name: mj60_pressure
+        module: ADS1115Spime
+        measurement: single
+        read_option: 1
+        gain: 1 # +/- 4.096 VDC
+        gain_conversion: 0.000125 # to VDC in value_raw
+        calibration: '10**(5.3298*{}-11.6629)'
+        log_interval: 30
+      - name: mj60_baseline
+        module: ADS1115Spime
+        measurement: single
+        read_option: 0
+        gain: 1
+        gain_conversion: 0.000125
+        calibration: '6*{}-11.66'
+        log_interval: 30
+      - name: mj60_temp
+        module: Max31865Spime
+        module_path: max_spime.py
+        calibration: '1*{}'
+        cspin: 6
+        nwires: 4
+        log_interval: 30
+setup_calls:
+  - target: mj60pi
+    method: on_set
+    args: "on"
+    kwargs:
+        routing_key_specifier: schedule_status

@@ -1,0 +1,22 @@
+name: heaterpi_service
+module: Spimescape
+broker: 10.66.193.71
+endpoints:
+  - name: heaterpi
+    module: RPiGPIOProvider
+    pinmap: 11
+    endpoints:
+      - name: cage_heater_temp
+        module: Max31865Spime
+        module_path: max_spime.py
+        calibration: '1*{}'
+        nwires: 2
+        ref_resistor: 4300.
+        cspin: 5
+        log_interval: 30 
+setup_calls:
+  - target: heaterpi
+    method: on_set
+    args: "on"
+    kwargs:
+        routing_key_specifier: schedule_status

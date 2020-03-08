@@ -1,0 +1,4 @@
+config.json
+plots/*
+*.npz
+*.png

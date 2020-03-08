@@ -1,0 +1,24 @@
+name: cageln_service
+module: Spimescape
+broker: 10.66.193.71
+endpoints:
+  - name: cageln
+    module: SerialProvider
+    module_path: serial_provider.py
+    port: '/dev/serial0'
+    command_terminator: "\r\n"
+    response_terminator: "\r\n"
+    endpoints:
+      - name: cage_ln_level
+        module: LNGetSpime
+        module_path: serial_provider.py
+        get_str: 'N'
+        calibration: '1*{}'
+        log_interval: 30
+        max_interval: 1200
+setup_calls:
+  - target: cageln
+    method: on_set
+    args: "on"
+    kwargs:
+        routing_key_specifier: schedule_status
