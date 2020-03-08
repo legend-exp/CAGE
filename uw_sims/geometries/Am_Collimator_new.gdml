@@ -70,7 +70,7 @@
       <first ref="body_bottom" />
       <second ref="body_middle" />
       <!-- <position x="0" y="0" z="body_bottom_height" /> -->
-      <position x="0" y="0" z="(body_bottom_height/2)+(body_middle_height/2)-0.000001" /> <!-- the 0.000001 offset is a bandaid for a bug that is making a gap between the top of the of the collimator portion and the attenuator body -->
+      <position x="0" y="0" z="(body_bottom_height/2)+(body_middle_height/2)-0.000001" /> <!-- the 0.000001 offset is a bandaid for a bug (or feature) that is making a gap between the top of the of the collimator portion and the attenuator body to prevent what it thinks are accidental overlapping geometries -->
       <rotationref ref="identity"/>
     </union>
 

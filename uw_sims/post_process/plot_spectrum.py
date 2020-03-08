@@ -3,6 +3,7 @@ import scipy
 import matplotlib
 from matplotlib.colors import LogNorm
 from scipy.stats import norm
+from scipy.optimize import curve_fit
 import matplotlib.pyplot as plt
 import h5py
 import pandas as pd
@@ -43,8 +44,8 @@ def main():
 	# filename = '../alpha/processed_out/processed_topHat_Test_Pb_241Am_1000000.hdf5'
 
 
-	# filename = '../alpha/raw_out/topHat_Test2_Pb_241Am_1000000.hdf5'
-	filename = '../alpha/processed_out/processed_topHat_Test2_Pb_241Am_1000000.hdf5'
+	# filename = '../alpha/raw_out/ICPC_Pb_241Am_10000000.hdf5'
+	filename = '../alpha/processed_out/processed_ICPC_Pb_241Am_10000000.hdf5'
 
 
 
@@ -53,8 +54,8 @@ def main():
 	# plotHist(filename)
 	# post_process(filename)
 	# plotSpot(filename)
-	ZplotSpot(filename)
-	# plot1DSpot(filename)
+	# ZplotSpot(filename)
+	plot1DSpot(filename)
 	# testFit(filename)
 
 
@@ -74,8 +75,13 @@ def main():
 def post_process(filename):
 	df = pandarize(filename)
 	# df.to_hdf('../alpha/processed_out/processed_30mm_notcollimated_241Am_700000.hdf5', key='procdf', mode='w')
-	df.to_hdf('../alpha/processed_out/processed_topHat_Test2_Pb_241Am_1000000.hdf5', key='procdf', mode='w')
+	df.to_hdf('../alpha/processed_out/processed_ICPC_Pb_241Am_10000000.hdf5', key='procdf', mode='w')
 
+
+def gauss_fit_func(x, A, mu, sigma, C):
+	# return (A * (np.exp(-1.0 * ((x - mu)**2) / (2 * sigma**2))+C) +D)
+	return (A * (np.exp(-1.0 * ((x - mu)**2) / (2 * sigma**2))+C))
+	# return (A * (np.exp(-1.0 * ((x - mu)**2) / (2 * sigma**2))))
 
 def plotHist(filename):
 	# df = pandarize(filename)
@@ -160,7 +166,7 @@ def plotSpot(filename):
 	df = pd.read_hdf(filename, keys='procdf')
 	energy = np.array(df['energy']*1000)
 	# alpha_df = df.loc[df.energy > 5]
-	# gamma_df = df.loc[(df.energy > .04) & (df.energy > 0.08)]
+	# gamma_df = df.loc[(df.energy > .04) & (df.energy < 0.08)]
 
 	x = np.array(df['x'])
 	y = np.array(df['y'])
@@ -175,7 +181,10 @@ def plotSpot(filename):
 
 	# energy = np.array(alpha_df['energy']*1000)
 	# energy = np.array(gamma_df['energy']*1000)
-	energy = np.array(df['energy']*1000)
+	# energy = np.array(df['energy']*1000)
+
+	print(len(energy))
+	exit()
 
 	fig, ax = plt.subplots()
 	# spot_hist = ax.hist2d(x, y, range = [[-32., 32.],[-32., 32.]], weights=energy, norm=LogNorm(), bins=6000) #, range = [[-20., 20.],[-20., 20.]]
@@ -184,8 +193,8 @@ def plotSpot(filename):
 	# plt.title('Collimated, $^{241}$Am 7*10$^5$ Primaries, 16 mm above detector', fontsize=18)
 
 
-	# plt.scatter(x, y, c=energy, s=1, cmap='plasma', norm=LogNorm(1,6000))
-	plt.scatter(x, y, c=energy, s=1, cmap='plasma')
+	plt.scatter(x, y, c=energy, s=1, cmap='plasma', norm=LogNorm(1,6000))
+	# plt.scatter(x, y, c=energy, s=1, cmap='plasma')
 	cb = plt.colorbar()
 	cb.set_label("Energy (keV)", ha = 'right', va='center', rotation=270, fontsize=14)
 	cb.ax.tick_params(labelsize=12)
@@ -196,53 +205,98 @@ def plotSpot(filename):
 	plt.setp(ax.get_xticklabels(), fontsize=14)
 	plt.setp(ax.get_yticklabels(), fontsize=14)
 	# plt.title('Spot Size, $^{241}$Am 10$^7$ Primaries, Coll. 22 mm above detector, energy 40-80 keV', fontsize=16)
-	plt.title('Spot Size, $^{241}$Am 10$^6$ Primaries', fontsize=16)
+	plt.title('Spot Size, $^{241}$Am 10$^7$ Primaries, all energies', fontsize=16)
 	plt.show()
 
 def plot1DSpot(filename):
+
+	# Read datafile and create dataframes
 	# df = pandarize(filename)
 	df = pd.read_hdf(filename, keys='procdf')
 	energy = np.array(df['energy'])
 	alpha_df = df.loc[df.energy > 5]
-	gamma_df = df.loc[(df.energy > .04) & (df.energy > 0.06)]
+	gamma_df = df.loc[(df.energy > .04) & (df.energy < 0.08)]
+
+	# Create numpy arrays from dataframe
 
 	# x = np.array(df['x'])
 	# y = np.array(df['y'])
 	# z = np.array(df['z'])
-	x = np.array(alpha_df['x'])
-	y = np.array(alpha_df['y'])
-	z = np.array(alpha_df['z'])
+	# x = np.array(alpha_df['x'])
+	# y = np.array(alpha_df['y'])
+	# z = np.array(alpha_df['z'])
+	x = np.array(gamma_df['x'])
+	y = np.array(gamma_df['y'])
+	z = np.array(gamma_df['z'])
 
-	# energy = np.array(alpha_df['energy']*1000)
-	energy = np.array(gamma_df['energy']*1000)
+	# create new dataframe with cut on the x positions to fit ony between -2.5 and 2.5 mm
+	# xfit_df = df.loc[(df.x > -2.5) & (df.x < 2.5)]
+	# xfit_df = alpha_df.loc[(alpha_df.x > -2.5) & (alpha_df.x < 2.5)]
+	xfit_df = gamma_df.loc[(gamma_df.x > -2.5) & (gamma_df.x < 2.5)]
+	xfit = np.array(xfit_df['x'])
+	# max = np.amax(xfit)
+	# min = np.amin(xfit)
+	# print('max: ', max, 'min: ', min)
+	# exit()
 
-	(mu, sigma) = norm.fit(x)
+	# array_mean = np.mean(xfit)
+	array_stdv = np.std(xfit)
+	# array_med = np.median(xfit)
+	# print('mean = ', array_mean, ', median = ', array_med, ', stdev = ', array_stdv, ', fwhm = ' , 2.355*array_stdv)
+	# exit()
+	# print(xfit)
+
+	fig, ax = plt.subplots(figsize=(8,6))
+	# ax.figure(figsize=(10,10))
+
+	# Bins for histogram
+	# bins = np.linspace(-36, 36, 1440)
+	bins = np.linspace(-10,10, 80)
+	# bins = np.linspace((-5.)*array_stdv,(5.)*array_stdv, 100)
+
+	print('bins =  ', len(bins))
+
+	# Create histogram which will be fit to, without drawing the histogram
+	xvals, xbins = np.histogram(xfit, bins=bins)
+	fitbins = xbins[:-1] + np.diff(xbins) / 2 #xbins gives bin edges for the histogram. Want the fit to plot based on the center of the bins. This centers it.
+	# pltbins = np.linspace(-5.*array_stdv,5*array_stdv,1000) #plot fit with finer x resolution independent of the binning of the histogram
+	pltbins = np.linspace(-2.5,2.5,1000) #plot fit with finer x resolution independent of the binning of the histogram
+	# print(xbins, xvals)
+	# print('bins = ', len(xbins))
+	# print('fitbins: ', len(fitbins))
+	# exit()
+
+	#Fit the histogram, get fit parameters and covariances
+	popt, pcov = curve_fit(gauss_fit_func, xdata=fitbins, ydata=xvals, method = 'lm')
+	perr = np.sqrt(np.abs(np.diag(pcov))) # Variances of each fit parameter
+	print(perr)
+	# print(pcov)
+	# print('mean = ', popt[1], 'stdev = ', popt[2], 'C = ', popt[3])
+	# print('mean = ', popt[1], 'stdev = ', popt[2])
+	print('popt: ', popt)
+	sigma = np.abs(popt[2])
+	print('sigma ', sigma)
+	sigma_uncertainty = np.sqrt(perr[2])
+	sigma_percentUncertainty = (sigma_uncertainty/sigma)*100
+	print(sigma_percentUncertainty)
 	fwhm = sigma*2.355
+	array_fwhm = array_stdv*2.355
+	print('FWHM = ', fwhm,  '; array FWHM = ', array_fwhm)
 
-	fig, ax = plt.subplots()
-	plt.hist(x, bins=100)
-	y = scipy.stats.norm.pdf(100, mu, sigma)
-	l = plt.plot(100, y, 'r--', linewidth=2)
-	# spot_hist = ax.hist2d(x, y, range = [[-32., 32.],[-32., 32.]], weights=energy, norm=LogNorm(), bins=6000) #, range = [[-20., 20.],[-20., 20.]]
-	# spot_hist = ax.hist2d(x, y, range = [[-32., 32.],[-32., 32.]], norm=LogNorm(), bins=6000) #, range = [[-20., 20.],[-20., 20.]]
-	# plt.colorbar(spot_hist[3], ax=ax)
-	# plt.title('Collimated, $^{241}$Am 7*10$^5$ Primaries, 16 mm above detector', fontsize=18)
+	# Draw full histogram (including points not used in the fit), along with the fit result
+	ax.hist(x, bins = bins, label = 'Data: %.f entries \n 0.25 mm bins' % len(x))
+	ax.plot(pltbins, gauss_fit_func(pltbins, *popt), 'r-', linewidth = 2, label='Fit: FWHM = %.2f mm \n Entries for fit: %.f' % (fwhm, len(xfit)))
 
-
-	# plt.scatter(x, y, c=energy, s=1, cmap='plasma', norm=LogNorm(1,6000))
-	# plt.scatter(x, y, c=energy, s=1, cmap='plasma')
-	# cb = plt.colorbar()
-	# cb.set_label("Energy (keV)", ha = 'right', va='center', rotation=270, fontsize=14)
-	# cb.ax.tick_params(labelsize=12)
-	plt.xlim(-31,31)
+	plt.xlim(-10,10)
 	# plt.ylim(-31,31)
+
+	legend = ax.legend(loc='upper right', shadow = False, fontsize='12')
+
 	ax.set_xlabel('x position (mm)', fontsize=14)
-	# ax.set_ylabel('y position (mm)', fontsize=14)
 	plt.setp(ax.get_xticklabels(), fontsize=12)
 	plt.setp(ax.get_yticklabels(), fontsize=12)
-	plt.title('Spot Size, $^{241}$Am 10$^7$ Primaries, Coll. 22 mm above detector, energy $>$ 5 MeV. FWHM: %.2f mm' % fwhm, fontsize=14)
-	print(mu, ', ', sigma)
-	print('FWHM: ', sigma*2.355)
+	plt.title('Spot Size, $^{241}$Am 10$^7$ Primaries, 40 keV $<$ Energy $<$ 80 keV. FWHM: %.2f mm' % fwhm, fontsize=14)
+
 	plt.show()
 
 

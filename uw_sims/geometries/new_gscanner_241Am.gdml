@@ -83,7 +83,7 @@ Distance from the top of the ICPC blank to the top of the nylon screw of the LMF
    <physvol>
      <file name="./geometries/sourceRotationVolume.gdml"/>
      <positionref ref="center"/>
-     <rotationref ref="identity"/>
+     <rotationref ref="source25"/>
    </physvol>
 
    <physvol>

@@ -12,8 +12,8 @@
 
 ##Specify output file
 /g4simple/setOutputFormat hdf5
-#/analysis/setFileName ./alpha/raw_out/ICPC_Pb_241Am_10000000.hdf5
-/analysis/setFileName ./alpha/raw_out/test.hdf5
+#/analysis/setFileName ./alpha/raw_out/test.hdf5
+/analysis/setFileName ./alpha/raw_out/ICPC_Pb_241Am_10000000.hdf5
 
 ##Set Volume ID's for Geometry Volumes (volume.in.geometry.file_PV volID)
 #/g4simple/setVolID Top_Hat_PV 1
@@ -38,7 +38,7 @@
 /gps/energy 0 MeV
 
 /gps/ang/type iso
-/gps/pos/centre 0 0 3.5 mm
+/gps/pos/centre 0 0 3.5 mm #need to change the x, y, z positions of the source when the collimator is rotated
 /gps/pos/type Volume
 /gps/pos/shape Para
 /gps/pos/halfx 3.5 mm
