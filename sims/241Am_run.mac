@@ -8,16 +8,18 @@
 #/physics_engine/tailor/MuonNuclear on
 
 ##Geometry File to run simulation with
-/g4simple/setDetectorGDML ../geometries/gscanner_241Am.gdml
+/g4simple/setDetectorGDML ./geometries/new_gscanner_241Am.gdml
 
 ##Specify output file
 /g4simple/setOutputFormat hdf5
-/analysis/setFileName ./raw_out/test_e10000.hdf5
+/analysis/setFileName ./alpha/raw_out/sourceRot33_ICPC_Pb_241Am_10000000.hdf5
 
 ##Set Volume ID's for Geometry Volumes (volume.in.geometry.file_PV volID)
-/g4simple/setVolID OPPI1_Detector_PV 1
-#/g4simple/setVolID Source_Disk_PV 2
-#/g4simple/setVolID vacuum_volume_PV 3
+#/g4simple/setVolID Top_Hat_PV 1
+/g4simple/setVolID PPM_Detector_PV 1
+/g4simple/setVolID source_confinement_PV 2
+#/g4simple/setVolID Am_Collimator_sebastian_PV 3
+#/g4simple/setVolID vacuum_volume_PV 4
 
 ##to track all steps, including steps for which Edep=0
 #/g4simple/recordAllSteps
@@ -29,15 +31,22 @@
 /g4simple/listPhysVols
 
 ##Set Source Specifications; particle type, ion specifications (proton number, nucleon number, ionic charge, excitation energy in keV),  geometrical specifications (3 lines, comment these out to make point source), position of source, what volume in geometry file to confine the source to (will take overlap of source geometry and volume in geometry file to make new source geometry, comment this out to not confine source to any volume in geometry file).
+
 /gps/particle ion
 /gps/ion 95 241 0 0
 /grdm/nucleusLimits 241 241 95 95
 /gps/energy 0 MeV
+
+
+/gps/ang/type iso
+/gps/pos/centre 0 -1.906 2.935 mm # (0, 3.5*(cos(theta_rot + 90 deg)), 3.5*(sin(theta_rot + 90 deg)) )
 /gps/pos/type Volume
 /gps/pos/shape Sphere
-/gps/pos/radius 5.0 mm
-/gps/pos/centre 0 0 45.4 mm #detector height/2+ 16 mm above detector + collimator bottom + collimator middle + source disk height/2
-/gps/pos/confine Source_Disk_PV
+/gps/pos/radius 3.5 mm
+/gps/pos/confine source_confinement_PV
+
+
+
 
 ##set number of runs
-/run/beamOn 10000
+/run/beamOn 10000000

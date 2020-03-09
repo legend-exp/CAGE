@@ -45,7 +45,9 @@ def main():
 
 
 	# filename = '../alpha/raw_out/ICPC_Pb_241Am_10000000.hdf5'
-	filename = '../alpha/processed_out/processed_ICPC_Pb_241Am_10000000.hdf5'
+	# filename = '../alpha/processed_out/processed_ICPC_Pb_241Am_10000000.hdf5'
+	# filename = '../alpha/raw_out/test.hdf5'
+	filename = '../alpha/processed_out/processed_test.hdf5'
 
 
 
@@ -53,9 +55,9 @@ def main():
 
 	# plotHist(filename)
 	# post_process(filename)
-	# plotSpot(filename)
+	plotSpot(filename)
 	# ZplotSpot(filename)
-	plot1DSpot(filename)
+	# plot1DSpot(filename)
 	# testFit(filename)
 
 
@@ -75,7 +77,7 @@ def main():
 def post_process(filename):
 	df = pandarize(filename)
 	# df.to_hdf('../alpha/processed_out/processed_30mm_notcollimated_241Am_700000.hdf5', key='procdf', mode='w')
-	df.to_hdf('../alpha/processed_out/processed_ICPC_Pb_241Am_10000000.hdf5', key='procdf', mode='w')
+	df.to_hdf('../alpha/processed_out/processed_test.hdf5', key='procdf', mode='w')
 
 
 def gauss_fit_func(x, A, mu, sigma, C):
