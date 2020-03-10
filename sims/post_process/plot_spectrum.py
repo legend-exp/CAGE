@@ -46,16 +46,19 @@ def main():
 
 	# filename = '../alpha/raw_out/ICPC_Pb_241Am_10000000.hdf5'
 	# filename = '../alpha/processed_out/processed_ICPC_Pb_241Am_10000000.hdf5'
-	# filename = '../alpha/raw_out/test.hdf5'
-	filename = '../alpha/processed_out/processed_test.hdf5'
+	filename = '../alpha/raw_out/test.hdf5'
+	# filename = '../alpha/processed_out/processed_test.hdf5'
+
+	# filename = '../alpha/raw_out/sourceRot33_ICPC_Pb_241Am_10000000.hdf5'
+	# filename = '../alpha/processed_out/processed_sourceRot33_ICPC_Pb_241Am_10000000.hdf5'
 
 
 
 	#filename = '../alpha/raw_out/test_sebColl_e100000.hdf5'
 
 	# plotHist(filename)
-	# post_process(filename)
-	plotSpot(filename)
+	post_process(filename)
+	# plotSpot(filename)
 	# ZplotSpot(filename)
 	# plot1DSpot(filename)
 	# testFit(filename)

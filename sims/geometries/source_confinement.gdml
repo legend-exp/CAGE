@@ -3,8 +3,7 @@
 
 ##########################################
 
-# This is the actual source geometry of the 241Am source from Eckert-Ziegler
-# This is the stainless steel Disk on which the 241Am is deposited.
+# This is a vacuum volume defining the region where the 241Am will later be confined to in the run macro. Based on the actual source below
 # see page 2 of https://www.ezag.com/fileadmin/ezag/user-uploads/isotopes/isotopes/Isotrak/isotrak-pdf/Product_literature/EZN/04_section04_alpha_spectrometry_sources.pdf
 
 ##########################################

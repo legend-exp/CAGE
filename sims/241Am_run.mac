@@ -12,7 +12,8 @@
 
 ##Specify output file
 /g4simple/setOutputFormat hdf5
-/analysis/setFileName ./alpha/raw_out/sourceRot33_ICPC_Pb_241Am_10000000.hdf5
+#/analysis/setFileName ./alpha/raw_out/sourceRot33_ICPC_Pb_241Am_10000000.hdf5
+/analysis/setFileName ./alpha/raw_out/test.hdf5
 
 ##Set Volume ID's for Geometry Volumes (volume.in.geometry.file_PV volID)
 #/g4simple/setVolID Top_Hat_PV 1
@@ -49,4 +50,4 @@
 
 
 ##set number of runs
-/run/beamOn 10000000
+/run/beamOn 10
