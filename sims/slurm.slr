@@ -1,0 +1,2 @@
+#!/bin/bash
+shifter /bin/bash slurm_job.sh ${@}
