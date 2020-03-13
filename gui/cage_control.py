@@ -65,7 +65,6 @@ def main():
 class CAGEMonitor(QMainWindow):
     """
     we use a tabbed main window, to organize widgets for each subsystem.
-
     TODO: add ability to drag tabs to separate windows, and also reattach:
     https://stackoverflow.com/questions/48901854/is-it-possible-to-drag-a-qtabwidget-and-open-a-new-window-containing-whats-in-t
     """
@@ -96,9 +95,7 @@ class DBMonitor(QWidget):
     """
     DBMonitor is a grid of QWidgets, displayed in a tab of CAGEMonitor.
     Available data streams are "endpoints": mj60_baseline, cage_pressure, etc.
-
     TODO: add moveable cross hairs, check the crosshair.py example
-
     TODO: multiple endpoint view.
     since endpoints have different units and y-ranges, let's make it s/t each
     box that's checked in `Endpoint Select' gets its OWN plot, and the
@@ -219,11 +216,7 @@ class DBMonitor(QWidget):
         called by the main thread's listener function
         """
         # print(args)
-        self.rp.update_data(*args)
-<<<<<<< HEAD
 
-=======
->>>>>>> 5c0845e4073302f3cc6ac925d0d0298c5e623ca0
 
 
 class MotorMonitor(QWidget):
@@ -429,12 +422,6 @@ class RabbitPlot(pg.GraphicsLayoutWidget):
             self.plots[ept].plot(y=np.array(self.deques[ept]),
                                  x=np.array(self.deques[ept+"_ts"])-self.t_offset,
                                  pen=pg.mkPen(pg.intColor(i_ept), width=5))
-<<<<<<< HEAD
-
-
-=======
-            
->>>>>>> 5c0845e4073302f3cc6ac925d0d0298c5e623ca0
 
 class RabbitListener(QRunnable):
     """

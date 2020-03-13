@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<gdml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://service-spi.web.cern.ch/service-spi/app/releases/GDML/schema/gdml.xsd">
+
+##########################################
+
+#spherical lid defined by an inner radius 'collimator_innerradius', and an outer radius 'collimator_radius'.
+
+##########################################
+
+ <define>
+
+  <constant name="HALFPI" value="pi/2."/>
+  <constant name="PI" value="1.*pi"/>
+  <constant name="TWOPI" value="2.*pi"/>
+
+  <position name="center" x="0" y="0" z="0"/>
+  <rotation name="identity" x="0" y="0" z="0"/>
+
+  <quantity name="lid_collimator_innerradius" type="length" value="4" unit="mm"/>
+  <quantity name="lid_collimator_radius" type="length" value="12.5" unit="mm"/>
+  <quantity name="bottom_collimator_innerradius" type="length" value="0.5" unit="mm"/>
+  <quantity name="bottom_collimator_radius" type="length" value="12.5" unit="mm"/>
+  <quantity name="bottom_collimator_height" type="length" value="6" unit="mm"/>
+
+ </define>
+
+##########################################
+
+ <materials>
+
+
+ </materials>
+
+##########################################
+
+ <solids>
+
+    <sphere name="lid_collimator" rmin="lid_collimator_innerradius" rmax="lid_collimator_radius"  starttheta="0" deltatheta="HALFPI" deltaphi="TWOPI" aunit="rad"/>
+
+    <cone name="bottom_collimator" rmin1="bottom_collimator_innerradius" rmax1="bottom_collimator_radius" rmin2="bottom_collimator_innerradius" rmax2="bottom_collimator_radius" z="bottom_collimator_height" startphi="0" deltaphi="TWOPI" aunit="rad" />
+
+    <union name="am_collimator">
+      <first ref="lid_collimator" />
+      <second ref="bottom_collimator" />
+      <position x="0" y="0" z="-bottom_collimator_height/2" />
+      <rotationref ref="identity"/>
+    </union>
+
+ </solids>
+
+##########################################
+
+ <structure>
+
+ <volume name="Am_Collimator">
+   <materialref ref="G4_W"/>
+   <solidref ref="am_collimator"/>
+  </volume>
+
+ </structure>
+
+##########################################
+
+ <setup name="Default" version="1.0">
+  <world ref="Am_Collimator"/>
+ </setup>
+</gdml>

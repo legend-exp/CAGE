@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<gdml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://service-spi.web.cern.ch/service-spi/app/releases/GDML/schema/gdml.xsd">
+
+##########################################
+
+# This is the actual source disk geometry of the 241Am source from Eckert-Ziegler. Goes along with ss_sourceDisk_ezag.gdml
+# This is a vacuum volume that the activity of the 241Am will be confined to in run macro
+# Made the deposition 1 um thick, though unsure how thick it is in reality
+# see page 2 of https://www.ezag.com/fileadmin/ezag/user-uploads/isotopes/isotopes/Isotrak/isotrak-pdf/Product_literature/EZN/04_section04_alpha_spectrometry_sources.pdf
+
+##########################################
+
+ <define>
+
+  <constant name="HALFPI" value="pi/2."/>
+  <constant name="PI" value="1.*pi"/>
+  <constant name="TWOPI" value="2.*pi"/>
+
+  <quantity name="source_radius" type="length" value="7./2" unit="mm"/>
+  <quantity name="source_thickness" type="length" value="0.001" unit="mm"/>
+
+ </define>
+
+##########################################
+
+ <solids>
+
+  <cone name="source_cylinder" rmin1="0" rmax1="source_radius" rmin2="0" rmax2="source_radius" z="source_thickness" startphi="0" deltaphi="TWOPI" aunit="rad"/>
+
+ </solids>
+
+##########################################
+
+ <structure>
+
+ <volume name="Am_sourceDeposition">
+   <materialref ref="G4_Galactic"/>
+   <solidref ref="source_cylinder"/>
+  </volume>
+
+ </structure>
+
+##########################################
+
+ <setup name="Default" version="1.0">
+  <world ref="Am_sourceDeposition"/>
+ </setup>
+</gdml>

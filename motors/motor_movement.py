@@ -494,9 +494,14 @@ def init_history_df():
 
     init_columns = [
         'motor_name', 'move_completed', 'distance_steps', 'distance_real', 'move_type',
+<<<<<<< HEAD
         'source_total', 'linear_total', 'rotary_total', 'timestamp']
     ts = pd.Timestamp(datetime.utcnow())
     init_values = [['Bob_motor', False, 0, 0, 'angle', 0, 0, 0, ts]]
+=======
+        'source_total', 'linear_total', 'rotary_total']
+    init_values = [['Init_motor', False, 0, 0, 'angle', 0, 0, 0]]
+>>>>>>> 03b1b0ad73f3dae7728fb1a18e3ef101c8b2d8c9
 
 
     df = pd.DataFrame(init_values, columns=init_columns)

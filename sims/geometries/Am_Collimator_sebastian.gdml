@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<gdml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://service-spi.web.cern.ch/service-spi/app/releases/GDML/schema/gdml.xsd">
+
+##########################################
+
+# Septeber 30, 2019
+# Gulden Othman
+# the best estimate I have of the lead collimator originally made by Sebastian Alvis
+
+##########################################
+
+ <define>
+
+  <constant name="HALFPI" value="pi/2."/>
+  <constant name="PI" value="1.*pi"/>
+  <constant name="TWOPI" value="2.*pi"/>
+
+  <position name="center" x="0" y="0" z="0"/>
+  <rotation name="identity" x="0" y="0" z="0"/>
+
+  <quantity name="body_top_innerradius" type="length" value="26./2" unit="mm"/>
+  <quantity name="body_top_radius" type="length" value="30./2" unit="mm"/>
+  <quantity name="body_top_height" type="length" value="4.5" unit="mm"/>
+
+  <quantity name="body_sourceOffset_innerradius" type="length" value="9.0/2" unit="mm"/>
+  <quantity name="body_sourceOffset_radius" type="length" value="30./2" unit="mm"/>
+  <quantity name="body_sourceOffset_height" type="length" value="1.0" unit="mm"/>
+
+  <quantity name="body_middle_innerradius" type="length" value="1./2" unit="mm"/>
+  <quantity name="body_middle_radius" type="length" value="30./2" unit="mm"/>
+  <quantity name="body_middle_height" type="length" value="4." unit="mm"/>
+
+  <quantity name="body_bottom_innerradius" type="length" value="1./2" unit="mm"/>
+  <quantity name="body_bottom_radius" type="length" value="13./2" unit="mm"/>
+  <quantity name="body_bottom_height" type="length" value="1.5" unit="mm"/>
+
+  <quantity name="lid_top_radius" type="length" value="30./2" unit="mm"/>
+  <quantity name="lid_top_height" type="length" value="2." unit="mm"/>
+  <quantity name="lid_bottom_radius" type="length" value="25.9/2" unit="mm"/>
+  <quantity name="lid_bottom_height" type="length" value="2" unit="mm"/>
+
+  <quantity name="lid_offset_height" type="length" value="3.5" unit="mm"/>
+
+
+ </define>
+
+##########################################
+
+ <materials>
+
+
+ </materials>
+
+##########################################
+
+# with the union done in this way, the identity (0,0) corresponds to the center point of the body_bottom
+
+ <solids>
+
+
+    <cone name="body_bottom" rmin1="body_bottom_innerradius" rmax1="body_bottom_radius" rmin2="body_bottom_innerradius" rmax2="body_bottom_radius" z="body_bottom_height" startphi="0" deltaphi="TWOPI" aunit="rad" />
+    <cone name="body_middle" rmin1="body_middle_innerradius" rmax1="body_middle_radius" rmin2="body_middle_innerradius" rmax2="body_middle_radius" z="body_middle_height" startphi="0" deltaphi="TWOPI" aunit="rad" />
+    <cone name="body_sourceOffset" rmin1="body_sourceOffset_innerradius" rmax1="body_sourceOffset_radius" rmin2="body_sourceOffset_innerradius" rmax2="body_sourceOffset_radius" z="body_sourceOffset_height" startphi="0" deltaphi="TWOPI" aunit="rad" />
+    <cone name="body_top" rmin1="body_top_innerradius" rmax1="body_top_radius" rmin2="body_top_innerradius" rmax2="body_top_radius" z="body_top_height" startphi="0" deltaphi="TWOPI" aunit="rad" />
+
+    <!-- <cone name="lid_bottom" rmin1="0.0" rmax1="30." rmin2="0.0" rmax2="30." z="lid_bottom_height" startphi="0" deltaphi="TWOPI" aunit="rad" />
+    <cone name="lid_top" rmin1="0.0" rmax1="10." rmin2="0.0" rmax2="10." z="lid_top_height" startphi="0" deltaphi="TWOPI" aunit="rad" /> -->
+
+    <cone name="lid_bottom" rmin1="0.0" rmax1="lid_bottom_radius" rmin2="0.0" rmax2="lid_bottom_radius" z="lid_bottom_height" startphi="0" deltaphi="TWOPI" aunit="rad" />
+    <cone name="lid_top" rmin1="0.0" rmax1="lid_top_radius" rmin2="0.0" rmax2="lid_top_radius" z="lid_top_height" startphi="0" deltaphi="TWOPI" aunit="rad" />
+
+    <union name="body_bottom_collimator">
+      <first ref="body_bottom" />
+      <second ref="body_middle" />
+      <!-- <position x="0" y="0" z="body_bottom_height" /> -->
+      <position x="0" y="0" z="(body_bottom_height/2)+(body_middle_height/2)" />
+      <rotationref ref="identity"/>
+    </union>
+
+    <union name="body_bottomSourceOffset_collimator">
+      <first ref="body_bottom_collimator" />
+      <second ref="body_sourceOffset" />
+      <position x="0" y="0" z="(body_bottom_height/2)+body_middle_height+(body_sourceOffset_height/2)" />
+      <rotationref ref="identity"/>
+    </union>
+
+    <union name="body_collimator">
+      <first ref="body_bottomSourceOffset_collimator" />
+      <second ref="body_top" />
+      <position x="0" y="0" z="(body_bottom_height/2)+(body_middle_height)+(body_sourceOffset_height)+(body_top_height/2)" />
+      <!-- <position x="0" y="0" z="(body_bottom_height/2)+(body_middle_height)+(body_top_height/2)" /> -->
+      <rotationref ref="identity"/>
+    </union>
+
+    <union name="lid_collimator">
+      <first ref="lid_bottom" />
+      <second ref="lid_top" />
+      <position x="0" y="0" z="(lid_bottom_height/2)+(lid_top_height/2)" />
+      <rotationref ref="identity"/>
+    </union>
+
+    <union name="am_collimator">
+      <first ref="body_collimator" />
+      <second ref="lid_collimator" />
+      <position x="0" y="0" z="(body_bottom_height/2)+(body_middle_height)+(body_sourceOffset_height)+(lid_offset_height)" />
+      <!-- <position x="0" y="0" z="(body_bottom_height/2)+(body_middle_height)+(body_sourceOffset_height)+(body_top_height)" /> -->
+      <!-- <position x="0" y="0" z="(body_bottom_height/2)+(body_middle_height)+(body_top_height/2)" /> -->
+      <rotationref ref="identity"/>
+    </union>
+
+ </solids>
+
+##########################################
+
+ <structure>
+
+ <volume name="Am_Collimator_sebastian">
+   <materialref ref="G4_Cu"/>
+   <solidref ref="am_collimator"/>
+   <!-- <solidref ref="body_collimator"/> -->
+   <!-- <solidref ref="body_bottomSourceOffset_collimator"/> -->
+  </volume>
+
+ </structure>
+
+##########################################
+
+ <setup name="Default" version="1.0">
+  <world ref="Am_Collimator_sebastian"/>
+ </setup>
+</gdml>
