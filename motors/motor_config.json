@@ -8,16 +8,16 @@
     },
     "linear": {
       "rpi_pin":7, "axis":"B", "motor_spd":300000, "constraint":39.175,
-      "enc_slip":30
+      "enc_slip":100
     },
     "rotary": {
       "rpi_pin":11, "axis":"D", "motor_spd":300000, "constraint":-330,
-      "enc_slip":50
+      "enc_slip":100
     }
   },
 
   "campaign": {
     "1":["air_tests"],
-    "2":["icpc_ditch"]
+    "2":["commissioning"]
   }
 }
