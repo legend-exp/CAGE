@@ -215,7 +215,7 @@ class DBMonitor(QWidget):
         """
         called by the main thread's listener function
         """
-        print(args)
+        # print(args)
         self.rp.update_data(*args)
 
 
