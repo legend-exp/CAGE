@@ -215,7 +215,8 @@ class DBMonitor(QWidget):
         """
         called by the main thread's listener function
         """
-        # print(args)
+        print(args)
+        self.rp.update_data(*args)
 
 
 
@@ -440,7 +441,7 @@ class RabbitListener(QRunnable):
         self.cpars = pika.ConnectionParameters(host=self.config['cage_daq'])
         self.conn = pika.BlockingConnection(self.cpars)
         self.channel = self.conn.channel()
-        self.queue_name = f"cage_{np.random.randint(1)}" # allow multiple users
+        self.queue_name = f"cage_{np.random.randint(1e6)}" # allow multiple users
 
         self.channel.exchange_declare(exchange=self.config["exchange"],
                                       exchange_type='topic')
