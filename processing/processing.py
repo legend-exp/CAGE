@@ -108,7 +108,7 @@ def raw_to_dsp(ds, overwrite=False, nevt=None, test=False, verbose=2, block=8,
 
         if dsp_file is None:
             # declare new file name
-            dsp_file = raw_file.replace('raw_', 'dsp_')
+            dsp_file = raw_file.replace('raw', 'dsp')
 
         if test:
             print("test mode (dry run), processing raw file:", raw_file)
@@ -129,24 +129,27 @@ def raw_to_dsp(ds, overwrite=False, nevt=None, test=False, verbose=2, block=8,
         proc.add_processor(np.subtract, "wf", "bl", "wf_blsub")
         proc.add_processor(pole_zero, "wf_blsub", 70*us, "wf_pz")
         proc.add_processor(trap_filter, "wf_pz", 10*us, 5*us, "wf_trap")
-        proc.add_processor(np.amax, "wf_trap", 1, "trapmax", signature='(n),()->()', types=['fi->f'])
-        proc.add_processor(np.divide, "trapmax", 10*us, "trapE")
+        proc.add_processor(asymTrapFilter, "wf_pz", 10*us, 5*us, 10*us, "wf_atrap")
+        # proc.add_processor(np.amax, "wf_trap", 1, "trapmax", signature='(n),()->()', types=['fi->f'])
+        # proc.add_processor(np.amax, "wf_atrap", 1, "atrapmax", signature='(n),()->()', types=['fi->f'])
+        # proc.add_processor(np.divide, "trapmax", 10*us, "trapE")
+        # proc.add_processor(np.divide, "atrapmax", 10*us, "atrapE")
         proc.add_processor(avg_current, "wf_pz", 10, "curr")
         proc.add_processor(np.amax, "curr", 1, "A_10", signature='(n),()->()', types=['fi->f'])
-        proc.add_processor(np.divide, "A_10", "trapE", "AoE")
+        # proc.add_processor(np.divide, "A_10", "trapE", "AoE")
 
         # Set up the LH5 output
         lh5_out = io.LH5Table(size=proc._buffer_len)
-        lh5_out.add_field("trapE", io.LH5Array(proc.get_output_buffer("trapE"),
-                                               attrs={"units":"ADC"}))
+        # lh5_out.add_field("trapE", io.LH5Array(proc.get_output_buffer("trapE"),
+        #                                        attrs={"units":"ADC"}))
         lh5_out.add_field("bl", io.LH5Array(proc.get_output_buffer("bl"),
                                             attrs={"units":"ADC"}))
         lh5_out.add_field("bl_sig", io.LH5Array(proc.get_output_buffer("bl_sig"),
                                                 attrs={"units":"ADC"}))
         lh5_out.add_field("A", io.LH5Array(proc.get_output_buffer("A_10"),
                                            attrs={"units":"ADC"}))
-        lh5_out.add_field("AoE", io.LH5Array(proc.get_output_buffer("AoE"),
-                                             attrs={"units":"ADC"}))
+        # lh5_out.add_field("AoE", io.LH5Array(proc.get_output_buffer("AoE"),
+        #                                      attrs={"units":"ADC"}))
 
         print("Processing:\n",proc)
         proc.execute()
