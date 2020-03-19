@@ -3,7 +3,8 @@
 
 ##########################################
 
-<!-- this gold foil is meant to model the foils used in LANL's x-ray fluorescence geometry -->
+# PPM natGe ICPC detector
+# Current version does not include ditch
 
 ##########################################
 
@@ -14,11 +15,12 @@
   <constant name="TWOPI" value="2.*pi"/>
 
   <position name="center" x="0" y="0" z="0"/>
-  <rotation name="identity" x="0" y="0" z="0"/>
+  <rotation name="identity" x="0" y="0" z="0" />
 
-  <quantity name="foil_innerradius" type="length" value="0" unit="mm"/>
-  <quantity name="foil_radius" type="length" value="3.175" unit="mm"/>
-  <quantity name="foil_height" type="length" value="0.01" unit="mm"/>
+  <quantity name="detector_radius" type="length" value="72.2/2" unit="mm"/>
+  <quantity name="detector_height" type="length" value="86.4" unit="mm"/>
+
+
 
  </define>
 
@@ -26,6 +28,7 @@
 
  <materials>
 
+  <material name="natGe" Z="32.0"> <D value="5.32"/> <atom value="72.64"/>  </material>
 
  </materials>
 
@@ -33,7 +36,7 @@
 
  <solids>
 
-  <cone name="gold_foil" rmin1="foil_innerradius" rmax1="foil_radius" rmin2="foil_innerradius" rmax2="foil_radius" z="foil_height" startphi="0" deltaphi="TWOPI" aunit="rad"/>
+  <cone name="PPM_Detector" rmin1="0" rmax1="detector_radius" rmin2="0" rmax2="detector_radius" z="detector_height" startphi="0" deltaphi="TWOPI" aunit="rad" />
 
  </solids>
 
@@ -41,9 +44,9 @@
 
  <structure>
 
- <volume name="Gold_Foil">
-   <materialref ref="G4_Au"/>
-   <solidref ref="gold_foil"/>
+ <volume name="PPM_Detector">
+   <materialref ref="G4_Ge"/>
+   <solidref ref="PPM_Detector"/>
   </volume>
 
  </structure>
@@ -51,6 +54,6 @@
 ##########################################
 
  <setup name="Default" version="1.0">
-  <world ref="Gold_Foil"/>
+  <world ref="PPM_Detector"/>
  </setup>
 </gdml>

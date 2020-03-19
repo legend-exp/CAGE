@@ -10,6 +10,7 @@ import pygama.utils as pu
 from pygama.dsp.ProcessingChain import ProcessingChain
 from pygama.dsp.processors import *
 from pygama.dsp.units import *
+from pygama.dsp.processors import *
 from pygama.io import io_base as io
 
 
