@@ -445,8 +445,12 @@ def move_motor(motor_name, input_val, history_df, angle_check=180, constraints=T
           f"\n  Total steps moved: {n_moved}"
           f"\n  Final position: {relative_pos} {move_type}")
 
+    move_complete = True
+    if constraints and enc_fail==True:
+        move_complete = False
+
     # update the DF with a successful move.
-    update_history(motor_name, relative_pos, n_moved, zero, steps, move_completed=True)
+    update_history(motor_name, relative_pos, n_moved, zero, steps, move_completed=move_complete)
 
 
 def zero_motor(motor_name, angle_check, history_df, verbose, constraints=True):
@@ -473,7 +477,7 @@ def center_motor(motor_name, angle_check, history_df, verbose, constraints=True)
     if motor_name == "linear":
         print("move the thing forward 3.175 mm")
         move_motor("linear", 3.175, history_df, angle_check, constraints, verbose)
-    if motor_name == "source":
+    elif motor_name == "source":
         print('do the special limit checks')
         move_motor("source", -180, history_df, angle_check, constraints, verbose)
         # zero_motor("source",...)
