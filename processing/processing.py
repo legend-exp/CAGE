@@ -154,7 +154,7 @@ def raw_to_dsp(ds, overwrite=False, nevt=None, test=False, verbose=2, block=8,
                                            attrs={"units":"ADC"}))
         lh5_out.add_field("AoE", lh5.Array(proc.get_output_buffer("AoE"),
                                              attrs={"units":"ADC"}))
-        lh5_out.add_field("dcr", io.LH5Array(proc.get_output_buffer("dcr"),
+        lh5_out.add_field("dcr", lh5.Array(proc.get_output_buffer("dcr"),
                                              attrs={"units":"ADC"}))
 
         print("Processing:\n",proc)
