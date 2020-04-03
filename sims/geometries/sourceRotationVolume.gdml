@@ -52,8 +52,14 @@ This file is a "mother file" to insert other gdml file geometries into. This fil
 
    <physvol>
      <file name="./geometries/ss_sourceDisk_ezag.gdml"/>
-     <position name="ss_sourceDisk_ezag_Position" x="0" y="0" z="3.5 + 0.5/2 + 0.001" unit="mm"/>  <!--offset by the SS thickness so the center of the disk sits just above (0,0,3.5) at (0,0,3.75), + 0.001 mm since the source (assuming no rotation) will be placed at (0,0,3.5) with /gps/pos/halfz 0.0005-->
+     <position name="ss_sourceDisk_ezag_Position" x="0" y="0" z="3.5 + 0.5/2 + 0.0015" unit="mm"/>  <!--offset by the SS thickness so the center of the disk sits just above (0,0,3.5) at (0,0,3.75), + 0.001 mm since the source (assuming no rotation) will be placed at (0,0,3.5) with /gps/pos/halfz 0.0005 -->
      <rotation name="ss_sourceDisk_ezag_Rotation" x="0" y="0" z="0" unit="deg"/>
+   </physvol>
+
+   <physvol>
+     <file name="./geometries/source_confinement.gdml"/>
+     <position name="source_confinement_Position" x="0" y="0" z="3.5" unit="mm"/>  <!--offset by the SS thickness so the center of the disk sits just above (0,0,3.5) at (0,0,3.75), + 0.001 mm since the source (assuming no rotation) will be placed at (0,0,3.5) with /gps/pos/halfz 0.0005-->
+     <rotation name="source_confinement_Rotation" x="0" y="0" z="0" unit="deg"/>
    </physvol>
 
   </volume>

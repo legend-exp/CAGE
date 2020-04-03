@@ -123,6 +123,11 @@ def raw_to_dsp(ds, overwrite=False, nevt=None, test=False, verbose=2, block=8,
         wf_in = data['waveform']['values'].nda
         dt = data['waveform']['dt'].nda[0] * unit_parser.parse_unit(data['waveform']['dt'].attrs['units'])
 
+        # Parameters for DCR calculation
+        dcr_trap_int = 200
+        dcr_trap_flat = 1000
+        dcr_trap_startSample = 1200
+
         # Set up processing chain
         proc = ProcessingChain(block_width=block, clock_unit=dt, verbosity=verbose)
         proc.add_input_buffer("wf", wf_in, dtype='float32')
@@ -130,12 +135,12 @@ def raw_to_dsp(ds, overwrite=False, nevt=None, test=False, verbose=2, block=8,
         proc.add_processor(mean_stdev, "wf[0:1000]", "bl", "bl_sig")
         proc.add_processor(np.subtract, "wf", "bl", "wf_blsub")
         proc.add_processor(pole_zero, "wf_blsub", 70*us, "wf_pz")
-        proc.add_processor(trap_filter, "wf_pz", 10*us, 5*us, "wf_trap")
-        proc.add_processor(np.amax, "wf_trap", 1, "trapmax", signature='(n),()->()', types=['fi->f'])
-        proc.add_processor(np.divide, "trapmax", 10*us, "trapE")
+        proc.add_processor(trap_norm, "wf_pz", 10*us, 5*us, "wf_trap")
+        proc.add_processor(np.amax, "wf_trap", 1, "trapE", signature='(n),()->()', types=['fi->f'])
         proc.add_processor(avg_current, "wf_pz", 10, "curr")
         proc.add_processor(np.amax, "curr", 1, "A_10", signature='(n),()->()', types=['fi->f'])
         proc.add_processor(np.divide, "A_10", "trapE", "AoE")
+        proc.add_processor(trap_pickoff, "wf_pz", dcr_trap_int, dcr_trap_flat, dcr_trap_startSample, "dcr")
 
         # Set up the LH5 output
         lh5_out = lh5.Table(size=proc._buffer_len)
@@ -148,6 +153,8 @@ def raw_to_dsp(ds, overwrite=False, nevt=None, test=False, verbose=2, block=8,
         lh5_out.add_field("A", lh5.Array(proc.get_output_buffer("A_10"),
                                            attrs={"units":"ADC"}))
         lh5_out.add_field("AoE", lh5.Array(proc.get_output_buffer("AoE"),
+                                             attrs={"units":"ADC"}))
+        lh5_out.add_field("dcr", lh5.Array(proc.get_output_buffer("dcr"),
                                              attrs={"units":"ADC"}))
 
         print("Processing:\n",proc)
