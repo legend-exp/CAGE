@@ -10,7 +10,9 @@ import pygama.utils as pu
 from pygama.dsp.ProcessingChain import ProcessingChain
 from pygama.dsp.processors import *
 from pygama.dsp.units import *
+from pygama.dsp.processors import *
 from pygama.io import io_base as io
+from pygama.io import lh5
 
 
 def main(argv):
@@ -89,7 +91,7 @@ def daq_to_raw(ds, overwrite=False, nevt=np.inf, v=False, test=False):
 
         # new lh5 version
         daq_to_raw(daq_file, raw_filename=raw_file, run=run, chan_list=None,
-                   prefix=ds.rawpre, n_max=nevt, verbose=False, output_dir=ds.raw_dir,
+                   prefix=ds.rawpre, n_max=nevt, verbose=v, output_dir=ds.raw_dir,
                    overwrite=overwrite, config=ds.config)
 
 
@@ -115,8 +117,8 @@ def raw_to_dsp(ds, overwrite=False, nevt=None, test=False, verbose=2, block=8,
             continue
 
         # new LH5 version
-        lh5 = io.LH5Store()
-        data = lh5.read_object("/ORSIS3302DecoderForEnergy", raw_file)
+        f_lh5 = lh5.Store()
+        data = f_lh5.read_object("/ORSIS3302DecoderForEnergy", raw_file)
 
         wf_in = data['waveform']['values'].nda
         dt = data['waveform']['dt'].nda[0] * unit_parser.parse_unit(data['waveform']['dt'].attrs['units'])
@@ -141,16 +143,16 @@ def raw_to_dsp(ds, overwrite=False, nevt=None, test=False, verbose=2, block=8,
         proc.add_processor(trap_pickoff, "wf_pz", dcr_trap_int, dcr_trap_flat, dcr_trap_startSample, "dcr")
 
         # Set up the LH5 output
-        lh5_out = io.LH5Table(size=proc._buffer_len)
-        lh5_out.add_field("trapE", io.LH5Array(proc.get_output_buffer("trapE"),
+        lh5_out = lh5.Table(size=proc._buffer_len)
+        lh5_out.add_field("trapE", lh5.Array(proc.get_output_buffer("trapE"),
                                                attrs={"units":"ADC"}))
-        lh5_out.add_field("bl", io.LH5Array(proc.get_output_buffer("bl"),
+        lh5_out.add_field("bl", lh5.Array(proc.get_output_buffer("bl"),
                                             attrs={"units":"ADC"}))
-        lh5_out.add_field("bl_sig", io.LH5Array(proc.get_output_buffer("bl_sig"),
+        lh5_out.add_field("bl_sig", lh5.Array(proc.get_output_buffer("bl_sig"),
                                                 attrs={"units":"ADC"}))
-        lh5_out.add_field("A", io.LH5Array(proc.get_output_buffer("A_10"),
+        lh5_out.add_field("A", lh5.Array(proc.get_output_buffer("A_10"),
                                            attrs={"units":"ADC"}))
-        lh5_out.add_field("AoE", io.LH5Array(proc.get_output_buffer("AoE"),
+        lh5_out.add_field("AoE", lh5.Array(proc.get_output_buffer("AoE"),
                                              attrs={"units":"ADC"}))
         lh5_out.add_field("dcr", io.LH5Array(proc.get_output_buffer("dcr"),
                                              attrs={"units":"ADC"}))
@@ -159,7 +161,7 @@ def raw_to_dsp(ds, overwrite=False, nevt=None, test=False, verbose=2, block=8,
         proc.execute()
 
         print("Writing to: ", dsp_file)
-        lh5.write_object(lh5_out, "data", dsp_file)
+        f_lh5.write_object(lh5_out, "data", dsp_file)
 
 
 

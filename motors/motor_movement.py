@@ -10,6 +10,7 @@ import spur
 import numpy as np
 from pprint import pprint
 import pandas as pd
+from datetime import datetime
 
 def main():
     doc="""
@@ -84,6 +85,9 @@ def main():
             init_history_df()
         exit()
 
+    cp_label = motorDB['campaign'][campaign_number][0]
+    print(f"Current campaign: {campaign_number} : cp_label")
+    print(f'Move history is saved in: {f_history}')
 
     # ==========================================================================
     connect_to_controller(verbose) # check Newmark and RPi by default
@@ -441,8 +445,12 @@ def move_motor(motor_name, input_val, history_df, angle_check=180, constraints=T
           f"\n  Total steps moved: {n_moved}"
           f"\n  Final position: {relative_pos} {move_type}")
 
+    move_complete = True
+    if constraints and enc_fail==True:
+        move_complete = False
+
     # update the DF with a successful move.
-    update_history(motor_name, relative_pos, n_moved, zero, steps, move_completed=True)
+    update_history(motor_name, relative_pos, n_moved, zero, steps, move_completed=move_complete)
 
 
 def zero_motor(motor_name, angle_check, history_df, verbose, constraints=True):
@@ -469,7 +477,7 @@ def center_motor(motor_name, angle_check, history_df, verbose, constraints=True)
     if motor_name == "linear":
         print("move the thing forward 3.175 mm")
         move_motor("linear", 3.175, history_df, angle_check, constraints, verbose)
-    if motor_name == "source":
+    elif motor_name == "source":
         print('do the special limit checks')
         move_motor("source", -180, history_df, angle_check, constraints, verbose)
         # zero_motor("source",...)
@@ -481,8 +489,8 @@ def init_history_df():
     """
     Initialize the motor movement history dataframe in h5 format
     """
-
     print('WARNING: You are about to create a new motor history dataframe.')
+    print('Current file can be found at:', f_history)
     ans = input('Are you sure you want to do this? y/n \n -->')
     if ans != 'y':
         print('Cool')
@@ -490,8 +498,9 @@ def init_history_df():
 
     init_columns = [
         'motor_name', 'move_completed', 'distance_steps', 'distance_real', 'move_type',
-        'source_total', 'linear_total', 'rotary_total']
-    init_values = [['Init_motor', False, 0, 0, 'angle', 0, 0, 0]]
+        'source_total', 'linear_total', 'rotary_total', 'timestamp']
+    ts = pd.Timestamp(datetime.utcnow())
+    init_values = [['Bob_motor', False, 0, 0, 'angle', 0, 0, 0, ts]]
 
 
     df = pd.DataFrame(init_values, columns=init_columns)
@@ -583,7 +592,8 @@ def update_history(motor_name, relative_pos, n_moved, zero, steps, move_complete
         "distance_steps": n_moved,
         "move_completed": move_completed,
         "move_type": steps["move_type"],
-        f'{motor_name}_total': running_total
+        f'{motor_name}_total': running_total,
+        "timestamp":pd.Timestamp(datetime.utcnow())
     }
     for k, v in new_vals.items():
         last_row[k] = v
