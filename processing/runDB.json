@@ -6,10 +6,10 @@
   "dsp_prefix":"dsp",
   "suffix":"lh5",
 
-  "loc_dir":"$DATADIR/CAGE",
-  "daq_dir":"$DATADIR/CAGE/Data",
-  "raw_dir":"$DATADIR/CAGE/pygama_raw",
-  "dsp_dir":"$DATADIR/CAGE/pygama_dsp",
+  "loc_dir":"$CAGEDATADIR",
+  "daq_dir":"$CAGEDATADIR/Data",
+  "raw_dir":"$CAGEDATADIR/pygama_raw",
+  "dsp_dir":"$CAGEDATADIR/pygama_dsp",
 
   "meta_dir":"$DATADIR/CAGE/metadata",
   "rocks_dir":"/data/LEGEND/Data/CAGE",
@@ -26,7 +26,11 @@
     "0":["1,10", "initial Cs+bkg runs.  2500 V, 0x10 thr.  25 MHz noise, max varcap value."],
     "1":["11,14", "initial Cs+bkg runs.  2800 V, same settings otherwise"],
     "2":["15,41", "HV pulser meas.  Cs source + bkg.  0x15.  see elog 85"],
-    "3":["42,45", "bkg runs, 2800 V, 0x10 thresh"]
+    "3":["42,45", "bkg runs, 2800 V, 0x10 thresh"],
+    "4":["126,127", "first bkg runs with PPM ICPC, before preamp tuning. 0x8 thresh. see elog 172"],
+    "5":["128,131", "first bkg runs with PPM ICPC, after preamp tuning. 0x8 thresh. see elog 172"],
+    "6":["132", "short bkg run with detector at 4500 V. 0x8 thresh. Saw a bad -10.8 rail 14 minutes into run and biased down. See Elog 173"],
+    "7":["135,136", "0x10 threshold, 3500 V bias, top hat lifted 5 cm and warming, preamp tuned to minimize rise time of waveforms (some oscillatory noise is present). see elog 175"]
   },
 
   "build_options":{
