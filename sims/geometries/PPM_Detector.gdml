@@ -20,6 +20,15 @@
   <quantity name="detector_radius" type="length" value="72.2/2" unit="mm"/>
   <quantity name="detector_height" type="length" value="86.4" unit="mm"/>
 
+  <quantity name="ditch_depth" type="length" value="2.0" unit="mm"/>
+  <quantity name="ditch_innerradius" type="length" value="13.0" unit="mm"/>
+  <quantity name="ditch_radius" type="length" value="16.0" unit="mm"/>
+
+  <quantity name="bore_depth" type="length" value="62.63" unit="mm"/>
+  <quantity name="bore_radius" type="length" value="4.88" unit="mm"/>
+
+  <quantity name="pc_depth" type="length" value="2.2" unit="mm"/>
+  <quantity name="pc_radius" type="length" value="3.2" unit="mm"/>
 
 
  </define>
@@ -36,7 +45,38 @@
 
  <solids>
 
-  <cone name="PPM_Detector" rmin1="0" rmax1="detector_radius" rmin2="0" rmax2="detector_radius" z="detector_height" startphi="0" deltaphi="TWOPI" aunit="rad" />
+  # Primary Ge material
+  <cone name="PPM_bulk" rmin1="0" rmax1="detector_radius" rmin2="0" rmax2="detector_radius" z="detector_height" startphi="0" deltaphi="TWOPI" aunit="rad" />
+
+  # subtraction solids for ditch, bore hole
+  <cone name="ditch_subtraction" rmin1="ditch_innerradius" rmax1="ditch_radius" rmin2="ditch_innerradius" rmax2="ditch_radius" z="ditch_depth" startphi="0" deltaphi="TWOPI" aunit="rad" />
+  <cone name="bore_subtraction" rmin1="0" rmax1="bore_radius" rmin2="0" rmax2="bore_radius" z="bore_depth" startphi="0" deltaphi="TWOPI" aunit="rad" />
+  <cone name="pc_subtraction" rmin="0" rmax="bore_radius" startphi="0" deltaphi="TWOPI" aunit="rad" />
+
+
+  <subtraction name="PPM_body_boreSubtraction">
+    <first ref="PPM_bulk" />
+    <second ref="bore_subtraction" />
+    <position x="0" y="0" z="-(detector_height/2)+(bore_depth/2)" />
+    <!-- <position x="0" y="0" z="(body_bottom_height/2)+(body_middle_height)+(body_top_height/2)" /> -->
+    <rotationref ref="identity"/>
+  </subtraction>
+
+  <subtraction name="PPM_body_ditch">
+    <first ref="PPM_body_boreSubtraction" />
+    <second ref="ditch_subtraction" />
+    <position x="0" y="0" z="(detector_height/2)-(ditch_depth/2)" />
+    <!-- <position x="0" y="0" z="(body_bottom_height/2)+(body_middle_height)+(body_top_height/2)" /> -->
+    <rotationref ref="identity"/>
+  </subtraction>
+
+  <subtraction name="PPM_detector">
+    <first ref="PPM_body_ditch" />
+    <second ref="pc_subtraction" />
+    <position x="0" y="0" z="(detector_height/2)+(pc_radius-(ditch_depth))" />
+    <!-- <position x="0" y="0" z="(body_bottom_height/2)+(body_middle_height)+(body_top_height/2)" /> -->
+    <rotationref ref="identity"/>
+  </subtraction>
 
  </solids>
 
@@ -46,7 +86,7 @@
 
  <volume name="PPM_Detector">
    <materialref ref="G4_Ge"/>
-   <solidref ref="PPM_Detector"/>
+   <solidref ref="PPM_detector"/>
   </volume>
 
  </structure>
