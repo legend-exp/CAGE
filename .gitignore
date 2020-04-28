@@ -16,6 +16,8 @@ controls/project8_authentications.json
 *.jpeg
 *.hdf5
 *.csv
+*.ipynb
+cori*.txt
 # -------------------- github-generated stuff -------------------
 # Byte-compiled / optimized / DLL files
 __pycache__/

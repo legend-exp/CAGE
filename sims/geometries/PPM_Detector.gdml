@@ -27,8 +27,8 @@
   <quantity name="bore_depth" type="length" value="62.63" unit="mm"/>
   <quantity name="bore_radius" type="length" value="4.88" unit="mm"/>
 
-  <quantity name="pc_depth" type="length" value="2.2" unit="mm"/>
-  <quantity name="pc_radius" type="length" value="3.2" unit="mm"/>
+  <quantity name="pc_depth" type="length" value="1.9" unit="mm"/>
+  <quantity name="pc_radius" type="length" value="2.35" unit="mm"/>
 
 
  </define>

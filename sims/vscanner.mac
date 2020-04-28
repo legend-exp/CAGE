@@ -2,6 +2,7 @@
 /g4simple/setReferencePhysList QGSP_BERT
 
 /g4simple/setDetectorGDML ./geometries/new_gscanner_241Am.gdml false
+#/g4simple/setDetectorGDML ./geometries/translations_gscanner_241Am.gdml false
 
 /run/initialize
 
