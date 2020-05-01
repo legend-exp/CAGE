@@ -19,7 +19,7 @@
 #/vis/viewer/set/background ! ! ! 0.
 #/vis/viewer/set/lightsThetaPhi 30 30
 /vis/viewer/set/lightsVector 0 0 1
-/vis/viewer/zoom 3
+/vis/viewer/zoom 10
 /vis/viewer/pan 0.0 0.0
 
 

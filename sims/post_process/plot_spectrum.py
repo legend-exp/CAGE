@@ -15,7 +15,7 @@ matplotlib.rcParams['text.usetex'] = True
 def main():
 
 	# filename = '../alpha/raw_out/ICPC_Pb_241Am_10000000.hdf5'
-	filename = '../alpha/processed_out/processed_ICPC_Pb_241Am_10000000.hdf5'
+	# filename = '../alpha/processed_out/processed_ICPC_Pb_241Am_10000000.hdf5'
 
 	# filename = '../alpha/raw_out/test.hdf5'
 	# filename = '../alpha/processed_out/processed_test.hdf5'
@@ -23,26 +23,32 @@ def main():
 	# filename = '../alpha/raw_out/sourceRot33_ICPC_Pb_241Am_10000000.hdf5'
 	# filename = '../alpha/processed_out/processed_sourceRot33_ICPC_Pb_241Am_10000000.hdf5'
 
+	# filename = '../alpha/raw_out/newDet_test.hdf5'
+	# filename = '../alpha/processed_out/processed_newDet_test.hdf5'
+
+	# filename = '../alpha/raw_out/newDet_sourceRot33_ICPC_Pb_241Am_20000000.hdf5'
+	filename = '../alpha/processed_out/processed_newDet_sourceRot33_ICPC_Pb_241Am_20000000.hdf5'
+
 
 	# plotHist(filename)
 	# post_process(filename, source=False)
 	# plotSpot(filename, source=False, particle = 'all')
 	# ZplotSpot(filename)
-	plot1DSpot(filename, axis='x', particle='all')
-	# plotContour(filename, source=False, particle = 'all')
+	# plot1DSpot(filename, axis='y', particle='all')
+	plotContour(filename, source=False, particle = 'all')
 	# testFit(filename)
 
 def post_process(filename, source=False):
 	if source==True:
 		procdf, sourcePV_df = pandarize(filename, source)
-		# df.to_hdf('../alpha/processed_out/processed_30mm_notcollimated_241Am_700000.hdf5', key='procdf', mode='w')
-		procdf.to_hdf('../alpha/processed_out/processed_sourceRot33_ICPC_Pb_241Am_10000000.hdf5', key='procdf', mode='w')
-		sourcePV_df.to_hdf('../alpha/processed_out/processed_sourceRot33_ICPC_Pb_241Am_10000000.hdf5', key='sourcePV_df', mode='w')
+		# df.to_hdf('../alpha/processed_out/processed_newDet_test.hdf5', key='procdf', mode='w')
+		procdf.to_hdf('../alpha/processed_out/processed_newDet_sourceRot33_ICPC_Pb_241Am_20000000.hdf5', key='procdf', mode='w')
+		sourcePV_df.to_hdf('../alpha/processed_out/processed_newDet_sourceRot33_ICPC_Pb_241Am_20000000.hdf5', key='sourcePV_df', mode='w')
 
 	else:
 		procdf = pandarize(filename, source)
-		# df.to_hdf('../alpha/processed_out/processed_30mm_notcollimated_241Am_700000.hdf5', key='procdf', mode='w')
-		procdf.to_hdf('../alpha/processed_out/processed_sourceRot33_ICPC_Pb_241Am_10000000.hdf5', key='procdf', mode='w')
+		# df.to_hdf('../alpha/processed_out/processed_newDet_test.hdf5', key='procdf', mode='w')
+		procdf.to_hdf('../alpha/processed_out/processed_newDet_sourceRot33_ICPC_Pb_241Am_20000000.hdf5', key='procdf', mode='w')
 
 
 
@@ -239,41 +245,41 @@ def plotContour(filename, source=False, particle = 'all'):
 		exit()
 
 
-	# fig, ax = plt.subplots(ncols=3, figsize=(16,8))
-	fig, ax = plt.subplots(figsize=(10,8))
+	fig, ax = plt.subplots(ncols=3, figsize=(16,8))
+	# fig, ax = plt.subplots(figsize=(10,8))
 	nbins=100
 	counts, xbins, ybins = np.histogram2d(x, y, bins=nbins, normed=True)
-	# hist = ax[0].hist2d(x, y, bins=nbins, cmap='plasma', normed=True)
-	hist = ax.hist2d(x, y, bins=nbins, cmap='plasma', normed=True)
+	hist = ax[0].hist2d(x, y, bins=nbins, cmap='plasma', normed=True)
+	# hist = ax.hist2d(x, y, bins=nbins, cmap='plasma', normed=True)
 	# plt.scatter(x, y, c=energy, s=1, cmap='plasma')
 	# cb = plt.colorbar()
 	# cb.set_label("Energy (keV)", ha = 'right', va='center', rotation=270, fontsize=14)
 	# cb.ax.tick_params(labelsize=12)
-	# ax[0].set_xlim(-10,10)
-	# ax[0].set_ylim(9,19)
-	# ax[0].set_xlabel('x position (mm)', fontsize=14)
-	# ax[0].set_ylabel('y position (mm)', fontsize=14)
-	# ax[0].set_title('Histogram of data- 100 bins', fontsize=14)
+	ax[0].set_xlim(-10,10)
+	ax[0].set_ylim(9,19)
+	ax[0].set_xlabel('x position (mm)', fontsize=14)
+	ax[0].set_ylabel('y position (mm)', fontsize=14)
+	ax[0].set_title('Histogram of data- 100 bins', fontsize=14)
 
-	ax.set_xlim(-10,10)
-	ax.set_ylim(-10, 10)
-	# ax.set_ylim(9,19)
-	ax.set_xlabel('x position (mm)', fontsize=14)
-	ax.set_ylabel('y position (mm)', fontsize=14)
-	ax.set_title('Histogram of data- 100 bins', fontsize=14)
+	# ax.set_xlim(-10,10)
+	# ax.set_ylim(-10, 10)
+	# # ax.set_ylim(9,19)
+	# ax.set_xlabel('x position (mm)', fontsize=14)
+	# ax.set_ylabel('y position (mm)', fontsize=14)
+	# ax.set_title('Histogram of data- 100 bins', fontsize=14)
 
-	CB2 = plt.colorbar(hist[3], shrink=0.8, extend='both')
+	# CB2 = plt.colorbar(hist[3], shrink=0.8, extend='both')
 
 	# xi, yi, zi, bw, score = kde2D(x, y, bins=500, optimize_bw=True)
-	# xi, yi, zi, bw, score = kde2D(x, y, bandwidth=0.68, bins=500, optimize_bw=True)
+	xi, yi, zi, bw, score = kde2D(x, y, bandwidth=0.25, bins=500, optimize_bw=False)
 	# x_score = np.linspace(0, len(score), 200)
 
 	# fig, ax = plt.subplots(figsize=(10,8))
 	# plt.plot(score)
 	# ax.hist(score, bins=100)
-	plt.show()
+	# plt.show()
 
-	exit()
+	# exit()
 
 
 
@@ -543,11 +549,11 @@ def plot1DSpot(filename, axis='x', particle = 'all', fit=True):
 	print('median: ', median, ' std: ', std, ' mean: ', mean)
 	print('moment mean: ', mom_mean, 'moment variance: ', mom_var, 'moment_skew: ', mom_skew)
 
-	x1, y1, bw = kde1D(x, bins=500, bandwidth=0.40, optimize_bw=False)
-	# x1, y1, bw = kde1D(x, bins=500, optimize_bw=True)
+	# x1, y1, bw = kde1D(x, bins=500, bandwidth=0.25, optimize_bw=False)
+	x1, y1, bw = kde1D(x, bins=500, optimize_bw=True)
 	std_kde = np.std(y1)
 	print(std_kde)
-	exit()
+	# exit()
 
 
 	#Fit the kde-smoothed histogram
