@@ -14,7 +14,7 @@
 /g4simple/setOutputFormat hdf5
 #/analysis/setFileName ./alpha/raw_out/newDet_sourceRot33_ICPC_Pb_241Am_20000000.hdf5
 #/analysis/setFileName ./alpha/raw_out/test.hdf5
-/analysis/setFileName ./alpha/raw_out/newDet_sourceRotNorm_y6mm_ICPC_Pb_241Am_20000000.hdf5
+/analysis/setFileName ./alpha/raw_out/newDet_sourceRotNorm_y12mm_ICPC_Pb_241Am_20000000.hdf5
 
 ##Set Volume ID's for Geometry Volumes (volume.in.geometry.file_PV volID)
 #/g4simple/setVolID Top_Hat_PV 1
@@ -43,13 +43,20 @@
 /gps/ang/type iso
 
 # Do this when source at normal incidence
-/gps/pos/centre 0. 6.0 3.5
 /gps/pos/type Volume
 /gps/pos/shape Para
 /gps/pos/halfx 3.5 mm
 /gps/pos/halfy 3.5 mm
 /gps/pos/halfz 0.0005 mm
 
+#rotate source when appropriate
+/gps/pos/rot1 1 0 0 # rotating about x, so stays the same
+/gps/pos/rot2 0 0.838670567945424 0.5446390350150271 # [0 cos(theta_rot) sin(theta_rot)]
+
+/gps/pos/centre 0.0 -3.817 2.935 mm # get this from running ./source_placement.py with desired final y position of the source on the detector. x should always be 0. use z = 3.5 when source at normal incidence.
+
+
+# Old way without rotation matrices
 # Haven't figured out how to rotate the activity in the macro correctly yet. When source not at normal incidence, put activity in sphere and confine it to source_confinement_PV
 #/gps/pos/centre 0 -1.906 2.935 mm # This specific pos was for source rotated at 33 degrees when centered over pc. Generally: (0, 3.5*(cos(theta_rot + 90 deg)), 3.5*(sin(theta_rot + 90 deg)) )
 #/gps/pos/type Volume

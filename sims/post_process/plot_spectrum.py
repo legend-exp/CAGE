@@ -21,34 +21,40 @@ def main():
 	# filename = '../alpha/processed_out/processed_test.hdf5'
 
 	# filename = '../alpha/raw_out/sourceRot33_ICPC_Pb_241Am_10000000.hdf5'
-	# filename = '../alpha/processed_out/processed_sourceRot33_ICPC_Pb_241Am_10000000.hdf5'
+	# processed_filename = '../alpha/processed_out/processed_sourceRot33_ICPC_Pb_241Am_10000000.hdf5'
 
-	# filename = '../alpha/raw_out/newDet_test.hdf5'
-	# filename = '../alpha/processed_out/processed_newDet_test.hdf5'
 
 	# filename = '../alpha/raw_out/newDet_sourceRot33_ICPC_Pb_241Am_20000000.hdf5'
-	filename = '../alpha/processed_out/processed_newDet_sourceRot33_ICPC_Pb_241Am_20000000.hdf5'
+
+	filename = '../alpha/raw_out/newDet_sourceRotNorm_y6mm_ICPC_Pb_241Am_20000000.hdf5'
+	processed_filename = '../alpha/processed_out/processed_newDet_sourceRotNorm_y6mm_ICPC_Pb_241Am_20000000.hdf5'
+
+	# processed_filename = '../alpha/processed_out/processed_newDet_sourceRotNorm_y6mm_ICPC_Pb_241Am_20000000.hdf5'
 
 
 	# plotHist(filename)
-	# post_process(filename, source=False)
-	# plotSpot(filename, source=False, particle = 'all')
+	# post_process(filename, processed_filename, source=False)
+	# plotSpot(processed_filename, source=False, particle = 'all')
 	# ZplotSpot(filename)
-	# plot1DSpot(filename, axis='y', particle='all')
-	plotContour(filename, source=False, particle = 'all')
+	# plot1DSpot(processed_filename, axis='y', particle='all')
+	plot2Dhist(processed_filename, nbins=500, plot_title='Normal incidence, 6mm', source=False, particle = 'all')
+	# plotDepth(processed_filename, source=False, particle = 'all')
+	# plotContour(filename, source=False, particle = 'all')
 	# testFit(filename)
 
-def post_process(filename, source=False):
+def post_process(filename, processed_filename, source=False):
+	print('Processing file: ', filename)
 	if source==True:
 		procdf, sourcePV_df = pandarize(filename, source)
 		# df.to_hdf('../alpha/processed_out/processed_newDet_test.hdf5', key='procdf', mode='w')
-		procdf.to_hdf('../alpha/processed_out/processed_newDet_sourceRot33_ICPC_Pb_241Am_20000000.hdf5', key='procdf', mode='w')
-		sourcePV_df.to_hdf('../alpha/processed_out/processed_newDet_sourceRot33_ICPC_Pb_241Am_20000000.hdf5', key='sourcePV_df', mode='w')
-
+		procdf.to_hdf(processed_filename, key='procdf', mode='w')
+		sourcePV_df.to_hdf(processed_filename, key='sourcePV_df', mode='w')
 	else:
 		procdf = pandarize(filename, source)
 		# df.to_hdf('../alpha/processed_out/processed_newDet_test.hdf5', key='procdf', mode='w')
-		procdf.to_hdf('../alpha/processed_out/processed_newDet_sourceRot33_ICPC_Pb_241Am_20000000.hdf5', key='procdf', mode='w')
+		procdf.to_hdf(processed_filename, key='procdf', mode='w')
+
+	print('File processed. Output saved to: ', processed_filename)
 
 
 
@@ -213,6 +219,53 @@ def ZplotSpot(filename):
 	plt.title('Spot Size, $^{241}$Am 10$^6$ Primaries', fontsize=16)
 	plt.show()
 
+def plot2Dhist(filename, nbins=100, plot_title = '', source=False, particle = 'all'):
+
+	df = pd.read_hdf(filename, keys='procdf')
+
+	if particle == 'all':
+		x = np.array(df['x'])
+		y = np.array(df['y'])
+		z = np.array(df['z'])
+		energy = np.array(df['energy']*1000)
+		# plot_title = 'Spot Size, $^{241}$Am 10$^7$ Primaries, all energies'
+
+	elif particle == 'alpha':
+		alpha_df = df.loc[df.energy > 5]
+		x = np.array(alpha_df['x'])
+		y = np.array(alpha_df['y'])
+		z = np.array(alpha_df['z'])
+		energy = np.array(alpha_df['energy']*1000)
+		# plot_title = 'Spot Size, $^{241}$Am 10$^7$ Primaries, Energy $>$ 5 MeV'
+
+	elif particle == 'gamma':
+		gamma_df = df.loc[(df.energy > .04) & (df.energy < 0.08)]
+		x = np.array(gamma_df['x'])
+		y = np.array(gamma_df['y'])
+		z = np.array(gamma_df['z'])
+		energy = np.array(gamma_df['energy']*1000)
+		# plot_title = 'Spot Size, $^{241}$Am 10$^7$ Primaries, 60 kev $<$ Energy $<$ 80 keV'
+
+	else:
+		print('specify particle type!')
+		exit()
+
+
+	fig, ax = plt.subplots(figsize=(10,8))
+	nbins=nbins
+
+	# hist = ax.hist2d(x, y, bins=nbins, cmap='plasma', normed=True)
+	hist = ax.hist2d(x, y, bins=nbins, cmap='plasma', norm=LogNorm())
+	plt.colorbar(hist[3], ax=ax)
+	# plt.xlim(-40,40)
+	# plt.ylim(-40,40)
+	ax.set_xlabel('x position (mm)', fontsize=16)
+	ax.set_ylabel('y position (mm)', fontsize=16)
+	plt.setp(ax.get_xticklabels(), fontsize=14)
+	plt.setp(ax.get_yticklabels(), fontsize=14)
+	plt.title(plot_title, fontsize=16)
+	plt.show()
+
 def plotContour(filename, source=False, particle = 'all'):
 
 	df = pd.read_hdf(filename, keys='procdf')
@@ -245,21 +298,21 @@ def plotContour(filename, source=False, particle = 'all'):
 		exit()
 
 
-	fig, ax = plt.subplots(ncols=3, figsize=(16,8))
-	# fig, ax = plt.subplots(figsize=(10,8))
+	# fig, ax = plt.subplots(ncols=3, figsize=(16,8))
+	fig, ax = plt.subplots(figsize=(10,8))
 	nbins=100
 	counts, xbins, ybins = np.histogram2d(x, y, bins=nbins, normed=True)
-	hist = ax[0].hist2d(x, y, bins=nbins, cmap='plasma', normed=True)
-	# hist = ax.hist2d(x, y, bins=nbins, cmap='plasma', normed=True)
+	# hist = ax[0].hist2d(x, y, bins=nbins, cmap='plasma', normed=True)
+	hist = ax.hist2d(x, y, bins=nbins, cmap='plasma', normed=True)
 	# plt.scatter(x, y, c=energy, s=1, cmap='plasma')
 	# cb = plt.colorbar()
 	# cb.set_label("Energy (keV)", ha = 'right', va='center', rotation=270, fontsize=14)
 	# cb.ax.tick_params(labelsize=12)
-	ax[0].set_xlim(-10,10)
-	ax[0].set_ylim(9,19)
-	ax[0].set_xlabel('x position (mm)', fontsize=14)
-	ax[0].set_ylabel('y position (mm)', fontsize=14)
-	ax[0].set_title('Histogram of data- 100 bins', fontsize=14)
+	# ax[0].set_xlim(-10,10)
+	# ax[0].set_ylim(9,19)
+	# ax[0].set_xlabel('x position (mm)', fontsize=14)
+	# ax[0].set_ylabel('y position (mm)', fontsize=14)
+	# ax[0].set_title('Histogram of data- 100 bins', fontsize=14)
 
 	# ax.set_xlim(-10,10)
 	# ax.set_ylim(-10, 10)
@@ -271,7 +324,7 @@ def plotContour(filename, source=False, particle = 'all'):
 	# CB2 = plt.colorbar(hist[3], shrink=0.8, extend='both')
 
 	# xi, yi, zi, bw, score = kde2D(x, y, bins=500, optimize_bw=True)
-	xi, yi, zi, bw, score = kde2D(x, y, bandwidth=0.25, bins=500, optimize_bw=False)
+	# xi, yi, zi, bw, score = kde2D(x, y, bandwidth=0.25, bins=500, optimize_bw=False)
 	# x_score = np.linspace(0, len(score), 200)
 
 	# fig, ax = plt.subplots(figsize=(10,8))
@@ -284,31 +337,31 @@ def plotContour(filename, source=False, particle = 'all'):
 
 
 
-	kdeColor = ax[1].pcolormesh(xi, yi, zi, cmap='plasma')
+	# kdeColor = ax[1].pcolormesh(xi, yi, zi, cmap='plasma')
 	# ax[1].pcolormesh(xi, yi, norm_zi.reshape(xi.shape), cmap='plasma')
-	ax[1].set_xlim(-10,10)
-	ax[1].set_ylim(9,19)
-	ax[1].set_xlabel('x position (mm)', fontsize=14)
-	ax[1].set_ylabel('y position (mm)', fontsize=14)
-	ax[1].set_title('KDE-smoothed \n Bandwidth = %.2f' % bw, fontsize=14)
-	CB1 = plt.colorbar(kdeColor, shrink=0.8, extend='both')
+	# ax[1].set_xlim(-10,10)
+	# ax[1].set_ylim(9,19)
+	# ax[1].set_xlabel('x position (mm)', fontsize=14)
+	# ax[1].set_ylabel('y position (mm)', fontsize=14)
+	# ax[1].set_title('KDE-smoothed \n Bandwidth = %.2f' % bw, fontsize=14)
+	# CB1 = plt.colorbar(kdeColor, shrink=0.8, extend='both')
 
 	# levels = [0.1]
 
 	# contour_hist = ax[2].contour(counts.T,extent=[xbins.min(),xbins.max(),ybins.min(),ybins.max()],cmap='plasma')
 
-	CS = ax[2].contour(xi, yi, zi, cmap='plasma')
+	# CS = ax[2].contour(xi, yi, zi, cmap='plasma')
 
 	# ax[2].clabel(CS, fmt = '%.2f', fontsize=14)
 	# CB = plt.colorbar(CS, shrink=0.8, extend='both')
 	# ax[2].clabel(contour_hist, fmt = '%.2f', fontsize=20)
 	# CB = plt.colorbar(contour_hist, shrink=0.8, extend='both')
 
-	ax[2].set_xlim(-10,10)
-	ax[2].set_ylim(9,19)
-	ax[2].set_xlabel('x position (mm)', fontsize=14)
-	ax[2].set_ylabel('y position (mm)', fontsize=14)
-	ax[2].set_title('Contour plot from KDE', fontsize=14)
+	# ax[2].set_xlim(-10,10)
+	# ax[2].set_ylim(9,19)
+	# ax[2].set_xlabel('x position (mm)', fontsize=14)
+	# ax[2].set_ylabel('y position (mm)', fontsize=14)
+	# ax[2].set_title('Contour plot from KDE', fontsize=14)
 	# ax[2].set_title('Contour plot from histogram', fontsize=14)
 	# CB = plt.colorbar(contour_hist, shrink=0.8, extend='both')
 	# ax[2].clabel(contour_hist, fmt = '%.2f', fontsize=20)
@@ -437,6 +490,60 @@ def old_plotContour(filename, source=False, particle = 'all'):
 		x_source = np.array(source_df['x'])
 		print(len(x_source))
 
+def plotDepth(filename, source=False, particle = 'all'):
+
+	df = pd.read_hdf(filename, keys='procdf')
+
+	if particle == 'all':
+		x = np.array(df['x'])
+		y = np.array(df['y'])
+		z = np.array(df['z'])
+		energy = np.array(df['energy']*1000)
+		plot_title = 'Spot Size, $^{241}$Am 10$^7$ Primaries'
+
+	elif particle == 'alpha':
+		alpha_df = df.loc[df.energy > 5]
+		x = np.array(alpha_df['x'])
+		y = np.array(alpha_df['y'])
+		z = np.array(alpha_df['z'])
+		energy = np.array(alpha_df['energy']*1000)
+		plot_title = 'Spot Size from $^{241}$Am, 10$^7$ Primaries, Energy $>$ 5 MeV'
+
+	elif particle == 'gamma':
+		gamma_df = df.loc[(df.energy > .04) & (df.energy < 0.08)]
+		x = np.array(gamma_df['x'])
+		y = np.array(gamma_df['y'])
+		z = np.array(gamma_df['z'])
+		energy = np.array(gamma_df['energy']*1000)
+		plot_title = 'Spot Size from $^{241}$Am, 10$^7$ Primaries'
+
+	else:
+		print('specify particle type!')
+		exit()
+
+
+	fig, ax = plt.subplots(figsize=(9,8))
+	plot_title = 'Spot Size from $^{241}$Am, 10$^7$ Primaries'
+	plt.scatter(y, z, c=energy, s=1, cmap='plasma', norm=LogNorm(10,6000))
+	# plt.scatter(x, y, c=energy, s=1, cmap='plasma')
+	cb = plt.colorbar()
+	cb.set_label("Energy (keV)", ha = 'right', va='center', rotation=270, fontsize=20)
+	cb.ax.tick_params(labelsize=18)
+	plt.xlim(5,7)
+	plt.ylim(-22.48,-22.54)
+	ax.set_xlabel('y position (mm)', fontsize=20)
+	ax.set_ylabel('z position (mm)', fontsize=20)
+	plt.setp(ax.get_xticklabels(), fontsize=18)
+	plt.setp(ax.get_yticklabels(), fontsize=18)
+	plt.title(plot_title, fontsize=20)
+	plt.show()
+
+	if source==True:
+		source_df = pd.read_hdf(filename, keys='sourcePV_df')
+		sourceEnergy = np.array(source_df['energy']*1000)
+		x_source = np.array(source_df['x'])
+		print(len(x_source))
+
 def plotSpot(filename, source=False, particle = 'all'):
 
 	df = pd.read_hdf(filename, keys='procdf')
@@ -549,8 +656,8 @@ def plot1DSpot(filename, axis='x', particle = 'all', fit=True):
 	print('median: ', median, ' std: ', std, ' mean: ', mean)
 	print('moment mean: ', mom_mean, 'moment variance: ', mom_var, 'moment_skew: ', mom_skew)
 
-	# x1, y1, bw = kde1D(x, bins=500, bandwidth=0.25, optimize_bw=False)
-	x1, y1, bw = kde1D(x, bins=500, optimize_bw=True)
+	x1, y1, bw = kde1D(x, bins=500, bandwidth=0.25, optimize_bw=False)
+	# x1, y1, bw = kde1D(x, bins=500, optimize_bw=True)
 	std_kde = np.std(y1)
 	print(std_kde)
 	# exit()
