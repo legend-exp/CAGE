@@ -11,6 +11,7 @@ controls/project8_authentications.json
 *.root
 *.h5
 *.lh5
+*.eps
 *.png
 *.jpg
 *.jpeg
