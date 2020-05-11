@@ -1,3 +1,5 @@
+# Created by Gulden Othman May 2020.
+# copy + paste these commands directly into g4simple interactively to look at particle tracking and ensure everything in right position before running long simulation
 /g4simple/setReferencePhysList QGSP_BERT
 /g4simple/setDetectorGDML ./geometries/new_gscanner_241Am.gdml false
 /run/initialize
@@ -37,8 +39,8 @@
 /gps/pos/halfz 0.0005 mm
 /gps/direction 0 0 -1
 /gps/pos/rot1 1 0 0
-/gps/pos/rot2 0 0.838670567945424 0.5446390350150271
-/gps/pos/centre 0.0 -3.817 2.935 mm
+/gps/pos/rot2 0 0.90631 0.42262
+/gps/pos/centre 0.0 -5.971 3.172 mm
 /run/beamOn 5
 /vis/enable
 /vis/viewer/flush

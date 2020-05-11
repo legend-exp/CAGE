@@ -7,19 +7,12 @@ This file is a "mother file" to insert other gdml file geometries into.
 This file itself contains a vacuum inside of a larger world. GDML Modules are inserted as physical volumes
 in the vacuum logical volume. See 'structure' section of this file to insert other geometries.
 
-As written here, the origin of the simulation (0, 0, 0) is identical to the rotation axis in real life. located inside the collimator, where the source is to be placed
-in the run macro. The collimator is placed inside the volume "sourceRotationVolume," so that it can be rotated independently
+As written here, the origin of the simulation (0, 0, 0) is identical to the rotation axis of the collimator in real life. This means the rotation angle in the simulation is identical to the rotation angle of the source in real life. The collimator is placed inside the volume "sourceRotationVolume," so that it can be rotated independently
 of the rest of the geometry to simulate different positions of the source, as will be in the case in the CAGE scanner.
 
-The rotation point/axis (0,0,0) in the simulation differs from the rotation axis in the real setup. This was done intentionally
-so that placing the source in the run macro at the correct rotation angle will be easy-- simply put it at the angle the collimator
-will be rotated, since it is at the center in the simulation. In real life, the center of rotation is axis 2, as illustrated
-in this elog: https://elog.legend-exp.org/UWScanner/135. This will introduce an offset in the location where the beam comes
-out of the collimator in the simulation-- in real life it will actually be closer to the detector. To correct for that, we offset
-the "z" position of the detector and all other components in the simulation (other than the collimator) up by r*cos(rotation_angle),
-where r=3.5 mm is the distance between the real rotation axis and the simulation rotation axis.
+In the simulations, the rotation axis of the source is the 'x-axis'. Depending on the rotation angle of the collimator and the point on the surface we want to scan, both the y-position of the "sourceRotationVolume" and it's rotation angle need to be changed in this gdml file. The position and rotation angle of the activity in the run macro must also be changed accordingly. Run '../source_placement.py' to determine both of these value.
 
-Distance from the top of the ICPC blank to the top of the nylon screw of the LMFE mount is approx. 4 mm: https://elog.legend-exp.org/UWScanner/148
+See these elogs for more diagrams and information: https://elog.legend-exp.org/UWScanner/159
 
 ##########################################
 
@@ -47,6 +40,9 @@ Distance from the top of the ICPC blank to the top of the nylon screw of the LMF
   <rotation name="source35" x="-35" unit="deg"/>
   <rotation name="source25" x="-25" unit="deg"/>
   <rotation name="source33" x="-33" unit="deg"/>
+  <rotation name="source16" x="-16.81" unit="deg"/>
+  <rotation name="source29" x="-29.55" unit="deg"/>
+
 
  </define>
 
@@ -83,8 +79,8 @@ Distance from the top of the ICPC blank to the top of the nylon screw of the LMF
 
    <physvol>
      <file name="./geometries/sourceRotationVolume.gdml"/>
-     <position name= "source_center" x="0.0" y="-1.91" z="0.0" unit="mm"/>
-     <rotationref ref="source33"/>
+     <position name= "source_center" x="0.0" y="-4.492" z="0.0" unit="mm"/>
+     <rotationref ref="source25"/>
    </physvol>
 
    <physvol>
