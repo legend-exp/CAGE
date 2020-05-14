@@ -14,8 +14,8 @@ matplotlib.rcParams['text.usetex'] = True
 
 def main():
 
-    filename = '../alpha/raw_out/newDet_sourceRotNorm_y6mm_ICPC_Pb_241Am_20000000.hdf5'
-    processed_filename = '../alpha/processed_out/processed_newDet_sourceRotNorm_y6mm_ICPC_Pb_241Am_20000000.hdf5'
+    filename = '../alpha/raw_out/newDet_sourceRot25_thetaDet65_y6mm_ICPC_Pb_241Am_20000000.hdf5'
+    processed_filename = '../alpha/processed_out/processed_newDet_sourceRot25_thetaDet65_y6mm_ICPC_Pb_241Am_20000000.hdf5'
 
     post_process(filename, processed_filename, source=False)
 

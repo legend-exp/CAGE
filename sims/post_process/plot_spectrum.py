@@ -26,8 +26,10 @@ def main():
 
 	# filename = '../alpha/raw_out/newDet_sourceRot33_ICPC_Pb_241Am_20000000.hdf5'
 
-	filename = '../alpha/raw_out/newDet_sourceRotNorm_y6mm_ICPC_Pb_241Am_20000000.hdf5'
+	# filename = '../alpha/raw_out/newDet_sourceRotNorm_y6mm_ICPC_Pb_241Am_20000000.hdf5'
 	processed_filename = '../alpha/processed_out/processed_newDet_sourceRotNorm_y6mm_ICPC_Pb_241Am_20000000.hdf5'
+
+	# processed_filename = '../alpha/processed_out/processed_newDet_sourceRot25_thetaDet65_y6mm_ICPC_Pb_241Am_20000000.hdf5'
 
 	# processed_filename = '../alpha/processed_out/processed_newDet_sourceRotNorm_y6mm_ICPC_Pb_241Am_20000000.hdf5'
 
@@ -37,8 +39,8 @@ def main():
 	# plotSpot(processed_filename, source=False, particle = 'all')
 	# ZplotSpot(filename)
 	# plot1DSpot(processed_filename, axis='y', particle='all')
-	plot2Dhist(processed_filename, nbins=500, plot_title='Normal incidence, 6mm', source=False, particle = 'all')
-	# plotDepth(processed_filename, source=False, particle = 'all')
+	# plot2Dhist(processed_filename, nbins=500, plot_title='65 deg incidence, 6mm', source=False, particle = 'all')
+	plotDepth(processed_filename, source=False, particle = 'all')
 	# plotContour(filename, source=False, particle = 'all')
 	# testFit(filename)
 
@@ -705,7 +707,7 @@ def plot1DSpot(filename, axis='x', particle = 'all', fit=True):
 	plt.setp(ax.get_yticklabels(), fontsize=14)
 	plt.xlim(-5,5)
 
-	plt.title('X-axis projection of spot-size. Gaussian KDE, %.2f bandwidth' % bw, fontsize=16)
+	plt.title('Y-axis projection of spot-size. Gaussian KDE, %.2f bandwidth' % bw, fontsize=16)
 
 	plt.show()
 
