@@ -27,9 +27,9 @@ def main():
 	# filename = '../alpha/raw_out/newDet_sourceRot33_ICPC_Pb_241Am_20000000.hdf5'
 
 	# filename = '../alpha/raw_out/newDet_sourceRotNorm_y6mm_ICPC_Pb_241Am_20000000.hdf5'
-	processed_filename = '../alpha/processed_out/processed_newDet_sourceRotNorm_y6mm_ICPC_Pb_241Am_20000000.hdf5'
+	# processed_filename = '../alpha/processed_out/processed_newDet_sourceRot25_thetaDet65_y14mm_ICPC_Pb_241Am_100000000.hdf5'
 
-	# processed_filename = '../alpha/processed_out/processed_newDet_sourceRot25_thetaDet65_y6mm_ICPC_Pb_241Am_20000000.hdf5'
+	processed_filename = '../alpha/processed_out/processed_newDet_sourceRot25_thetaDet65_y6mm_ICPC_Pb_241Am_20000000.hdf5'
 
 	# processed_filename = '../alpha/processed_out/processed_newDet_sourceRotNorm_y6mm_ICPC_Pb_241Am_20000000.hdf5'
 
@@ -38,11 +38,12 @@ def main():
 	# post_process(filename, processed_filename, source=False)
 	# plotSpot(processed_filename, source=False, particle = 'all')
 	# ZplotSpot(filename)
-	# plot1DSpot(processed_filename, axis='y', particle='all')
-	# plot2Dhist(processed_filename, nbins=500, plot_title='65 deg incidence, 6mm', source=False, particle = 'all')
-	plotDepth(processed_filename, source=False, particle = 'all')
-	# plotContour(filename, source=False, particle = 'all')
+	plot1DSpot(processed_filename, axis='y', particle='all')
+	# plot2Dhist(processed_filename, nbins=500, plot_title='65 deg incidence, 14 mm, $10^8$ primaries', source=False, particle = 'all')
+	# plotDepth(processed_filename, source=False, particle = 'all', plot_title='65 deg, 14mm, $10^8$ primaries')
+	# plotContour(processed_filename, source=False, particle = 'all')
 	# testFit(filename)
+	# getCounts(processed_filename)
 
 def post_process(filename, processed_filename, source=False):
 	print('Processing file: ', filename)
@@ -142,6 +143,12 @@ def kde2D(x, y, bandwidth=1., bins=100, optimize_bw=True):
 	zi = np.reshape(z, xi.shape)
 
 	return(xi, yi, zi, bw, score)
+
+def getCounts(processed_filename):
+	df = pd.read_hdf(processed_filename, keys='procdf')
+	energy = np.array(df['energy'])
+	counts = len(energy)
+	print('%f counts in PV' %counts)
 
 def plotHist(filename):
 	# df = pandarize(filename)
@@ -492,7 +499,7 @@ def old_plotContour(filename, source=False, particle = 'all'):
 		x_source = np.array(source_df['x'])
 		print(len(x_source))
 
-def plotDepth(filename, source=False, particle = 'all'):
+def plotDepth(filename, plot_title, source=False, particle = 'all'):
 
 	df = pd.read_hdf(filename, keys='procdf')
 
@@ -501,7 +508,6 @@ def plotDepth(filename, source=False, particle = 'all'):
 		y = np.array(df['y'])
 		z = np.array(df['z'])
 		energy = np.array(df['energy']*1000)
-		plot_title = 'Spot Size, $^{241}$Am 10$^7$ Primaries'
 
 	elif particle == 'alpha':
 		alpha_df = df.loc[df.energy > 5]
@@ -509,7 +515,6 @@ def plotDepth(filename, source=False, particle = 'all'):
 		y = np.array(alpha_df['y'])
 		z = np.array(alpha_df['z'])
 		energy = np.array(alpha_df['energy']*1000)
-		plot_title = 'Spot Size from $^{241}$Am, 10$^7$ Primaries, Energy $>$ 5 MeV'
 
 	elif particle == 'gamma':
 		gamma_df = df.loc[(df.energy > .04) & (df.energy < 0.08)]
@@ -517,27 +522,31 @@ def plotDepth(filename, source=False, particle = 'all'):
 		y = np.array(gamma_df['y'])
 		z = np.array(gamma_df['z'])
 		energy = np.array(gamma_df['energy']*1000)
-		plot_title = 'Spot Size from $^{241}$Am, 10$^7$ Primaries'
+
 
 	else:
 		print('specify particle type!')
 		exit()
 
+	z = z + 22.5 #make surface at 0 z depth
+
 
 	fig, ax = plt.subplots(figsize=(9,8))
-	plot_title = 'Spot Size from $^{241}$Am, 10$^7$ Primaries'
+	# plot_title = 'Spot Size from $^{241}$Am, 10$^7$ Primaries'
 	plt.scatter(y, z, c=energy, s=1, cmap='plasma', norm=LogNorm(10,6000))
 	# plt.scatter(x, y, c=energy, s=1, cmap='plasma')
 	cb = plt.colorbar()
 	cb.set_label("Energy (keV)", ha = 'right', va='center', rotation=270, fontsize=20)
 	cb.ax.tick_params(labelsize=18)
-	plt.xlim(5,7)
-	plt.ylim(-22.48,-22.54)
+	plt.xlim(-31,31)
+	# plt.ylim(-0.05,0.01)
+	# plt.xlim(8,21)
+	plt.ylim(-2.5,0.5)
 	ax.set_xlabel('y position (mm)', fontsize=20)
 	ax.set_ylabel('z position (mm)', fontsize=20)
 	plt.setp(ax.get_xticklabels(), fontsize=18)
 	plt.setp(ax.get_yticklabels(), fontsize=18)
-	plt.title(plot_title, fontsize=20)
+	plt.title('Depth for: ' + plot_title, fontsize=20)
 	plt.show()
 
 	if source==True:
