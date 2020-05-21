@@ -8,7 +8,7 @@
 #/physics_engine/tailor/MuonNuclear on
 
 ##Geometry File to run simulation with
-/g4simple/setDetectorGDML ./geometries/new_gscanner_241Am.gdml
+/g4simple/setDetectorGDML ./geometries/new_gscanner_241Am_y6_thetaDet65.gdml
 
 ##Specify output file
 /g4simple/setOutputFormat hdf5

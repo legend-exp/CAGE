@@ -16,7 +16,7 @@ def main():
     # set icpc=False if scanning a PPC (or other detector with no ditch)-- But note, all other dimensions must be updated first for the output to be correct!!
     # All dimensions in mm, angles in deg
 
-    positionCalc(y_final=14., theta_det=65.)
+    positionCalc(y_final=6., theta_det=45.)
     # maxRotation(min_clearance_toLMFE=5.0)
     # checkRotation(theta_det=45., min_clearance_toLMFE=5.0)
     # thetaCalc(y_final=14., icpc=True)
@@ -28,8 +28,8 @@ def positionCalc(y_final, theta_det, icpc=True):
 
     # First check that it's safe to rotate to this angle
     rotCheck = checkRotation(theta_det)
-    if rotCheck[0]==False:
-        exit()
+    # if rotCheck[0]==False:
+        # exit()
 
     ditch_depth = 2. # ditch depth for ICPC in mm
     rotAxis_toSource_height = 3.5 # height difference in mm from the rotation axis to where the activity is located

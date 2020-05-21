@@ -40,7 +40,7 @@
 /gps/direction 0 0 -1
 /gps/pos/rot1 1 0 0
 /gps/pos/rot2 0 0.90631 0.42262
-/gps/pos/centre 0.0 1.096 3.172 mm
+/gps/pos/centre 0.0 -5.971 3.172 mm 
 /run/beamOn 5
 /vis/enable
 /vis/viewer/flush
