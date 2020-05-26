@@ -14,27 +14,44 @@ import sys
 
 def main():
 
-    filename = '../alpha/raw_out/newDet_sourceRot25_thetaDet65_y14mm_ICPC_Pb_241Am_100000000.hdf5'
-    processed_filename = '../alpha/processed_out/processed_newDet_sourceRot25_thetaDet65_y14mm_ICPC_Pb_241Am_100000000.hdf5'
+    # filename = '../alpha/raw_out/newDet_sourceRot25_thetaDet65_y14mm_ICPC_Pb_241Am_100000000.hdf5'
+    # processed_filename = '../alpha/processed_out/processed_newDet_sourceRot25_thetaDet65_y14mm_ICPC_Pb_241Am_100000000.hdf5'
 
-    post_process(filename, processed_filename, source=False)
+    # post_process(filename, processed_filename)
+
+    filenames =['../alpha/raw_out/newDet_sourceRot15_thetaDet75_y6mm_ICPC_Pb_241Am_100000000.hdf5',
+                '../alpha/raw_out/newDet_sourceRot25_thetaDet65_y6mm_ICPC_Pb_241Am_100000000.hdf5',
+                '../alpha/raw_out/newDet_sourceRot35_thetaDet55_y6mm_ICPC_Pb_241Am_100000000.hdf5',
+                '../alpha/raw_out/newDet_sourceRot45_thetaDet45_y6mm_ICPC_Pb_241Am_100000000.hdf5',
+                '../alpha/raw_out/newDet_sourceRotNorm_y6mm_ICPC_Pb_241Am_100000000.hdf5']
+
+    processed_filenames =['../alpha/processed_out/processed_newDet_sourceRot15_thetaDet75_y6mm_ICPC_Pb_241Am_100000000.hdf5',
+                '../alpha/processed_out/processed_newDet_sourceRot25_thetaDet65_y6mm_ICPC_Pb_241Am_100000000.hdf5',
+                '../alpha/processed_out/processed_newDet_sourceRot35_thetaDet55_y6mm_ICPC_Pb_241Am_100000000.hdf5',
+                '../alpha/processed_out/processed_newDet_sourceRot45_thetaDet45_y6mm_ICPC_Pb_241Am_100000000.hdf5',
+                '../alpha/processed_out/processed_newDet_sourceRotNorm_y6mm_ICPC_Pb_241Am_100000000.hdf5']
+
+    for file in range(len(filenames)):
+        post_process(filenames[file], processed_filename[file])
 
 
-def post_process(filename, processed_filename, source=False):
+
+
+def post_process(filename, processed_filename, hits=False):
 	print('Processing file: ', filename)
-	if source==True:
-		procdf, sourcePV_df = pandarize(filename, source)
+	if hits==True:
+		procdf, sourcePV_df = pandarize(filename, source, hits=True)
 		# df.to_hdf('../alpha/processed_out/processed_newDet_test.hdf5', key='procdf', mode='w')
 		procdf.to_hdf(processed_filename, key='procdf', mode='w')
 		sourcePV_df.to_hdf(processed_filename, key='sourcePV_df', mode='w')
 	else:
-		procdf = pandarize(filename, source)
+		procdf = pandarize(filename, source, hits=False)
 		# df.to_hdf('../alpha/processed_out/processed_newDet_test.hdf5', key='procdf', mode='w')
 		procdf.to_hdf(processed_filename, key='procdf', mode='w')
 
 	print('File processed. Output saved to: ', processed_filename)
 
-def pandarize(filename, source=False):
+def pandarize(filename, hits=False):
 	# have to open the input file with h5py (g4 doesn't write pandas-ready hdf5)
 	g4sfile = h5py.File(filename, 'r')
 	g4sntuple = g4sfile['default_ntuples']['g4sntuple']
@@ -68,9 +85,51 @@ def pandarize(filename, source=False):
 	# print(type(g4sntuple['x']['pages']))
 	# exit()
 
-	# apply E cut / detID cut and sum Edeps for each event using loc, groupby, and sum
-	# write directly into output dataframe
-	detector_hits = g4sdf.loc[(g4sdf.Edep>0)&(g4sdf.volID==1)]
+
+
+    if hits==True:
+        # apply E cut / detID cut and sum Edeps for each event using loc, groupby, and sum
+    	# write directly into output dataframe
+        detector_hits = g4sdf.loc[(g4sdf.Edep>1.e-6)&(g4sdf.volID==1)]
+        eventArr = []
+        for eventNum in detector_hits['event']:
+            if eventNum not in eventArr:
+                eventArr.append(eventNum)
+        energies = []
+        r_arr = []
+        phi_arr = []
+        z_arr= []
+
+        for eventNum in eventArr:
+            temp_df = detector_hits.loc[(detector_hits.event==eventNum)]
+            energies.append(np.array(temp_df['Edep']))
+            x = (np.array(temp_df['x']))
+            y = (np.array(temp_df['y']))
+            z = (np.array(temp_df['z']))
+            r = np.sqrt(x**2+y**2)
+            phi = np.arctan(y/x)
+            r_arr.append(r)
+            phi_arr.append(phi)
+            z_arr.append(z)
+
+        energies = np.array(energies)
+        phi_arr = np.array(phi_arr)
+        r_arr = np.array(r_arr)
+        z_arr = np.array(z_arr)
+
+        new_eventNum_arr = np.arange(len(eventArr))
+        pos_df = pd.DataFrame(new_eventNum_arr, columns=['event'])
+        pos_df = pos_df.join(pd.DataFrame(energies, columns=['energy']))
+        pos_df = pos_df.join(pd.DataFrame(r_arr, columns=['r']))
+        pos_df = pos_df.join(pd.DataFrame(phi_arr, columns=['phi']))
+        pos_df = pos_df.join(pd.DataFrame(z_arr, columns=['z']))
+
+        return pos_df
+
+
+    detector_hits = g4sdf.loc[(g4sdf.Edep>1.e-6)&(g4sdf.volID==1)]
+
+
 
 	detector_hits['x_weights'] = detector_hits['x'] * detector_hits['Edep']
 	detector_hits['y_weights'] = detector_hits['y'] * detector_hits['Edep']
@@ -90,31 +149,7 @@ def pandarize(filename, source=False):
 	del procdf['y_weights']
 	del procdf['z_weights']
 
-
-	#Do same as above with PV that defines where the source should be if set source PV in macro
-
-	if source==True:
-		source_hits = g4sdf.loc[(g4sdf.Edep>0)&(g4sdf.volID==2)]
-
-		source_hits['x_weights'] = source_hits['x'] * source_hits['Edep']
-		source_hits['y_weights'] = source_hits['y'] * source_hits['Edep']
-		source_hits['z_weights'] = source_hits['z'] * source_hits['Edep']
-
-		sourcePV_df= pd.DataFrame(source_hits.groupby(['event','volID'], as_index=False)['Edep','x_weights','y_weights', 'z_weights', 'pid'].sum())
-		sourcePV_df = sourcePV_df.rename(columns={'Edep':'energy'})
-
-		sourcePV_df['x'] = sourcePV_df['x_weights']/sourcePV_df['energy']
-		sourcePV_df['y'] = sourcePV_df['y_weights']/sourcePV_df['energy']
-		sourcePV_df['z'] = sourcePV_df['z_weights']/sourcePV_df['energy']
-
-		del sourcePV_df['x_weights']
-		del sourcePV_df['y_weights']
-		del sourcePV_df['z_weights']
-
-		return procdf, sourcePV_df
-
-	else:
-		return procdf
+    return procdf
 
 
 if __name__ == '__main__':
