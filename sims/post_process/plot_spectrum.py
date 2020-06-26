@@ -29,17 +29,21 @@ def main():
 	# filename = '../alpha/raw_out/newDet_sourceRotNorm_y6mm_ICPC_Pb_241Am_20000000.hdf5'
 	# processed_filename = '../alpha/processed_out/processed_newDet_sourceRot25_thetaDet65_y14mm_ICPC_Pb_241Am_100000000.hdf5'
 
-	processed_filename = '../alpha/processed_out/processed_newDet_sourceRot25_thetaDet65_y6mm_ICPC_Pb_241Am_20000000.hdf5'
+	processed_filename = '../alpha/processed_out/processed_newDet_sourceRotNorm_y6mm_ICPC_Pb_241Am_100000000.hdf5'
 
 	# processed_filename = '../alpha/processed_out/processed_newDet_sourceRotNorm_y6mm_ICPC_Pb_241Am_20000000.hdf5'
 
 
+
+
+
 	# plotHist(filename)
 	# post_process(filename, processed_filename, source=False)
-	# plotSpot(processed_filename, source=False, particle = 'all')
+	# plotSpot(processed_filename, source=False, plot_title = 'Spot Size from $^{241}$Am (10$^8$ Primaries) \nnormal incidence at 6 mm', particle = 'all')
 	# ZplotSpot(filename)
+	# spot_curve()
 	plot1DSpot(processed_filename, axis='y', particle='all')
-	# plot2Dhist(processed_filename, nbins=500, plot_title='65 deg incidence, 14 mm, $10^8$ primaries', source=False, particle = 'all')
+	# plot2Dhist(processed_filename, nbins=500, plot_title = 'Spot Size from $^{241}$Am (10$^8$ Primaries) \nnormal incidence at 6 mm', source=False, particle = 'all')
 	# plotDepth(processed_filename, source=False, particle = 'all', plot_title='65 deg, 14mm, $10^8$ primaries')
 	# plotContour(processed_filename, source=False, particle = 'all')
 	# testFit(filename)
@@ -265,14 +269,24 @@ def plot2Dhist(filename, nbins=100, plot_title = '', source=False, particle = 'a
 
 	# hist = ax.hist2d(x, y, bins=nbins, cmap='plasma', normed=True)
 	hist = ax.hist2d(x, y, bins=nbins, cmap='plasma', norm=LogNorm())
-	plt.colorbar(hist[3], ax=ax)
+	cb = plt.colorbar(hist[3], ax=ax)
+	cb.set_label("Counts", ha = 'right', va='bottom', rotation=270, fontsize=28)
 	# plt.xlim(-40,40)
 	# plt.ylim(-40,40)
-	ax.set_xlabel('x position (mm)', fontsize=16)
-	ax.set_ylabel('y position (mm)', fontsize=16)
-	plt.setp(ax.get_xticklabels(), fontsize=14)
-	plt.setp(ax.get_yticklabels(), fontsize=14)
-	plt.title(plot_title, fontsize=16)
+	# ax.set_xlabel('x position (mm)', fontsize=16)
+	# ax.set_ylabel('y position (mm)', fontsize=16)
+	# plt.setp(ax.get_xticklabels(), fontsize=14)
+	# plt.setp(ax.get_yticklabels(), fontsize=14)
+	# plt.title(plot_title, fontsize=16)
+
+	cb.ax.tick_params(labelsize=20)
+	plt.xlim(-40,40)
+	plt.ylim(-40,40)
+	ax.set_xlabel('x position (mm)', fontsize=28)
+	ax.set_ylabel('y position (mm)', fontsize=28)
+	plt.setp(ax.get_xticklabels(), fontsize=20)
+	plt.setp(ax.get_yticklabels(), fontsize=20)
+	plt.title(plot_title, fontsize=32)
 	plt.show()
 
 def plotContour(filename, source=False, particle = 'all'):
@@ -502,6 +516,8 @@ def old_plotContour(filename, source=False, particle = 'all'):
 def plotDepth(filename, plot_title, source=False, particle = 'all'):
 
 	df = pd.read_hdf(filename, keys='procdf')
+	df = df.loc[(df.x > -0.25) & (df.x < 0.25) & df.energy > 0.01]
+
 
 	if particle == 'all':
 		x = np.array(df['x'])
@@ -555,7 +571,7 @@ def plotDepth(filename, plot_title, source=False, particle = 'all'):
 		x_source = np.array(source_df['x'])
 		print(len(x_source))
 
-def plotSpot(filename, source=False, particle = 'all'):
+def plotSpot(filename, source=False, plot_title = '', particle = 'all'):
 
 	df = pd.read_hdf(filename, keys='procdf')
 
@@ -564,7 +580,7 @@ def plotSpot(filename, source=False, particle = 'all'):
 		y = np.array(df['y'])
 		z = np.array(df['z'])
 		energy = np.array(df['energy']*1000)
-		plot_title = 'Spot Size, $^{241}$Am 10$^7$ Primaries'
+		# plot_title = 'Spot Size, $^{241}$Am 10$^7$ Primaries'
 
 	elif particle == 'alpha':
 		alpha_df = df.loc[df.energy > 5]
@@ -572,7 +588,7 @@ def plotSpot(filename, source=False, particle = 'all'):
 		y = np.array(alpha_df['y'])
 		z = np.array(alpha_df['z'])
 		energy = np.array(alpha_df['energy']*1000)
-		plot_title = 'Spot Size from $^{241}$Am, 10$^7$ Primaries, Energy $>$ 5 MeV'
+		# plot_title = 'Spot Size from $^{241}$Am, 10$^7$ Primaries, Energy $>$ 5 MeV'
 
 	elif particle == 'gamma':
 		gamma_df = df.loc[(df.energy > .04) & (df.energy < 0.08)]
@@ -580,27 +596,27 @@ def plotSpot(filename, source=False, particle = 'all'):
 		y = np.array(gamma_df['y'])
 		z = np.array(gamma_df['z'])
 		energy = np.array(gamma_df['energy']*1000)
-		plot_title = 'Spot Size from $^{241}$Am, 10$^7$ Primaries'
+		# plot_title = 'Spot Size from $^{241}$Am, 10$^7$ Primaries'
 
 	else:
 		print('specify particle type!')
 		exit()
 
 
-	fig, ax = plt.subplots(figsize=(9,8))
-	plot_title = 'Spot Size from $^{241}$Am, 10$^7$ Primaries'
+	fig, ax = plt.subplots(figsize=(11,9))
+	# plot_title = 'Spot Size from $^{241}$Am, 10$^7$ Primaries'
 	plt.scatter(x, y, c=energy, s=1, cmap='plasma', norm=LogNorm(10,6000))
 	# plt.scatter(x, y, c=energy, s=1, cmap='plasma')
 	cb = plt.colorbar()
-	cb.set_label("Energy (keV)", ha = 'right', va='center', rotation=270, fontsize=20)
-	cb.ax.tick_params(labelsize=18)
-	plt.xlim(-10,10)
-	plt.ylim(-10,10)
-	ax.set_xlabel('x position (mm)', fontsize=20)
-	ax.set_ylabel('y position (mm)', fontsize=20)
-	plt.setp(ax.get_xticklabels(), fontsize=18)
-	plt.setp(ax.get_yticklabels(), fontsize=18)
-	plt.title(plot_title, fontsize=20)
+	cb.set_label("Energy (keV)", ha = 'right', va='bottom', rotation=270, fontsize=28)
+	cb.ax.tick_params(labelsize=20)
+	plt.xlim(-40,40)
+	plt.ylim(-40,40)
+	ax.set_xlabel('x position (mm)', fontsize=28)
+	ax.set_ylabel('y position (mm)', fontsize=28)
+	plt.setp(ax.get_xticklabels(), fontsize=20)
+	plt.setp(ax.get_yticklabels(), fontsize=20)
+	plt.title(plot_title, fontsize=32)
 	plt.show()
 
 	if source==True:
@@ -691,117 +707,55 @@ def plot1DSpot(filename, axis='x', particle = 'all', fit=True):
 
 	sigma_uncertainty = perr[2]
 	print('sigma = ', sigma, '+/- ', sigma_uncertainty)
-	# sigma_percentUncertainty = (sigma_uncertainty/sigma)*100
-	# print(sigma_percentUncertainty)
+	sigma_percentUncertainty = (sigma_uncertainty/sigma)*100
+	print('sigma percent uncertainty ', sigma_percentUncertainty)
+
+	print('FWHM = ', fwhm, '+/- ', 2.355*sigma_uncertainty)
 
 	print('FWHM = ', fwhm,  '; array FWHM = ', array_fwhm)
 
 	fig, ax = plt.subplots(figsize=(10,8))
 	# ax.figure(figsize=(10,10))
 
-	ax.hist(x, bins = 100, density=True, color='grey', alpha=0.75, label = 'Normalized histogram of data: %.f entries \n 100 bins' % len(x))
+	ax.hist(x, bins = 100, density=True, color='grey', alpha=0.75, label = 'Normalized histogram \nof data: %.f entries \n100 bins' % len(x))
 	# ax.hist(xfit, bins = bins, label = 'Data: %.f entries \n 0.25 mm bins' % len(xfit))
 
-	ax.plot(x1, y1, 'k-', linewidth=3, label='Gaussian KDE of data: %.2f bandwidth' % bw)
+	# ax.plot(x1, y1, 'k-', linewidth=3, label='Gaussian KDE of data: %.2f bandwidth' % bw)
 
-	ax.plot(x1, gauss_fit_func(x1, *popt), 'r--', linewidth = 2, label='Gaussian Fit of KDE: FWHM = %.2f mm' % fwhm)
-	legend = ax.legend(loc='upper right', shadow = False, fontsize='12')
+	# ax.plot(x1, gauss_fit_func(x1, *popt), 'r--', linewidth = 2, label='Gaussian Fit of KDE: FWHM = %.2f mm' % fwhm)
+	ax.plot(x1, gauss_fit_func(x1, *popt), 'r--', linewidth = 2, label='Gaussian Fit: \nFWHM = %.2f mm' % fwhm)
+	legend = ax.legend(loc='upper right', shadow = False, fontsize='20')
 
 
 
-	ax.set_xlabel('x position (mm)', fontsize=16)
+	ax.set_xlabel('y position (mm)', fontsize=28)
 
-	plt.setp(ax.get_xticklabels(), fontsize=14)
+	plt.setp(ax.get_xticklabels(), fontsize=20)
 
-	plt.setp(ax.get_yticklabels(), fontsize=14)
+	plt.setp(ax.get_yticklabels(), fontsize=20)
 	plt.xlim(-5,5)
 
-	plt.title('Y-axis projection of spot-size. Gaussian KDE, %.2f bandwidth' % bw, fontsize=16)
+	# plt.title('Y-axis projection of spot-size. Gaussian KDE, %.2f bandwidth' % bw, fontsize=16)
+	plt.title('Y-axis projection of spot-size with Gaussian fit', fontsize=35)
 
 	plt.show()
 
+def spot_curve():
+	angles = [90, 75, 65, 55, 45]
+	spotSize = [1.98, 2.08, 2.37, 2.87, 3.79]
+	uncertainty = [0.00569, 0.00570, 0.0066, 0.00784, 0.0118]
 
-def pandarize(filename, source=False):
-	# have to open the input file with h5py (g4 doesn't write pandas-ready hdf5)
-	g4sfile = h5py.File(filename, 'r')
-	g4sntuple = g4sfile['default_ntuples']['g4sntuple']
+	fig, ax = plt.subplots(figsize=(6,5))
 
-	# build a pandas DataFrame from the hdf5 datasets we will use
-	# list(g4sfile['default_ntuples']['g4sntuple'].keys())=>['Edep','KE','columns','entries','event',
-	# 'forms','iRep','lx','ly','lz','nEvents','names','parentID','pid','step','t','trackID','volID','x','y','z']
+	plt.plot(angles, spotSize, '.r')
 
-	g4sdf = pd.DataFrame(np.array(g4sntuple['event']['pages']), columns=['event'])
-	g4sdf = g4sdf.join(pd.DataFrame(np.array(g4sntuple['step']['pages']), columns=['step']),
-	                   lsuffix = '_caller', rsuffix = '_other')
-	g4sdf = g4sdf.join(pd.DataFrame(np.array(g4sntuple['Edep']['pages']), columns=['Edep']),
-	                   lsuffix = '_caller', rsuffix = '_other')
-	g4sdf = g4sdf.join(pd.DataFrame(np.array(g4sntuple['volID']['pages']),
-	                   columns=['volID']), lsuffix = '_caller', rsuffix = '_other')
-	g4sdf = g4sdf.join(pd.DataFrame(np.array(g4sntuple['iRep']['pages']),
-	                   columns=['iRep']), lsuffix = '_caller', rsuffix = '_other')
-	g4sdf = g4sdf.join(pd.DataFrame(np.array(g4sntuple['pid']['pages']),
-                       columns=['pid']), lsuffix = '_caller', rsuffix = '_other')
-	g4sdf = g4sdf.join(pd.DataFrame(np.array(g4sntuple['x']['pages']),
-                       columns=['x']), lsuffix = '_caller', rsuffix = '_other')
-	g4sdf = g4sdf.join(pd.DataFrame(np.array(g4sntuple['y']['pages']),
-                       columns=['y']), lsuffix = '_caller', rsuffix = '_other')
-	g4sdf = g4sdf.join(pd.DataFrame(np.array(g4sntuple['z']['pages']),
-                       columns=['z']), lsuffix = '_caller', rsuffix = '_other')
+	plt.xlabel('Theta Det (deg)', fontsize=16)
+	plt.ylabel('Spot size (mm)', fontsize=16)
+	plt.setp(ax.get_xticklabels(), fontsize=14)
+	plt.setp(ax.get_yticklabels(), fontsize=14)
+	plt.title('Y-axis projection of spot-size for various source angles', fontsize=16)
 
-
-	# print(g4sdf)
-	# xarr = np.array(g4sdf['volID'])
-	# print(xarr[:])
-	# print(type(g4sntuple['x']['pages']))
-	# exit()
-
-	# apply E cut / detID cut and sum Edeps for each event using loc, groupby, and sum
-	# write directly into output dataframe
-	detector_hits = g4sdf.loc[(g4sdf.Edep>0)&(g4sdf.volID==1)]
-
-	detector_hits['x_weights'] = detector_hits['x'] * detector_hits['Edep']
-	detector_hits['y_weights'] = detector_hits['y'] * detector_hits['Edep']
-	detector_hits['z_weights'] = detector_hits['z'] * detector_hits['Edep']
-
-	procdf= pd.DataFrame(detector_hits.groupby(['event','volID'], as_index=False)['Edep','x_weights','y_weights', 'z_weights', 'pid'].sum())
-
-    # rename the summed energy depositions for each step within the event to "energy". This is analogous to the event energy you'd see in your detector
-	procdf = procdf.rename(columns={'Edep':'energy'})
-
-
-	procdf['x'] = procdf['x_weights']/procdf['energy']
-	procdf['y'] = procdf['y_weights']/procdf['energy']
-	procdf['z'] = procdf['z_weights']/procdf['energy']
-
-	del procdf['x_weights']
-	del procdf['y_weights']
-	del procdf['z_weights']
-
-
-	#Do same as above with PV that defines where the source should be if set source PV in macro
-
-	if source==True:
-		source_hits = g4sdf.loc[(g4sdf.Edep>0)&(g4sdf.volID==2)]
-
-		source_hits['x_weights'] = source_hits['x'] * source_hits['Edep']
-		source_hits['y_weights'] = source_hits['y'] * source_hits['Edep']
-		source_hits['z_weights'] = source_hits['z'] * source_hits['Edep']
-
-		sourcePV_df= pd.DataFrame(source_hits.groupby(['event','volID'], as_index=False)['Edep','x_weights','y_weights', 'z_weights', 'pid'].sum())
-		sourcePV_df = sourcePV_df.rename(columns={'Edep':'energy'})
-
-		sourcePV_df['x'] = sourcePV_df['x_weights']/sourcePV_df['energy']
-		sourcePV_df['y'] = sourcePV_df['y_weights']/sourcePV_df['energy']
-		sourcePV_df['z'] = sourcePV_df['z_weights']/sourcePV_df['energy']
-
-		del sourcePV_df['x_weights']
-		del sourcePV_df['y_weights']
-		del sourcePV_df['z_weights']
-
-		return procdf, sourcePV_df
-
-	else:
-		return procdf
+	plt.show()
 
 
 def get_hist(np_arr, bins=None, range=None, dx=None, wts=None):

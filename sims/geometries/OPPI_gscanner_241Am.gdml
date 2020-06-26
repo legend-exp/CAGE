@@ -65,13 +65,13 @@ See these elogs for more diagrams and information: https://elog.legend-exp.org/U
    <physvol>
      <file name="./geometries/sourceRotationVolume.gdml"/>
      <position name= "source_center" x="0.0" y="0.0" z="0.0" unit="mm"/>
-     <rotation name="source25" x="-25.00" unit="deg"/> 
+     <rotation name="identity" x="0.00" unit="deg"/>
    </physvol>
 
    <physvol>
-     <file name="./geometries/PPM_Detector.gdml"/>
-     <position name= "PPM_center" x="0" y="0" z="-65.7" unit="mm"/>
-     <rotation name="PPM_Rotation" x="0" y="0" z="0" unit="deg"/>
+     <file name="./geometries/OPPI1_Detector.gdml"/>
+     <position name= "OPPI_center" x="0" y="0" z="-50.5" unit="mm"/>
+     <rotation name="OPPI_Rotation" x="0" y="0" z="0" unit="deg"/>
    </physvol>
 
    <physvol>
@@ -81,7 +81,7 @@ See these elogs for more diagrams and information: https://elog.legend-exp.org/U
    </physvol>
    <physvol>
      <file name="./geometries/Cold_Plate.gdml"/>
-     <position name="Cold_Plate_Position" x="0" y="0" z="-121.6" unit="mm"/>
+     <position name="Cold_Plate_Position" x="0" y="0" z="-85.7" unit="mm"/>
      <rotationref ref="identity"/>
    </physvol>
    <!-- <physvol>
@@ -91,7 +91,7 @@ See these elogs for more diagrams and information: https://elog.legend-exp.org/U
    </physvol> -->
    <physvol>
      <file name="./geometries/Top_Hat.gdml"/>
-     <position name="Top_Hat_Position" x="0" y="0" z="-28.85" unit="mm"/>
+     <position name="Top_Hat_Position" x="0" y="0" z="9.55" unit="mm"/>
      <rotationref ref="identity"/>
    </physvol>
    <!-- <physvol>
