@@ -17,14 +17,18 @@ def main():
     # filename = '../alpha/raw_out/newDet_sourceRot25_thetaDet65_y14mm_ICPC_Pb_241Am_100000000.hdf5'
     # processed_filename = '../alpha/processed_out/processed_newDet_sourceRot25_thetaDet65_y14mm_ICPC_Pb_241Am_100000000.hdf5'
 
+    # raw_dir = '../alpha/raw_out/'
+    # processed_dir = '../alpha/processed_out/'
+    # base_filenames = ['test.hdf5']
+
     # post_process(filename, processed_filename)
 
     raw_dir = '../alpha/raw_out/oppi/'
     processed_dir = '../alpha/processed_out/oppi/'
-
     base_filenames =['oppi_y19mm_norm_241Am_100000000.hdf5', 'oppi_y22mm_norm_241Am_100000000.hdf5', 'oppi_y25mm_norm_241Am_100000000.hdf5', 'oppi_y28mm_norm_241Am_100000000.hdf5', 'oppi_y31mm_norm_241Am_100000000.hdf5']
 
-    for file in range(len(filenames)):
+
+    for file in range(len(base_filenames)):
         post_process(raw_dir, processed_dir, base_filenames[file])
 
 
@@ -34,17 +38,17 @@ def post_process(raw_dir, processed_dir, base_filename, hits=False):
     print('Processing file: ', filename)
     print(processed_filename)
     exit()
-	if hits==True:
-		procdf, pos_df = pandarize(filename, hits=True)
-		# df.to_hdf('../alpha/processed_out/processed_newDet_test.hdf5', key='procdf', mode='w')
-		procdf.to_hdf(processed_filename, key='procdf', mode='w')
-		pos_df.to_hdf(processed_filename, key='pos_df', mode='w')
-	else:
-		procdf = pandarize(filename, hits=False)
-		# df.to_hdf('../alpha/processed_out/processed_newDet_test.hdf5', key='procdf', mode='w')
-		procdf.to_hdf(processed_filename, key='procdf', mode='w')
+    if hits==True:
+        procdf, pos_df = pandarize(filename, hits=True)
+        # df.to_hdf('../alpha/processed_out/processed_newDet_test.hdf5', key='procdf', mode='w')
+        procdf.to_hdf(processed_filename, key='procdf', mode='w')
+        pos_df.to_hdf(processed_filename, key='pos_df', mode='w')
+    else:
+        procdf = pandarize(filename, hits=False)
+        # df.to_hdf('../alpha/processed_out/processed_newDet_test.hdf5', key='procdf', mode='w')
+        procdf.to_hdf(processed_filename, key='procdf', mode='w')
 
-	print('File processed. Output saved to: ', processed_filename)
+    print('File processed. Output saved to: ', processed_filename)
 
 
 def pandarize(filename, hits=False):
