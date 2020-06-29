@@ -19,24 +19,21 @@ def main():
 
     # post_process(filename, processed_filename)
 
-    filenames =['../alpha/raw_out/newDet_sourceRot15_thetaDet75_y6mm_ICPC_Pb_241Am_100000000.hdf5',
-                '../alpha/raw_out/newDet_sourceRot25_thetaDet65_y6mm_ICPC_Pb_241Am_100000000.hdf5',
-                '../alpha/raw_out/newDet_sourceRot35_thetaDet55_y6mm_ICPC_Pb_241Am_100000000.hdf5',
-                '../alpha/raw_out/newDet_sourceRot45_thetaDet45_y6mm_ICPC_Pb_241Am_100000000.hdf5',
-                '../alpha/raw_out/newDet_sourceRotNorm_y6mm_ICPC_Pb_241Am_100000000.hdf5']
+    raw_dir = '../alpha/raw_out/oppi/'
+    processed_dir = '../alpha/processed_out/oppi/'
 
-    processed_filenames =['../alpha/processed_out/processed_newDet_sourceRot15_thetaDet75_y6mm_ICPC_Pb_241Am_100000000.hdf5',
-                '../alpha/processed_out/processed_newDet_sourceRot25_thetaDet65_y6mm_ICPC_Pb_241Am_100000000.hdf5',
-                '../alpha/processed_out/processed_newDet_sourceRot35_thetaDet55_y6mm_ICPC_Pb_241Am_100000000.hdf5',
-                '../alpha/processed_out/processed_newDet_sourceRot45_thetaDet45_y6mm_ICPC_Pb_241Am_100000000.hdf5',
-                '../alpha/processed_out/processed_newDet_sourceRotNorm_y6mm_ICPC_Pb_241Am_100000000.hdf5']
+    base_filenames =['oppi_y19mm_norm_241Am_100000000.hdf5', 'oppi_y22mm_norm_241Am_100000000.hdf5', 'oppi_y25mm_norm_241Am_100000000.hdf5', 'oppi_y28mm_norm_241Am_100000000.hdf5', 'oppi_y31mm_norm_241Am_100000000.hdf5']
 
     for file in range(len(filenames)):
-        post_process(filenames[file], processed_filenames[file])
+        post_process(raw_dir, processed_dir, base_filenames[file])
 
 
-def post_process(filename, processed_filename, hits=False):
-	print('Processing file: ', filename)
+def post_process(raw_dir, processed_dir, base_filename, hits=False):
+    filename = raw_dir+base_filename
+    processed_filename = processed_dir+'processed_'+base_filename
+    print('Processing file: ', filename)
+    print(processed_filename)
+    exit()
 	if hits==True:
 		procdf, pos_df = pandarize(filename, hits=True)
 		# df.to_hdf('../alpha/processed_out/processed_newDet_test.hdf5', key='procdf', mode='w')
