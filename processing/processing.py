@@ -91,7 +91,7 @@ def daq_to_raw(ds, overwrite=False, nevt=np.inf, v=False, test=False):
 
         # new lh5 version
         daq_to_raw(daq_file, raw_filename=raw_file, run=run, chan_list=None,
-                   prefix=ds.rawpre, n_max=nevt, verbose=False, output_dir=ds.raw_dir,
+                   prefix=ds.rawpre, n_max=nevt, verbose=v, output_dir=ds.raw_dir,
                    overwrite=overwrite, config=ds.config)
 
 
@@ -117,11 +117,21 @@ def raw_to_dsp(ds, overwrite=False, nevt=None, test=False, verbose=2, block=8,
             continue
 
         # new LH5 version
+<<<<<<< HEAD
         lh5_in = lh5.Store()
         data = lh5_in.read_object("/ORSIS3302DecoderForEnergy", raw_file)
+=======
+        f_lh5 = lh5.Store()
+        data = f_lh5.read_object("/ORSIS3302DecoderForEnergy", raw_file)
+>>>>>>> c1491ba34ae672aea7b56a9a7f3054b2ef680e48
 
         wf_in = data['waveform']['values'].nda
         dt = data['waveform']['dt'].nda[0] * unit_parser.parse_unit(data['waveform']['dt'].attrs['units'])
+
+        # Parameters for DCR calculation
+        dcr_trap_int = 200
+        dcr_trap_flat = 1000
+        dcr_trap_startSample = 1200
 
         # Set up processing chain
         proc = ProcessingChain(block_width=block, clock_unit=dt, verbosity=verbose)
@@ -130,36 +140,48 @@ def raw_to_dsp(ds, overwrite=False, nevt=None, test=False, verbose=2, block=8,
         proc.add_processor(mean_stdev, "wf[0:1000]", "bl", "bl_sig")
         proc.add_processor(np.subtract, "wf", "bl", "wf_blsub")
         proc.add_processor(pole_zero, "wf_blsub", 70*us, "wf_pz")
+<<<<<<< HEAD
         proc.add_processor(trap_filter, "wf_pz", 10*us, 5*us, "wf_trap")
         proc.add_processor(asymTrapFilter, "wf_pz", 10*us, 5*us, 10*us, "wf_atrap")
         proc.add_processor(np.amax, "wf_trap", 1, "trapmax", signature='(n),()->()', types=['fi->f'])
         proc.add_processor(np.amax, "wf_atrap", 1, "atrapE", signature='(n),()->()', types=['fi->f'])
         proc.add_processor(np.divide, "trapmax", 10*us, "trapE")
         # proc.add_processor(np.divide, "atrapmax", 10*us, "atrapE")
+=======
+        proc.add_processor(trap_norm, "wf_pz", 10*us, 5*us, "wf_trap")
+        proc.add_processor(np.amax, "wf_trap", 1, "trapE", signature='(n),()->()', types=['fi->f'])
+>>>>>>> c1491ba34ae672aea7b56a9a7f3054b2ef680e48
         proc.add_processor(avg_current, "wf_pz", 10, "curr")
         proc.add_processor(np.amax, "curr", 1, "A_10", signature='(n),()->()', types=['fi->f'])
         proc.add_processor(np.divide, "A_10", "trapE", "AoE")
+        proc.add_processor(trap_pickoff, "wf_pz", dcr_trap_int, dcr_trap_flat, dcr_trap_startSample, "dcr")
 
         # Set up the LH5 output
-        lh5_out = io.LH5Table(size=proc._buffer_len)
-        lh5_out.add_field("trapE", io.LH5Array(proc.get_output_buffer("trapE"),
+        lh5_out = lh5.Table(size=proc._buffer_len)
+        lh5_out.add_field("trapE", lh5.Array(proc.get_output_buffer("trapE"),
                                                attrs={"units":"ADC"}))
+<<<<<<< HEAD
         lh5_out.add_field("atrapE", io.LH5Array(proc.get_output_buffer("atrapE"),
                                                attrs={"units":"ADC"}))
         lh5_out.add_field("bl", io.LH5Array(proc.get_output_buffer("bl"),
+=======
+        lh5_out.add_field("bl", lh5.Array(proc.get_output_buffer("bl"),
+>>>>>>> c1491ba34ae672aea7b56a9a7f3054b2ef680e48
                                             attrs={"units":"ADC"}))
-        lh5_out.add_field("bl_sig", io.LH5Array(proc.get_output_buffer("bl_sig"),
+        lh5_out.add_field("bl_sig", lh5.Array(proc.get_output_buffer("bl_sig"),
                                                 attrs={"units":"ADC"}))
-        lh5_out.add_field("A", io.LH5Array(proc.get_output_buffer("A_10"),
+        lh5_out.add_field("A", lh5.Array(proc.get_output_buffer("A_10"),
                                            attrs={"units":"ADC"}))
-        lh5_out.add_field("AoE", io.LH5Array(proc.get_output_buffer("AoE"),
+        lh5_out.add_field("AoE", lh5.Array(proc.get_output_buffer("AoE"),
+                                             attrs={"units":"ADC"}))
+        lh5_out.add_field("dcr", lh5.Array(proc.get_output_buffer("dcr"),
                                              attrs={"units":"ADC"}))
 
         print("Processing:\n",proc)
         proc.execute()
 
         print("Writing to: ", dsp_file)
-        lh5.write_object(lh5_out, "data", dsp_file)
+        f_lh5.write_object(lh5_out, "data", dsp_file)
 
 
 

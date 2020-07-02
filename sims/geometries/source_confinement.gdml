@@ -3,7 +3,8 @@
 
 ##########################################
 
-<!-- this disk is meant to serve the purpose of confining the Am source is simulations modeling LANL's x-ray fluorescence geometry -->
+# This is a vacuum volume defining the region where the 241Am will later be confined to in the run macro. Based on the actual source below
+# see page 2 of https://www.ezag.com/fileadmin/ezag/user-uploads/isotopes/isotopes/Isotrak/isotrak-pdf/Product_literature/EZN/04_section04_alpha_spectrometry_sources.pdf
 
 ##########################################
 
@@ -13,30 +14,10 @@
   <constant name="PI" value="1.*pi"/>
   <constant name="TWOPI" value="2.*pi"/>
 
-  <quantity name="source_radius" type="length" value="3.81" unit="mm"/>
-  <quantity name="source_thickness" type="length" value="0.5" unit="mm"/>
+  <quantity name="source_radius" type="length" value="7./2" unit="mm"/>
+  <quantity name="source_thickness" type="length" value="0.001" unit="mm"/>
 
  </define>
-
-##########################################
-
- <materials>
-
-  <element name="hydrogen" formula="H"  Z="1.">  <atom value="1.008"/>  </element>
-  <element name="carbon" formula="C"  Z="6.">  <atom value="12.011"/>  </element>
-
-  <material name="plastic">
-   <D value="750.0" unit="mg/cm3"/>
-   <composite n="2" ref="hydrogen"/>
-   <composite n="1" ref="carbon"/>
-  </material>
-
-  <material name="vacuum">
-   <D value="1.e-22" unit="mg/cm3"/>
-   <fraction n="1.0" ref="hydrogen"/>
-  </material>
-
- </materials>
 
 ##########################################
 
@@ -50,8 +31,8 @@
 
  <structure>
 
- <volume name="LANL_Source_Disk">
-   <materialref ref="vacuum"/>
+ <volume name="source_confinement">
+   <materialref ref="G4_Galactic"/>
    <solidref ref="source_cylinder"/>
   </volume>
 
@@ -60,7 +41,6 @@
 ##########################################
 
  <setup name="Default" version="1.0">
-  <world ref="LANL_Source_Disk"/>
+  <world ref="source_confinement"/>
  </setup>
 </gdml>
-
