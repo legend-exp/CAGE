@@ -9,14 +9,14 @@ import numpy as np
 import sys
 import math
 
-# def main():
+def main():
 
     # y_final is the desired radius on the detector surface where center of beam should aim.
     # theta_det is the desired angle for the source with respect to the detector surface
     # set icpc=False if scanning a PPC (or other detector with no ditch)-- But note, all other dimensions must be updated first for the output to be correct!!
     # All dimensions in mm, angles in deg
 
-    # positionCalc(y_final=14., theta_det=65.)
+    positionCalc(y_final=14., theta_det=65.)
     # maxRotation(min_clearance_toLMFE=5.0)
     # checkRotation(theta_det=45., min_clearance_toLMFE=5.0)
     # thetaCalc(y_final=14., icpc=True)
@@ -160,5 +160,5 @@ def checkRotation(theta_det, min_clearance_toLMFE=5.0):
         print('The rotation angle theta_det= %.1f (theta_rot = %.1f) safely maintains the maximum clearance of %.2f mm between LMFE and lowest edge of collimator when top-hat is down! \nActual clearance: %.2f mm' %(theta_det, theta_rot, min_clearance_toLMFE, z_lmfe))
         return(True, min_clearance_toLMFE, z_lmfe)
 
-# if __name__ == '__main__':
-# 	main()
+if __name__ == '__main__':
+	main()
