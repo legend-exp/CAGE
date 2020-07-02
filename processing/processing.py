@@ -145,6 +145,15 @@ def raw_to_dsp(ds, overwrite=False, nevt=None, test=False, verbose=2, block=8,
 
         proc.add_processor(trap_norm, "wf_pz", 10*us, 5*us, "wf_trap")
         proc.add_processor(np.amax, "wf_trap", 1, "trapE", signature='(n),()->()', types=['fi->f'])
+        proc.add_processor(avg_current, "wf_pz", 10, "curr")	
+        proc.add_processor(np.amax, "curr", 1, "A_10", signature='(n),()->()', types=['fi->f'])	
+        proc.add_processor(np.divide, "A_10", "trapE", "AoE")	
+        proc.add_processor(trap_pickoff, "wf_pz", dcr_trap_int, dcr_trap_flat, dcr_trap_startSample, "dcr")	
+
+        # Set up the LH5 output	
+        lh5_out = lh5.Table(size=proc._buffer_len)	
+        lh5_out.add_field("trapE", lh5.Array(proc.get_output_buffer("trapE"),	
+                                               attrs={"units":"ADC"}))
 
         lh5_out.add_field("bl", lh5.Array(proc.get_output_buffer("bl"),
                                             attrs={"units":"ADC"}))
