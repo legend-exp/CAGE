@@ -41,7 +41,7 @@ endpoints:
         read_option: 0
         gain: 1
         gain_conversion: 0.000125
-        calibration: '6*{}-11.66'
+        calibration: '6*{}-11.66' #more like -11.93
         log_interval: 10
 setup_calls:
   - target: cagepi

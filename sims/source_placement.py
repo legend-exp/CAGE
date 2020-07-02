@@ -79,6 +79,9 @@ def positionCalc(y_final, theta_det, icpc=True):
 
     print('In the lab, to correspond to theta_det= %.1f deg, at radius= %.1f mm: \nsource motor should be rotated to %.1f deg \nsource should be translated to %.3f mm from center' %(theta_det, y_final, theta_rot, axis_yPos))
 
+    return theta_rot, axis_yPos
+
+
 def thetaCalc(y_final, icpc=True):
     # Caluclate the rotation angle to rotate the source WHILE KEEPING IT CENTERED OVER P+ CONTACT to reach desired "y_final" radius in mm on detector surface
     ditch_depth = 2. # ditch depth for ICPC in mm

@@ -18,6 +18,7 @@
 
   "campaign": {
     "1":["air_tests"],
-    "2":["commissioning"]
+    "2":["commissioning"],
+    "3":["pre_oppi2_updates"]
   }
 }
