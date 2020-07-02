@@ -78,11 +78,9 @@ def positionCalc(y_final, theta_det, icpc=True):
     print('Position of the source ("sourceRotationVolume") in the mother GDML file, should be placed at: \n<position name= "source_center" x="0.0" y="%.3f" z="0.0" unit="mm"/> \n<rotation name="source%.0f" x="-%.2f" unit="deg"/> \n' %(axis_yPos, theta_rot, theta_rot))
 
     print('In the lab, to correspond to theta_det= %.1f deg, at radius= %.1f mm: \nsource motor should be rotated to %.1f deg \nsource should be translated to %.3f mm from center' %(theta_det, y_final, theta_rot, axis_yPos))
-<<<<<<< HEAD
+
     return theta_rot, axis_yPos
 
-=======
->>>>>>> c1491ba34ae672aea7b56a9a7f3054b2ef680e48
 
 def thetaCalc(y_final, icpc=True):
     # Caluclate the rotation angle to rotate the source WHILE KEEPING IT CENTERED OVER P+ CONTACT to reach desired "y_final" radius in mm on detector surface
