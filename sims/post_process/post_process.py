@@ -19,13 +19,14 @@ def main():
 
     # raw_dir = '../alpha/raw_out/'
     # processed_dir = '../alpha/processed_out/'
-    # base_filenames = ['test.hdf5']
+    # base_filenames = ['test_newDet_sourceRotNorm_y6mm_ICPC_Pb_241Am_100000.hdf5']
 
     # post_process(filename, processed_filename)
 
     raw_dir = '../alpha/raw_out/oppi/'
     processed_dir = '../alpha/processed_out/oppi/'
-    base_filenames =['oppi_y19mm_norm_241Am_100000000.hdf5', 'oppi_y22mm_norm_241Am_100000000.hdf5', 'oppi_y25mm_norm_241Am_100000000.hdf5', 'oppi_y28mm_norm_241Am_100000000.hdf5', 'oppi_y31mm_norm_241Am_100000000.hdf5']
+    base_filenames = ['test_oppi_y19mm_norm_241Am_1000000.hdf5']
+    # base_filenames =['oppi_y19mm_norm_241Am_100000000.hdf5', 'oppi_y22mm_norm_241Am_100000000.hdf5', 'oppi_y25mm_norm_241Am_100000000.hdf5', 'oppi_y28mm_norm_241Am_100000000.hdf5', 'oppi_y31mm_norm_241Am_100000000.hdf5']
 
 
     for file in range(len(base_filenames)):
@@ -36,8 +37,8 @@ def post_process(raw_dir, processed_dir, base_filename, hits=False):
     filename = raw_dir+base_filename
     processed_filename = processed_dir+'processed_'+base_filename
     print('Processing file: ', filename)
-    print(processed_filename)
-    exit()
+    # print(processed_filename)
+    # exit()
     if hits==True:
         procdf, pos_df = pandarize(filename, hits=True)
         # df.to_hdf('../alpha/processed_out/processed_newDet_test.hdf5', key='procdf', mode='w')
@@ -71,7 +72,8 @@ def pandarize(filename, hits=False):
     g4sdf = g4sdf.join(pd.DataFrame(np.array(g4sntuple['y']['pages']), columns=['y']), lsuffix = '_caller', rsuffix = '_other')
     g4sdf = g4sdf.join(pd.DataFrame(np.array(g4sntuple['z']['pages']), columns=['z']), lsuffix = '_caller', rsuffix = '_other')
 
-    detector_hits = g4sdf.loc[(g4sdf.Edep>1.e-6)&(g4sdf.volID==1)]
+    # detector_hits = g4sdf.loc[(g4sdf.Edep>1.e-6)&(g4sdf.volID==1)]
+    detector_hits = g4sdf.loc[(g4sdf.volID==1)]
 
     detector_hits['x_weights'] = detector_hits['x'] * detector_hits['Edep']
     detector_hits['y_weights'] = detector_hits['y'] * detector_hits['Edep']

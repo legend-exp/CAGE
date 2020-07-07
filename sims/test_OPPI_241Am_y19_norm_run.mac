@@ -8,13 +8,13 @@
 #/physics_engine/tailor/MuonNuclear on
 
 ##Geometry File to run simulation with
-/g4simple/setDetectorGDML ./geometries/OPPI_gscanner_y31_norm_241Am.gdml
+/g4simple/setDetectorGDML ./geometries/test_OPPI_gscanner_y19_norm_241Am.gdml
 
 ##Specify output file
 /g4simple/setOutputFormat hdf5
 #/analysis/setFileName ./alpha/raw_out/newDet_sourceRot33_ICPC_Pb_241Am_20000000.hdf5
 #/analysis/setFileName ./alpha/raw_out/test.hdf5
-/analysis/setFileName ./alpha/raw_out/oppi/oppi_y31mm_norm_241Am_100000000.hdf5
+/analysis/setFileName ./alpha/raw_out/oppi/test_oppi_y19mm_norm_241Am_1000000.hdf5
 
 ##Set Volume ID's for Geometry Volumes (volume.in.geometry.file_PV volID)
 #/g4simple/setVolID Top_Hat_PV 1
@@ -48,7 +48,7 @@
 /gps/pos/halfx 3.5 mm
 /gps/pos/halfy 3.5 mm
 /gps/pos/halfz 0.0005 mm
-/gps/pos/centre 0.0 31.0 3.5 mm
+/gps/pos/centre 0.0 19.0 3.5
 
 #rotate source when appropriate
 #/gps/pos/rot1 1 0 0 # rotating about x, so stays the same
@@ -66,4 +66,4 @@
 
 
 ##set number of runs
-/run/beamOn 100000000
+/run/beamOn 1000000
