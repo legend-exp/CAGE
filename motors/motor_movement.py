@@ -208,9 +208,9 @@ def lift_interlock():
         
         result = shell.run(["python3", "lift_interlock.py"])
     
-    ans = float(result.output.decode("utf-8"))
+    result = float(result.output.decode("utf-8"))
     
-    if ans != 1:
+    if result != 0:
         print("WARNING: Rack and Pinion is not lifted to safe distance")
         print("Lift rack and pinion and place motor movement block so that pressure pad is engaged")
         print("Then retry your command")
@@ -316,7 +316,7 @@ def get_steps(motor_name, input_val, angle_check=180, constraints=True, verbose=
     elif motor_name == "linear":
         move_type = "mm"
         direction = np.sign(input_val)
-        n_steps = input_val * 31573
+        n_steps = input_val * 31496
 
     elif motor_name == "rotary":
         move_type = "degrees"
