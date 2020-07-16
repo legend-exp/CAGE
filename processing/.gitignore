@@ -2,3 +2,4 @@ config.json
 plots/*
 *.npz
 *.png
+test_hist.py

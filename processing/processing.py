@@ -110,15 +110,17 @@ def raw_to_dsp(ds, overwrite=False, nevt=None, test=False, verbose=2, block=8,
 
         if dsp_file is None:
             # declare new file name
-            dsp_file = raw_file.replace('raw_', 'dsp_')
+            dsp_file = raw_file.replace('raw', 'dsp')
 
         if test:
             print("test mode (dry run), processing raw file:", raw_file)
             continue
 
         # new LH5 version
-        f_lh5 = lh5.Store()
-        data = f_lh5.read_object("/ORSIS3302DecoderForEnergy", raw_file)
+
+        lh5_in = lh5.Store()
+        data = lh5_in.read_object("/ORSIS3302DecoderForEnergy", raw_file)
+
 
         wf_in = data['waveform']['values'].nda
         dt = data['waveform']['dt'].nda[0] * unit_parser.parse_unit(data['waveform']['dt'].attrs['units'])
@@ -135,17 +137,24 @@ def raw_to_dsp(ds, overwrite=False, nevt=None, test=False, verbose=2, block=8,
         proc.add_processor(mean_stdev, "wf[0:1000]", "bl", "bl_sig")
         proc.add_processor(np.subtract, "wf", "bl", "wf_blsub")
         proc.add_processor(pole_zero, "wf_blsub", 70*us, "wf_pz")
+
+        proc.add_processor(asymTrapFilter, "wf_pz", 10*us, 5*us, 10*us, "wf_atrap")
+        proc.add_processor(np.amax, "wf_atrap", 1, "atrapE", signature='(n),()->()', types=['fi->f'])
+
+        # proc.add_processor(np.divide, "atrapmax", 10*us, "atrapE")
+
         proc.add_processor(trap_norm, "wf_pz", 10*us, 5*us, "wf_trap")
         proc.add_processor(np.amax, "wf_trap", 1, "trapE", signature='(n),()->()', types=['fi->f'])
-        proc.add_processor(avg_current, "wf_pz", 10, "curr")
-        proc.add_processor(np.amax, "curr", 1, "A_10", signature='(n),()->()', types=['fi->f'])
-        proc.add_processor(np.divide, "A_10", "trapE", "AoE")
-        proc.add_processor(trap_pickoff, "wf_pz", dcr_trap_int, dcr_trap_flat, dcr_trap_startSample, "dcr")
+        proc.add_processor(avg_current, "wf_pz", 10, "curr")	
+        proc.add_processor(np.amax, "curr", 1, "A_10", signature='(n),()->()', types=['fi->f'])	
+        proc.add_processor(np.divide, "A_10", "trapE", "AoE")	
+        proc.add_processor(trap_pickoff, "wf_pz", dcr_trap_int, dcr_trap_flat, dcr_trap_startSample, "dcr")	
 
-        # Set up the LH5 output
-        lh5_out = lh5.Table(size=proc._buffer_len)
-        lh5_out.add_field("trapE", lh5.Array(proc.get_output_buffer("trapE"),
+        # Set up the LH5 output	
+        lh5_out = lh5.Table(size=proc._buffer_len)	
+        lh5_out.add_field("trapE", lh5.Array(proc.get_output_buffer("trapE"),	
                                                attrs={"units":"ADC"}))
+
         lh5_out.add_field("bl", lh5.Array(proc.get_output_buffer("bl"),
                                             attrs={"units":"ADC"}))
         lh5_out.add_field("bl_sig", lh5.Array(proc.get_output_buffer("bl_sig"),
