@@ -48,7 +48,7 @@
 /gps/pos/halfx 3.5 mm
 /gps/pos/halfy 3.5 mm
 /gps/pos/halfz 0.0005 mm
-/gps/pos/centre 0.0 31.0 3.5 mm
+/gps/pos/centre 0.0 31.0 4.5 mm
 
 #rotate source when appropriate
 #/gps/pos/rot1 1 0 0 # rotating about x, so stays the same

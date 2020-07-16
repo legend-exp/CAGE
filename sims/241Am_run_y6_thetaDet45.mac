@@ -53,7 +53,7 @@
 
 /gps/pos/rot1 1 0 0
 /gps/pos/rot2 0 0.70711 0.70711
-/gps/pos/centre 0.0 -18.975 2.475 mm
+/gps/pos/centre 0.0 -19.682 3.182 mm
 
 
 # Old way without rotation matrices

@@ -1,7 +1,7 @@
 # use QGSP_BERT just to have something - this one loads fast.
 /g4simple/setReferencePhysList QGSP_BERT
 
-/g4simple/setDetectorGDML ./geometries/OPPI_gscanner_y19_norm_241Am.gdml false
+/g4simple/setDetectorGDML ./geometries/OPPI_gscanner_y31_norm_241Am.gdml false
 #/g4simple/setDetectorGDML ./geometries/translations_gscanner_241Am.gdml false
 
 /run/initialize
@@ -62,11 +62,10 @@
 /gps/pos/halfy 3.5 mm
 /gps/pos/halfz 0.0005 mm
 
-/gps/pos/rot1 1 0 0
-/gps/pos/rot2 0 1 0
-/gps/pos/rot3 0 0 1
-
-/gps/pos/rot1 -0.70486 0 0
+/gps/pos/halfx 3.5 mm
+/gps/pos/halfy 3.5 mm
+/gps/pos/halfz 0.0005 mm
+/gps/pos/centre 0.0 31.0 4.5 mm
 
 /run/beamOn 1
 
