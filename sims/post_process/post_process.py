@@ -72,8 +72,8 @@ def pandarize(filename, hits=False):
     g4sdf = g4sdf.join(pd.DataFrame(np.array(g4sntuple['y']['pages']), columns=['y']), lsuffix = '_caller', rsuffix = '_other')
     g4sdf = g4sdf.join(pd.DataFrame(np.array(g4sntuple['z']['pages']), columns=['z']), lsuffix = '_caller', rsuffix = '_other')
 
-    # detector_hits = g4sdf.loc[(g4sdf.Edep>1.e-6)&(g4sdf.volID==1)]
-    detector_hits = g4sdf.loc[(g4sdf.Edep>0)&(g4sdf.volID==1)]
+    detector_hits = g4sdf.loc[(g4sdf.Edep>1.e-6)&(g4sdf.volID==1)]
+    # detector_hits = g4sdf.loc[(g4sdf.Edep>0)&(g4sdf.volID==1)]
 
     detector_hits['x_weights'] = detector_hits['x'] * detector_hits['Edep']
     detector_hits['y_weights'] = detector_hits['y'] * detector_hits['Edep']

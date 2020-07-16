@@ -29,8 +29,8 @@ def main():
 	# filename = '../alpha/raw_out/newDet_sourceRotNorm_y6mm_ICPC_Pb_241Am_20000000.hdf5'
 	# processed_filename = '../alpha/processed_out/processed_newDet_sourceRot25_thetaDet65_y14mm_ICPC_Pb_241Am_100000000.hdf5'
 
-	# processed_filename = '../alpha/processed_out/oppi/processed_oppi_y19mm_norm_241Am_100000000.hdf5'
-	processed_filename = '../alpha/processed_out/oppi/processed_test_oppi_y19mm_norm_241Am_1000000.hdf5'
+	processed_filename = '../alpha/processed_out/oppi/processed_oppi_y19mm_norm_241Am_100000000.hdf5'
+	# processed_filename = '../alpha/processed_out/oppi/processed_test_oppi_y19mm_norm_241Am_1000000.hdf5'
 
 	# processed_filename = '../alpha/processed_out/processed_newDet_sourceRotNorm_y6mm_ICPC_Pb_241Am_20000000.hdf5'
 
@@ -38,9 +38,9 @@ def main():
 
 
 
-	# plotHist(filename)
+	plotHist(processed_filename)
 	# post_process(filename, processed_filename, source=False)
-	plotSpot(processed_filename, source=False, plot_title = 'Spot Size from $^{241}$Am (10$^8$ Primaries) \nnormal incidence at 6 mm', particle = 'all')
+	# plotSpot(processed_filename, source=False, plot_title = 'Spot Size from $^{241}$Am (10$^8$ Primaries) \nnormal incidence at 6 mm', particle = 'all')
 	# ZplotSpot(filename)
 	# spot_curve()
 	# plot1DSpot(processed_filename, axis='y', particle='all')
@@ -157,8 +157,12 @@ def getCounts(processed_filename):
 
 def plotHist(filename):
 	# df = pandarize(filename)
+	pctResAt1MeV = 0.5 #0.5% energy resolution
 	df = pd.read_hdf(filename, keys='procdf')
-	energy = np.array(df['energy'])
+	# apply energy resolution function
+	# df['energy'] = df['energy'] + np.sqrt(df['energy'])*pctResAt1MeV/100.*np.random.randn(len(df['energy']))
+	energy = np.array(df['energy']*1000)
+
 	# print(energy)
 	# exit()
 	# pid = np.array(df['pid'])
@@ -166,7 +170,7 @@ def plotHist(filename):
 
 	# alpha_df = df.loc[df.energy > 5]
 	# energy = np.array(alpha_df['energy']*1000)
-	energy = np.array(df['energy']*1000)
+	# energy = np.array(df['energy']*1000)
 	# print(tmp['pid'].astype(int).unique)
 	# print(df['pid'].astype(int).unique)
 	# exit()
@@ -178,15 +182,16 @@ def plotHist(filename):
 	# y = np.array(alpha_df['y'])
 	# z = np.array(alpha_df['z'])
 
-	fig, ax = plt.subplots()
-	plt.hist(energy, range = [0.0, 6000], bins=600)
+	# fig, ax = plt.subplots()
+	fig, ax = plt.subplots(figsize=(10,8))
+	plt.hist(energy, range = [0, 100], bins=200)
 	plt.yscale('log')
 	ax.set_xlabel('Energy (keV)', fontsize=16)
-	ax.set_ylabel('Counts/10 keV', fontsize=16)
+	ax.set_ylabel('Counts/2 keV', fontsize=16)
 	plt.setp(ax.get_xticklabels(), fontsize=14)
 	plt.setp(ax.get_yticklabels(), fontsize=14)
 	# plt.title('Collimated, $^{241}$Am 7*10$^5$ Primaries, 16 mm above detector', fontsize=18)
-	plt.title('$^{241}$Am 10$^7$ Primaries, Coll. 22 mm above detector (no E-res func)', fontsize=18)
+	plt.title('$^{241}$Am 10$^8$ Primaries, normal incidence at 19 mm, assuming 0.5\% resolution', fontsize=18)
 	plt.show()
 
 def ZplotSpot(filename):
@@ -645,7 +650,7 @@ def plot1DSpot(filename, axis='x', particle = 'all', fit=True):
 
 	elif particle=='alpha':
 		alpha_df = df.loc[df.energy > 5]
-		scale_std = 2.
+		scale_std = 1.
 		if axis=='x':
 			x = np.array(alpha_df['x'])
 		elif axis=='y':
@@ -684,8 +689,8 @@ def plot1DSpot(filename, axis='x', particle = 'all', fit=True):
 	print('median: ', median, ' std: ', std, ' mean: ', mean)
 	print('moment mean: ', mom_mean, 'moment variance: ', mom_var, 'moment_skew: ', mom_skew)
 
-	x1, y1, bw = kde1D(x, bins=500, bandwidth=0.25, optimize_bw=False)
-	# x1, y1, bw = kde1D(x, bins=500, optimize_bw=True)
+	# x1, y1, bw = kde1D(x, bins=500, bandwidth=0.25, optimize_bw=False)
+	x1, y1, bw = kde1D(x, bins=500, optimize_bw=True)
 	std_kde = np.std(y1)
 	print(std_kde)
 	# exit()
@@ -757,6 +762,9 @@ def spot_curve():
 	plt.title('Y-axis projection of spot-size for various source angles', fontsize=16)
 
 	plt.show()
+
+def rate_curve():
+	radii = [19., 22., 25., 28., 31.]
 
 
 def get_hist(np_arr, bins=None, range=None, dx=None, wts=None):
