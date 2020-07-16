@@ -1,7 +1,7 @@
 # use QGSP_BERT just to have something - this one loads fast.
 /g4simple/setReferencePhysList QGSP_BERT
 
-/g4simple/setDetectorGDML ./geometries/new_gscanner_241Am_y6_thetaDet75.gdml false
+/g4simple/setDetectorGDML ./geometries/OPPI_gscanner_y31_norm_241Am.gdml false
 #/g4simple/setDetectorGDML ./geometries/translations_gscanner_241Am.gdml false
 
 /run/initialize
@@ -30,7 +30,7 @@
 #/vis/viewer/set/background ! ! ! 0.
 #/vis/viewer/set/lightsThetaPhi 30 30
 /vis/viewer/set/lightsVector 0 0 1
-/vis/viewer/zoom 8
+/vis/viewer/zoom 4
 /vis/viewer/pan 0.0 0.0
 
 
@@ -38,7 +38,7 @@
 /vis/geometry/set/visibility source_volume 0 false
 
 #/vis/geometry/set/colour vacuum_volume -1 0 0 0 0.01
-/vis/geometry/set/colour PPM_Detector -0.2 0.4 0.4 0.4 1
+/vis/geometry/set/colour OPPI1_Detector -0.2 0.4 0.4 0.4 1
 /vis/geometry/set/colour Outer_Vessel 0 0.9 0.7 0.7 0.
 /vis/geometry/set/colour Cold_Plate 0.9 0.4 0 0.2 1
 /vis/geometry/set/colour Top_Hat 0.9 0.4 0 0.2 0.1
@@ -53,27 +53,29 @@
 /gps/particle gamma
 /gps/energy 60 keV
 
+#/gps/pos/centre 0. 12.0 3.5 mm
+
+/gps/pos/centre 0.0 -0.004 2.935 mm
 /gps/pos/type Volume
 /gps/pos/shape Para
 /gps/pos/halfx 3.5 mm
 /gps/pos/halfy 3.5 mm
 /gps/pos/halfz 0.0005 mm
 
-/gps/pos/rot1 1 0 0
-/gps/pos/rot2 0 0.96593 0.25882
-/gps/pos/centre 0.0 -1.194 4.347 mm
+/gps/pos/halfx 3.5 mm
+/gps/pos/halfy 3.5 mm
+/gps/pos/halfz 0.0005 mm
+/gps/pos/centre 0.0 31.0 4.5 mm
 
-/run/beamOn 5
-
-/vis/ogl/set/transparency True
-/vis/enable
-/vis/viewer/flush
+/run/beamOn 1
 
 # Camera setting
 #/vis/drawVolume
 /vis/viewer/flush
 
-
+/vis/ogl/set/transparency True
+/vis/enable
+/vis/viewer/flush
 
 /vis/ogl/printEPS
 /vis/ogl/set/printMode pixmap

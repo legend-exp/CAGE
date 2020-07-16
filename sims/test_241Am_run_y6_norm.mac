@@ -8,13 +8,13 @@
 #/physics_engine/tailor/MuonNuclear on
 
 ##Geometry File to run simulation with
-/g4simple/setDetectorGDML ./geometries/new_gscanner_241Am.gdml
+/g4simple/setDetectorGDML ./geometries/new_gscanner_241Am_y6_norm.gdml
 
 ##Specify output file
 /g4simple/setOutputFormat hdf5
 #/analysis/setFileName ./alpha/raw_out/newDet_sourceRot33_ICPC_Pb_241Am_20000000.hdf5
 #/analysis/setFileName ./alpha/raw_out/test.hdf5
-/analysis/setFileName ./alpha/raw_out/newDet_sourceRot25_thetaDet65_y6mm_ICPC_Pb_241Am_100000000.hdf5
+/analysis/setFileName ./alpha/raw_out/test_newDet_sourceRotNorm_y6mm_ICPC_Pb_241Am_100000.hdf5
 
 ##Set Volume ID's for Geometry Volumes (volume.in.geometry.file_PV volID)
 #/g4simple/setVolID Top_Hat_PV 1
@@ -50,9 +50,10 @@
 /gps/pos/halfz 0.0005 mm
 
 #rotate source when appropriate
-/gps/pos/rot1 1 0 0 # rotating about x, so stays the same
-/gps/pos/rot2 0 0.90631 0.42262 # [0 cos(theta_rot) sin(theta_rot)]
-/gps/pos/centre 0.0 -5.971 3.172 mm # get this from running ./source_placement.py with desired final y position of the source on the detector. x should always be 0. use z = 3.5 when source at normal incidence.
+
+/gps/pos/rot1 1 0 0
+/gps/pos/rot2 0 1.00000 0.00000
+/gps/pos/centre 0.0 6.000 3.500 mm
 
 
 # Old way without rotation matrices
@@ -65,4 +66,4 @@
 
 
 ##set number of runs
-/run/beamOn 100000000
+/run/beamOn 100000

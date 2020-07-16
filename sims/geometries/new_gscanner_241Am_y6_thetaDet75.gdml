@@ -64,8 +64,8 @@ See these elogs for more diagrams and information: https://elog.legend-exp.org/U
 
    <physvol>
      <file name="./geometries/sourceRotationVolume.gdml"/>
-     <position name= "source_center" x="0.0" y="0.0" z="0.0" unit="mm"/>
-     <rotation name="source25" x="-25.00" unit="deg"/> 
+     <position name= "source_center" x="0.0" y="-0.029" z="0.0" unit="mm"/>
+     <rotation name="source15" x="-15.00" unit="deg"/> 
    </physvol>
 
    <physvol>

@@ -20,14 +20,11 @@
   <rotation name="identity" x="0" y="0" z="0" />
 
   <quantity name="cylinder_radius" type="length" value="31" unit="mm"/>
-  <quantity name="cylinder_height" type="length" value="45.0" unit="mm"/>
+  <quantity name="cylinder_height" type="length" value="51.0" unit="mm"/>
 
   <quantity name="cone_radius1" type="length" value="25.0" unit="mm"/>
   <quantity name="cone_radius2" type="length" value="31" unit="mm"/>
   <quantity name="cone_height" type="length" value="6" unit="mm"/>
-
-  <quantity name="pc_depth" type="length" value="1.9" unit="mm"/>
-  <quantity name="pc_radius" type="length" value="1.5" unit="mm"/>
 
 
  </define>
@@ -44,24 +41,18 @@
 
  <solids>
 
-  <cone name="cylinder" rmin1="0" rmax1="cylinder_radius" rmin2="0" rmax2="cylinder_radius" z="cylinder_height" startphi="0" deltaphi="TWOPI" aunit="rad" />
+  <cone name="cylinder" rmin1="0" rmax1="cylinder_radius" rmin2="0" rmax2="cylinder_radius" z="cylinder_height+6" startphi="0" deltaphi="TWOPI" aunit="rad" />
 
-  <cone name="cone" rmin1="0" rmax1="cone_radius2" rmin2="0" rmax2="cone_radius1" z="cone_height" startphi="0" deltaphi="TWOPI" aunit="rad" />
+  <cone name="cone" rmin1="cone_radius2" rmax1="cone_radius2" rmin2="cone_radius1" rmax2="cone_radius2" z="cone_height" startphi="0" deltaphi="TWOPI" aunit="rad" />
 
-  <orb name = "pc_subtraction" r="pc_radius" lunit= "mm"/>
+  <!-- <cone name="cylinder" rmin1="0" rmax1="cylinder_radius" rmin2="0" rmax2="cylinder_radius" z="cylinder_height" startphi="0" deltaphi="TWOPI" aunit="rad" /> -->
 
-  <union name="detector_noPC">
-    <first ref="cylinder" />
-    <second ref="cone" />
-    <position x="0" y="0" z="cylinder_height/2.0 + cone_height/2.0" />
-    <rotationref ref="identity"/>
-  </union>
+  <!-- <cone name="cone" rmin1="0" rmax1="cone_radius2" rmin2="0" rmax2="cone_radius1" z="cone_height" startphi="0" deltaphi="TWOPI" aunit="rad" /> -->
 
   <subtraction name="detector">
-    <first ref="detector_noPC" />
-    <second ref="pc_subtraction" />
-    <position x="0" y="0" z="((cylinder_height/2)+ cone_height + (pc_radius-pc_depth))" />
-    <!-- <position x="0" y="0" z="(body_bottom_height/2)+(body_middle_height)+(body_top_height/2)" /> -->
+    <first ref="cylinder" />
+    <second ref="cone" />
+    <position x="0" y="0" z="cylinder_height/2.0" />
     <rotationref ref="identity"/>
   </subtraction>
 

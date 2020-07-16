@@ -8,7 +8,7 @@
 #/physics_engine/tailor/MuonNuclear on
 
 ##Geometry File to run simulation with
-/g4simple/setDetectorGDML ./geometries/new_gscanner_241Am.gdml
+/g4simple/setDetectorGDML ./geometries/new_gscanner_241Am_y6_thetaDet65.gdml
 
 ##Specify output file
 /g4simple/setOutputFormat hdf5
@@ -50,10 +50,9 @@
 /gps/pos/halfz 0.0005 mm
 
 #rotate source when appropriate
-/gps/pos/rot1 1 0 0 # rotating about x, so stays the same
-/gps/pos/rot2 0 0.90631 0.42262 # [0 cos(theta_rot) sin(theta_rot)]
-/gps/pos/centre 0.0 -5.971 3.172 mm # get this from running ./source_placement.py with desired final y position of the source on the detector. x should always be 0. use z = 3.5 when source at normal incidence.
-
+/gps/pos/rot1 1 0 0
+/gps/pos/rot2 0 0.90631 0.42262
+/gps/pos/centre 0.0 -6.394 4.078 mm
 
 # Old way without rotation matrices
 # Haven't figured out how to rotate the activity in the macro correctly yet. When source not at normal incidence, put activity in sphere and confine it to source_confinement_PV
