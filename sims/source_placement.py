@@ -18,7 +18,7 @@ def main():
 
     # calculate_CollClearances()
 
-    positionCalc(y_final=6., theta_det=75.)
+    positionCalc(y_final=25., theta_det=50., icpc=False)
     # maxRotation(min_clearance_toLMFE=5.0)
     # checkRotation(theta_det=45., min_clearance_toLMFE=5.0)
     # thetaCalc(y_final=14., icpc=True)
