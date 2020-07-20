@@ -16,7 +16,9 @@ def main():
     # set icpc=False if scanning a PPC (or other detector with no ditch)-- But note, all other dimensions must be updated first for the output to be correct!!
     # All dimensions in mm, angles in deg
 
-    positionCalc(y_final=14., theta_det=65.)
+    # calculate_CollClearances()
+
+    positionCalc(y_final=6., theta_det=75.)
     # maxRotation(min_clearance_toLMFE=5.0)
     # checkRotation(theta_det=45., min_clearance_toLMFE=5.0)
     # thetaCalc(y_final=14., icpc=True)
@@ -28,11 +30,11 @@ def positionCalc(y_final, theta_det, icpc=True):
 
     # First check that it's safe to rotate to this angle
     rotCheck = checkRotation(theta_det)
-    if rotCheck[0]==False:
-        exit()
+    # if rotCheck[0]==False:
+        # exit()
 
     ditch_depth = 2. # ditch depth for ICPC in mm
-    rotAxis_toSource_height = 3.5 # height difference in mm from the rotation axis to where the activity is located
+    rotAxis_toSource_height = 4.5 # height difference in mm from the rotation axis to where the activity is located
     rotAxis_height = 22.5 # height in mm from top of detector to rotation axis, which is (0, 0, 0) in the mother geometry of the simulation
 
     delta_y_source = rotAxis_toSource_height*(math.cos((90.+theta_rot)*deg_to_rad)) # change in mm of the y-position of the source activity within the collimator from source being rotated
@@ -85,7 +87,7 @@ def positionCalc(y_final, theta_det, icpc=True):
 def thetaCalc(y_final, icpc=True):
     # Caluclate the rotation angle to rotate the source WHILE KEEPING IT CENTERED OVER P+ CONTACT to reach desired "y_final" radius in mm on detector surface
     ditch_depth = 2. # ditch depth for ICPC in mm
-    rotAxis_toSource_height = 3.5 # height difference in mm from the rotation axis to where the activity is located
+    rotAxis_toSource_height = 4.5 # height difference in mm from the rotation axis to where the activity is located
     rotAxis_height = 22.5 # height in mm from top of detector to rotation axis, which is (0, 0, 0) in the mother geometry of the simulation
     pi = math.pi
     deg_to_rad = pi/180.
@@ -118,6 +120,7 @@ def thetaCalc(y_final, icpc=True):
     print('Position of the source ("sourceRotationVolume") in the mother GDML file, should be placed at: \n<position name= "source_center" x="0.0" y="0.0" z="0.0" unit="mm"/> \n<rotation name="source%.0f" x="-%.2f" unit="deg"/>' %(theta_rot, theta_rot))
 
 
+
 def maxRotation(min_clearance_toLMFE=5.0):
     # Check maximum rotation angle of the collimator in order to leave "min_clearance_toLMFE" mm clearance between the collimator and the LMFE, with the collimator rotation axis "rotAxis_height" mm above the detector surface, and the LMFE "height_det_to_LMFE" mm above the detector surface.
     rad_to_deg = 180./math.pi
@@ -126,9 +129,11 @@ def maxRotation(min_clearance_toLMFE=5.0):
     height_det_to_LMFE = 7.0 # height in mm between hieghest point of LMFE and detector surface
     height_LMFE_to_ax = rotAxis_height - height_det_to_LMFE # height in mm between top of LMFE and rotation axis
     #min_clearance_toLMFE = 5. # minimum height in mm to maintain of collimator above LMFE
-    collRadius = 16 # mm
+    coll_Radius = 16 # mm
+    coll_eff_Radius = np.sqrt(coll_Radius**2+1.0**2) # in mm. since G10 shaft, hence rotation axis, is actually about 1 mm below lower part of "attenuator" part of collimator, offset by 1 mm, get the hypotenuse for "effective radius"
+    print(coll_eff_Radius)
 
-    theta_rot_max = math.asin((height_LMFE_to_ax-min_clearance_toLMFE)/collRadius)*rad_to_deg
+    theta_rot_max = math.asin((height_LMFE_to_ax-min_clearance_toLMFE)/coll_eff_Radius)*rad_to_deg
     theta_det_min = 90 - theta_rot_max
 
     print('Maximum rotation angle of the collimator to maintain %.2f mm clearance between the bottom edge of the (attenuator part of the) collimator and LMFE: \n%.2f deg' %(min_clearance_toLMFE, theta_rot_max))
@@ -148,8 +153,9 @@ def checkRotation(theta_det, min_clearance_toLMFE=5.0):
     height_LMFE_to_ax = rotAxis_height - height_det_to_LMFE # height in mm between top of LMFE and rotation axis
     #min_clearance_toLMFE = 5. # minimum height in mm to maintain of collimator above LMFE
 
-    collRadius = 16 # mm
-    delta_z = collRadius*math.sin(theta_rot*deg_to_rad) # z-distance in mm the bottom edge of the (attenuator part of the) collimator moves downward due to rotation
+    coll_Radius = 16 # mm
+    coll_eff_Radius = np.sqrt(coll_Radius**2+1.0**2) # in mm. since G10 shaft, hence rotation axis, is actually about 1 mm below lower part of "attenuator" part of collimator, offset by 1 mm, get the hypotenuse for "effective radius"
+    delta_z = coll_eff_Radius*math.sin(theta_rot*deg_to_rad) # z-distance in mm the bottom edge of the (attenuator part of the) collimator moves downward due to rotation
     z_final = rotAxis_height - delta_z # final z-distance in mm between the top of the detector and the bottom edge of the (attenuator part of the) collimator
     z_lmfe = height_LMFE_to_ax - delta_z
 
@@ -160,6 +166,25 @@ def checkRotation(theta_det, min_clearance_toLMFE=5.0):
     else:
         print('The rotation angle theta_det= %.1f (theta_rot = %.1f) safely maintains the maximum clearance of %.2f mm between LMFE and lowest edge of collimator when top-hat is down! \nActual clearance: %.2f mm' %(theta_det, theta_rot, min_clearance_toLMFE, z_lmfe))
         return(True, min_clearance_toLMFE, z_lmfe)
+
+
+def calculate_CollClearances():
+    # Longest distances between G10 shaft and various points of collimator.
+    # Already taken care of in other parts of the code, so not necessary for other functions.
+    # I just got tired of doing this manually.
+    shaft_to_attenuator = 1. #mm. since G10 shaft, hence rotation axis, is actually about 1 mm below lower part of "attenuator" part of collimator
+    shaft_to_bottom = 7. #mm Perpendicular distance between bottom edge of collimator and g10 shaft
+    shaft_to_top = 10. # mm. Perpendicular distance between top part of attenuator and g10 shaft
+    atten_Radius = 16. # mm.radius of the attenuator part of collimator
+    coll_radius = 5. # mm. radius of lower (collimator) part of collimator
+
+
+    coll_eff_Radius = np.sqrt(atten_Radius**2+shaft_to_attenuator**2) # in mm. since G10 shaft, hence rotation axis, is actually about 1 mm below lower part of "attenuator" part of collimator, offset by 1 mm, get the hypotenuse for "effective radius"
+    shaft_to_topCorner = np.sqrt(atten_Radius**2 + shaft_to_top**2)
+    shaft_to_bottomCorner = np.sqrt(coll_radius**2 + shaft_to_bottom**2)
+
+    print('Important clearances! \n Effective collimator radius (distance b/w shaft and side corner): %.2f mm \n Shaft to top corner: %.2f mm \n Shaft to bottom corner: %.2f mm' %(coll_eff_Radius, shaft_to_topCorner, shaft_to_bottomCorner))
+
 
 if __name__ == '__main__':
 	main()
