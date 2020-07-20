@@ -53,21 +53,19 @@
 /gps/particle gamma
 /gps/energy 60 keV
 
-#/gps/pos/centre 0. 12.0 3.5 mm
 
-/gps/pos/centre 0.0 -0.004 2.935 mm
 /gps/pos/type Volume
 /gps/pos/shape Para
 /gps/pos/halfx 3.5 mm
 /gps/pos/halfy 3.5 mm
 /gps/pos/halfz 0.0005 mm
-
-/gps/pos/halfx 3.5 mm
-/gps/pos/halfy 3.5 mm
-/gps/pos/halfz 0.0005 mm
 /gps/pos/centre 0.0 31.0 4.5 mm
 
-/run/beamOn 1
+/run/beamOn 5
+
+/vis/ogl/set/transparency True
+/vis/enable
+/vis/viewer/flush
 
 # Camera setting
 #/vis/drawVolume
