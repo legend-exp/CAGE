@@ -26,7 +26,7 @@ def main():
     raw_dir = '../alpha/raw_out/oppi/'
     processed_dir = '../alpha/processed_out/oppi/'
     # base_filenames = ['test_oppi_y19mm_norm_241Am_1000000.hdf5']
-    base_filenames =['oppi_y19mm_norm_241Am_100000000.hdf5', 'oppi_y22mm_norm_241Am_100000000.hdf5', 'oppi_y25mm_norm_241Am_100000000.hdf5', 'oppi_y28mm_norm_241Am_100000000.hdf5', 'oppi_y31mm_norm_241Am_100000000.hdf5']
+    base_filenames =['oppi_ring_y3_norm_241Am_100000000.hdf5', 'oppi_ring_y6_norm_241Am_100000000.hdf5', 'oppi_ring_y9_norm_241Am_100000000.hdf5']
 
 
     for file in range(len(base_filenames)):
