@@ -52,7 +52,7 @@ def post_process(raw_dir, processed_dir, base_filename, hits=False):
     print('File processed. Output saved to: ', processed_filename)
 
 
-def pandarize(filename, hits=False):
+def pandarize(filename, hits=False, tracking=False):
     # have to open the input file with h5py (g4 doesn't write pandas-ready hdf5)
     g4sfile = h5py.File(filename, 'r')
     g4sntuple = g4sfile['default_ntuples']['g4sntuple']
@@ -63,23 +63,30 @@ def pandarize(filename, hits=False):
 
     g4sdf = pd.DataFrame(np.array(g4sntuple['event']['pages']), columns=['event'])
 
+    g4sdf = g4sdf.join(pd.DataFrame(np.array(g4sntuple['trackID']['pages']), columns=['trackID']), lsuffix = '_caller', rsuffix = '_other')
+    g4sdf = g4sdf.join(pd.DataFrame(np.array(g4sntuple['parentID']['pages']), columns=['parentID']), lsuffix = '_caller', rsuffix = '_other')
+    g4sdf = g4sdf.join(pd.DataFrame(np.array(g4sntuple['pid']['pages']), columns=['pid']), lsuffix = '_caller', rsuffix = '_other')
     g4sdf = g4sdf.join(pd.DataFrame(np.array(g4sntuple['step']['pages']), columns=['step']), lsuffix = '_caller', rsuffix = '_other')
+    g4sdf = g4sdf.join(pd.DataFrame(np.array(g4sntuple['KE']['pages']), columns=['KE']), lsuffix = '_caller', rsuffix = '_other')
     g4sdf = g4sdf.join(pd.DataFrame(np.array(g4sntuple['Edep']['pages']), columns=['Edep']), lsuffix = '_caller', rsuffix = '_other')
     g4sdf = g4sdf.join(pd.DataFrame(np.array(g4sntuple['volID']['pages']), columns=['volID']), lsuffix = '_caller', rsuffix = '_other')
     g4sdf = g4sdf.join(pd.DataFrame(np.array(g4sntuple['iRep']['pages']), columns=['iRep']), lsuffix = '_caller', rsuffix = '_other')
-    g4sdf = g4sdf.join(pd.DataFrame(np.array(g4sntuple['pid']['pages']), columns=['pid']), lsuffix = '_caller', rsuffix = '_other')
     g4sdf = g4sdf.join(pd.DataFrame(np.array(g4sntuple['x']['pages']), columns=['x']), lsuffix = '_caller', rsuffix = '_other')
     g4sdf = g4sdf.join(pd.DataFrame(np.array(g4sntuple['y']['pages']), columns=['y']), lsuffix = '_caller', rsuffix = '_other')
     g4sdf = g4sdf.join(pd.DataFrame(np.array(g4sntuple['z']['pages']), columns=['z']), lsuffix = '_caller', rsuffix = '_other')
 
-    detector_hits = g4sdf.loc[(g4sdf.Edep>1.e-6)&(g4sdf.volID==1)]
-    # detector_hits = g4sdf.loc[(g4sdf.Edep>0)&(g4sdf.volID==1)]
+    if tracking==True:
+        detector_hits = g4sdf.loc[(g4sdf.volID==1)] #do this when debugging/looking at tracks
+        procdf= pd.DataFrame(detector_hits.groupby(['event','volID'], as_index=False)['trackID', 'parentID', 'step', 'KE', 'Edep','x_weights','y_weights', 'z_weights', 'pid'].sum())
+    else:
+        detector_hits = g4sdf.loc[(g4sdf.Edep>1.e-6)&(g4sdf.volID==1)] # this for normal post-processing
+        # detector_hits = g4sdf.loc[(g4sdf.Edep>0)&(g4sdf.volID==1)]
+        procdf= pd.DataFrame(detector_hits.groupby(['event','volID'], as_index=False)['Edep','x_weights','y_weights', 'z_weights', 'pid'].sum())
 
     detector_hits['x_weights'] = detector_hits['x'] * detector_hits['Edep']
     detector_hits['y_weights'] = detector_hits['y'] * detector_hits['Edep']
     detector_hits['z_weights'] = detector_hits['z'] * detector_hits['Edep']
 
-    procdf= pd.DataFrame(detector_hits.groupby(['event','volID'], as_index=False)['Edep','x_weights','y_weights', 'z_weights', 'pid'].sum())
 
     # rename the summed energy depositions for each step within the event to "energy". This is analogous to the event energy you'd see in your detector
     procdf = procdf.rename(columns={'Edep':'energy'})
