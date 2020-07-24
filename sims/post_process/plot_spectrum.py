@@ -29,7 +29,8 @@ def main():
 	# filename = '../alpha/raw_out/newDet_sourceRotNorm_y6mm_ICPC_Pb_241Am_20000000.hdf5'
 	# processed_filename = '../alpha/processed_out/processed_newDet_sourceRot25_thetaDet65_y14mm_ICPC_Pb_241Am_100000000.hdf5'
 
-	processed_filename = '../alpha/processed_out/oppi/processed_oppi_y19mm_norm_241Am_100000000.hdf5'
+	# processed_filename = '../alpha/processed_out/oppi/processed_oppi_y19mm_norm_241Am_100000000.hdf5'
+	processed_filename = '../alpha/processed_out/oppi/processed_oppi_ring_y9_norm_241Am_100000000.hdf5'
 	# processed_filename = '../alpha/processed_out/oppi/processed_test_oppi_y19mm_norm_241Am_1000000.hdf5'
 
 	# processed_filename = '../alpha/processed_out/processed_newDet_sourceRotNorm_y6mm_ICPC_Pb_241Am_20000000.hdf5'
@@ -191,7 +192,7 @@ def plotHist(filename):
 	plt.setp(ax.get_xticklabels(), fontsize=14)
 	plt.setp(ax.get_yticklabels(), fontsize=14)
 	# plt.title('Collimated, $^{241}$Am 7*10$^5$ Primaries, 16 mm above detector', fontsize=18)
-	plt.title('$^{241}$Am 10$^8$ Primaries, normal incidence at 19 mm, assuming 0.5\% resolution', fontsize=18)
+	plt.title('$^{241}$Am 10$^8$ Primaries, normal incidence at 9 mm, 0.5 keV bins, assuming 0.5\% resolution', fontsize=18)
 	plt.show()
 
 def ZplotSpot(filename):
