@@ -36,7 +36,16 @@
  </define>
 
 ##########################################
+<materials>
 
+  <material name="peek" formula="C19H12O3">
+    <D value="1.31" />
+    <fraction n="0.76" ref="G4_C"/>
+    <fraction n="0.08" ref="G4_H" />
+    <fraction n="0.16" ref="G4_O" />
+  </material>
+
+</materials>
 
 ##########################################
 
@@ -71,7 +80,7 @@
  <structure>
 
  <volume name="OPPI1_ring">
-   <materialref ref="G4_Cu"/>
+   <materialref ref="peek"/>
    <solidref ref="ring_divingBoard"/>
   </volume>
 

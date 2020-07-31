@@ -18,10 +18,10 @@ def main():
 
     # calculate_CollClearances()
 
-    positionCalc(y_final=25., theta_det=50., icpc=False)
+    # positionCalc(y_final=25., theta_det=50., icpc=False)
     # maxRotation(min_clearance_toLMFE=5.0)
     # checkRotation(theta_det=45., min_clearance_toLMFE=5.0)
-    # thetaCalc(y_final=14., icpc=True)
+    thetaCalc(y_final=28., icpc=False)
 
 def positionCalc(y_final, theta_det, icpc=True):
     theta_rot = 90.-theta_det #rotation angle of the collimator with respect to the horizontal. Should be the real-life rotation angle of the source motor
@@ -35,7 +35,12 @@ def positionCalc(y_final, theta_det, icpc=True):
 
     ditch_depth = 2. # ditch depth for ICPC in mm
     rotAxis_toSource_height = 4.5 # height difference in mm from the rotation axis to where the activity is located
-    rotAxis_height = 22.5 # height in mm from top of detector to rotation axis, which is (0, 0, 0) in the mother geometry of the simulation
+    if icpc==False:
+        rotAxis_height = 22.0 # height for OPPI in mm from top of detector to rotation axis, which is (0, 0, 0) in the mother geometry of the simulation
+        print('Using OPPI axis height: % .1f' %rotAxis_height)
+    else:
+        rotAxis_height = 22.5 # height in mm from top of detector to rotation axis, which is (0, 0, 0) in the mother geometry of the simulation
+        print('Using ICPC axis height: % .1f' %rotAxis_height)
 
     delta_y_source = rotAxis_toSource_height*(math.cos((90.+theta_rot)*deg_to_rad)) # change in mm of the y-position of the source activity within the collimator from source being rotated
     delta_z_source = rotAxis_toSource_height*(math.sin((90.+theta_rot)*deg_to_rad)) # change in mm of the z-position of the source activity within the collimator from source being rotated
@@ -88,10 +93,17 @@ def thetaCalc(y_final, icpc=True):
     # Caluclate the rotation angle to rotate the source WHILE KEEPING IT CENTERED OVER P+ CONTACT to reach desired "y_final" radius in mm on detector surface
     ditch_depth = 2. # ditch depth for ICPC in mm
     rotAxis_toSource_height = 4.5 # height difference in mm from the rotation axis to where the activity is located
-    rotAxis_height = 22.5 # height in mm from top of detector to rotation axis, which is (0, 0, 0) in the mother geometry of the simulation
+    # rotAxis_height = 22.5 # height in mm from top of detector to rotation axis, which is (0, 0, 0) in the mother geometry of the simulation
     pi = math.pi
     deg_to_rad = pi/180.
     rad_to_deg = 180./pi
+
+    if icpc==False:
+        rotAxis_height = 22.0 # height for OPPI in mm from top of detector to rotation axis, which is (0, 0, 0) in the mother geometry of the simulation
+        print('Using OPPI axis height: % .1f' %rotAxis_height)
+    else:
+        rotAxis_height = 22.5 # height in mm from top of detector to rotation axis, which is (0, 0, 0) in the mother geometry of the simulation
+        print('Using ICPC axis height: % .1f' %rotAxis_height)
 
     if (icpc==True and (13.<y_final<16.)):
         print('Input final y position (radius) is located within the ditch.\nOffsetting by ditch depth value: %.1f mm'   %ditch_depth)
