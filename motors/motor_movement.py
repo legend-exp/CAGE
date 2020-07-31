@@ -34,7 +34,7 @@ def main():
     rpins = {key['rpi_pin'] : name for name, key in mconf.items()}
 
     # TODO: change this when we want to do a new campaign
-    campaign_number = "3"
+    campaign_number = "4"
 
     # parse user args
     par = argparse.ArgumentParser(description=doc, formatter_class=rthf)
@@ -44,7 +44,7 @@ def main():
     arg('--steps', nargs='*', help="get steps to move [motor_name] a [value]")
     arg('--zero', nargs=1, type=str, help="zero motor: [source,linear,rotary]")
     arg("--move", nargs='*', help="move [motor_name] a distance [value]")
-    arg("--beam_pos_move", action=st, help="Use source_placement.py to calculate motor movements")
+    arg("--beam_pos_move", nargs=1, help="Use source_placement.py to calculate motor movements for [oppi] or[icpc]")
     arg("--center", nargs='*', help="center source or linear motor")
 
     # encoder functions & settings
@@ -113,6 +113,7 @@ def main():
 
     if args['status']:
         check_limit_switches(verbose=True)
+        lift_interlock()
         print(history_df)
 
     if args['read_enc']:
@@ -142,7 +143,7 @@ def main():
         
     # incorporating Joule's source placement code--TEST
     if args['beam_pos_move']:
-        source_amount, linear_amount = beam_pos_move() 
+        source_amount, linear_amount = beam_pos_move(args['beam_pos_move'][0]) 
 
         approve_move(history_df, 'linear', linear_amount, False, constraints)
         move_motor('linear', linear_amount, history_df, angle_check, constraints, verbose)
@@ -208,9 +209,10 @@ def lift_interlock():
         
         result = shell.run(["python3", "lift_interlock.py"])
     
-    ans = float(result.output.decode("utf-8"))
+    result = float(result.output.decode("utf-8"))
+    print(result)
     
-    if ans != 1:
+    if result != 0:
         print("WARNING: Rack and Pinion is not lifted to safe distance")
         print("Lift rack and pinion and place motor movement block so that pressure pad is engaged")
         print("Then retry your command")
@@ -316,7 +318,7 @@ def get_steps(motor_name, input_val, angle_check=180, constraints=True, verbose=
     elif motor_name == "linear":
         move_type = "mm"
         direction = np.sign(input_val)
-        n_steps = input_val * 31573
+        n_steps = input_val * 31496
 
     elif motor_name == "rotary":
         move_type = "degrees"
@@ -409,9 +411,12 @@ def move_motor(motor_name, input_val, history_df, angle_check=180, constraints=T
             gc(f'PR{axis}={n_move}')
             gc(f'BG{axis}')
             gp.GMotionComplete(axis)
-
+            time.sleep(.1)
             # take current reading of encoder position (quiet)
             enc_pos = int(query_encoder(mconf[motor_name]['rpi_pin'],
+                                        mconf['t_sleep'], mconf['com_spd'],
+                                        verbose=False).rstrip())
+            enc_pos2 = int(query_encoder(mconf[motor_name]['rpi_pin'],
                                         mconf['t_sleep'], mconf['com_spd'],
                                         verbose=False).rstrip())
 
@@ -427,7 +432,7 @@ def move_motor(motor_name, input_val, history_df, angle_check=180, constraints=T
                         enc_fail = True
                 else:
                     # print("partial rotation --- ", exp_pos, enc_tol, enc_pos)
-                    if not (exp_pos - enc_tol) < enc_pos < (exp_pos + enc_tol):
+                    if not (exp_pos - enc_tol) < enc_pos < (exp_pos + enc_tol) and not (exp_pos - enc_tol) < enc_pos2 < (exp_pos + enc_tol):
                         enc_fail = True
                 if enc_fail:
                     print("Encoder position check failed!\nAborting move ...")
@@ -463,7 +468,7 @@ def move_motor(motor_name, input_val, history_df, angle_check=180, constraints=T
     if motor_name == "source":
         relative_pos = n_moved / (50000 / 360)
     if motor_name == "linear":
-        relative_pos = n_moved / 31573
+        relative_pos = n_moved / 31496
     if motor_name == "rotary":
         relative_pos = n_moved / (50000 / 360 * 90)
 
@@ -489,12 +494,19 @@ def move_motor(motor_name, input_val, history_df, angle_check=180, constraints=T
     update_history(motor_name, relative_pos, n_moved, zero, steps, move_completed=move_complete)
 
 
-def beam_pos_move(): 
+def beam_pos_move(detector): 
     
+
     radial_pos = float(input("Desired radial position of beam \n -->"))
     source_angle = float(input("Desired source angle with respect to detector surface \n -->"))
     
-    source_rot, linear_move = positionCalc(radial_pos, source_angle)
+    if detector == 'icpc':
+        source_rot, linear_move = positionCalc(radial_pos, source_angle)
+    elif detector == 'oppi':
+        source_rot, linear_move = positionCalc(radial_pos, source_angle, icpc=False)
+    else:
+        print("That is not a valid detector, please choose icpc or oppi")
+        exit()
     
     return source_rot, linear_move
 
