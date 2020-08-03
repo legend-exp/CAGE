@@ -12,15 +12,15 @@ using Unitful
 using Plots; pyplot(fmt = :png);
 
 function main()
-    # base_filename = "tracking_allSteps_oppi_ring_y9_norm_241Am_1000000"
-    # raw_dir = "../alpha/raw_out/oppi/"
-    # processed_dir = "../alpha/processed_out/oppi/"
+    base_filename = "tracking_allSteps_oppi_ring_y9_norm_241Am_1000000"
+    raw_dir = "../alpha/raw_out/oppi/"
+    processed_dir = "../alpha/processed_out/oppi/"
     raw_extension = ".hdf5"
     processed_extension = ".lh5"
 
-    base_filename = "test_newDet_sourceRotNorm_y6mm_ICPC_Pb_241Am_100000"
-    raw_dir = "../alpha/raw_out/"
-    processed_dir = "../alpha/processed_out/"
+    # base_filename = "test_newDet_sourceRotNorm_y6mm_ICPC_Pb_241Am_100000"
+    # raw_dir = "../alpha/raw_out/"
+    # processed_dir = "../alpha/processed_out/"
     # println("got to main function")
 
     processHits_steps(raw_dir, processed_dir, base_filename, raw_extension, processed_extension)
