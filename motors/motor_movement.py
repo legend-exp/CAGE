@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import os
+import sys, os
 import time
 import json
 import shlex
@@ -11,6 +11,8 @@ import numpy as np
 from pprint import pprint
 import pandas as pd
 from datetime import datetime
+sys.path.append('../sims')
+from source_placement import *
 
 def main():
     doc="""
@@ -32,7 +34,7 @@ def main():
     rpins = {key['rpi_pin'] : name for name, key in mconf.items()}
 
     # TODO: change this when we want to do a new campaign
-    campaign_number = "2"
+    campaign_number = "4"
 
     # parse user args
     par = argparse.ArgumentParser(description=doc, formatter_class=rthf)
@@ -42,6 +44,7 @@ def main():
     arg('--steps', nargs='*', help="get steps to move [motor_name] a [value]")
     arg('--zero', nargs=1, type=str, help="zero motor: [source,linear,rotary]")
     arg("--move", nargs='*', help="move [motor_name] a distance [value]")
+    arg("--beam_pos_move", nargs=1, help="Use source_placement.py to calculate motor movements for [oppi] or[icpc]")
     arg("--center", nargs='*', help="center source or linear motor")
 
     # encoder functions & settings
@@ -110,6 +113,7 @@ def main():
 
     if args['status']:
         check_limit_switches(verbose=True)
+        lift_interlock()
         print(history_df)
 
     if args['read_enc']:
@@ -126,12 +130,8 @@ def main():
         input_val = float(args['steps'][1])
         get_steps(motor_name, input_val, angle_check, constraints, verbose)
 
-    # --- sanity check before moving motors ---
-    if args['move'] or args['zero'] or args['center']:
-        check = input('WARNING, did you lift the motor assembly with the rack and pinion? y/n \n -->')
-        if check != 'y':
-            print('Please lift!')
-            exit()
+    # --- Make sure lift interlock is engaged ---
+    lift_interlock()
 
     # Actually move motors!
     if args['move']:
@@ -139,6 +139,20 @@ def main():
         input_val = float(args['move'][1])
         approve_move(history_df, motor_name, input_val, False, constraints)
         move_motor(motor_name, input_val, history_df, angle_check, constraints, verbose)
+        
+        
+    # incorporating Joule's source placement code--TEST
+    if args['beam_pos_move']:
+        source_amount, linear_amount = beam_pos_move(args['beam_pos_move'][0]) 
+
+        approve_move(history_df, 'linear', linear_amount, False, constraints)
+        move_motor('linear', linear_amount, history_df, angle_check, constraints, verbose)
+        
+        approve_move(history_df, 'source', source_amount, False, constraints)
+        move_motor('source', -1*source_amount, history_df, angle_check, constraints, verbose)
+        exit()
+
+
 
     if args['zero']:
         motor_name = args['zero'][0]
@@ -180,6 +194,30 @@ def connect_to_controller(verbose=True):
     else:
         print("CAGE RPi isn't active on the network!  Beware ...")
 
+def lift_interlock():
+    """
+    Access the RPi-side routine, "read_encoders.py" via SSH.
+    To read an encoder position:
+        $ python3 motor_movement.py -p [rpi_pin] [options: -s, -c, -v]
+    To zero an encoder:
+        $ python3 motor_movement.py -z [rpi_pin] [options: -m, -s, -c, -v]
+    """
+    shell = spur.SshShell(hostname=ipconf["pressure_rpi_ipa"],
+                          username=ipconf["pressure_rpi_usr"],
+                          password=ipconf["pressure_rpi_pwd"])
+    with shell:
+        
+        result = shell.run(["python3", "lift_interlock.py"])
+    
+    result = float(result.output.decode("utf-8"))
+    print(result)
+    
+    if result != 0:
+        print("WARNING: Rack and Pinion is not lifted to safe distance")
+        print("Lift rack and pinion and place motor movement block so that pressure pad is engaged")
+        print("Then retry your command")
+        exit()
+        
 
 def check_limit_switches(verbose=True):
     """
@@ -211,7 +249,7 @@ def check_limit_switches(verbose=True):
 
     # return the labels instead of the bools
     return source, linear_fwd, linear_rev, rotary
-
+    
 
 def query_encoder(rpi_pin, t_sleep=0.01, com_spd=10000, verbose=True, max_reads=3, zero=False):
     """
@@ -280,7 +318,7 @@ def get_steps(motor_name, input_val, angle_check=180, constraints=True, verbose=
     elif motor_name == "linear":
         move_type = "mm"
         direction = np.sign(input_val)
-        n_steps = input_val * 31573
+        n_steps = input_val * 31496
 
     elif motor_name == "rotary":
         move_type = "degrees"
@@ -373,9 +411,12 @@ def move_motor(motor_name, input_val, history_df, angle_check=180, constraints=T
             gc(f'PR{axis}={n_move}')
             gc(f'BG{axis}')
             gp.GMotionComplete(axis)
-
+            time.sleep(.1)
             # take current reading of encoder position (quiet)
             enc_pos = int(query_encoder(mconf[motor_name]['rpi_pin'],
+                                        mconf['t_sleep'], mconf['com_spd'],
+                                        verbose=False).rstrip())
+            enc_pos2 = int(query_encoder(mconf[motor_name]['rpi_pin'],
                                         mconf['t_sleep'], mconf['com_spd'],
                                         verbose=False).rstrip())
 
@@ -391,7 +432,7 @@ def move_motor(motor_name, input_val, history_df, angle_check=180, constraints=T
                         enc_fail = True
                 else:
                     # print("partial rotation --- ", exp_pos, enc_tol, enc_pos)
-                    if not (exp_pos - enc_tol) < enc_pos < (exp_pos + enc_tol):
+                    if not (exp_pos - enc_tol) < enc_pos < (exp_pos + enc_tol) and not (exp_pos - enc_tol) < enc_pos2 < (exp_pos + enc_tol):
                         enc_fail = True
                 if enc_fail:
                     print("Encoder position check failed!\nAborting move ...")
@@ -427,7 +468,7 @@ def move_motor(motor_name, input_val, history_df, angle_check=180, constraints=T
     if motor_name == "source":
         relative_pos = n_moved / (50000 / 360)
     if motor_name == "linear":
-        relative_pos = n_moved / 31573
+        relative_pos = n_moved / 31496
     if motor_name == "rotary":
         relative_pos = n_moved / (50000 / 360 * 90)
 
@@ -445,9 +486,29 @@ def move_motor(motor_name, input_val, history_df, angle_check=180, constraints=T
           f"\n  Total steps moved: {n_moved}"
           f"\n  Final position: {relative_pos} {move_type}")
 
-    # update the DF with a successful move.
-    update_history(motor_name, relative_pos, n_moved, zero, steps, move_completed=True)
+    move_complete = True
+    if constraints and enc_fail==True:
+        move_complete = False
 
+    # update the DF with a successful move.
+    update_history(motor_name, relative_pos, n_moved, zero, steps, move_completed=move_complete)
+
+
+def beam_pos_move(detector): 
+    
+
+    radial_pos = float(input("Desired radial position of beam \n -->"))
+    source_angle = float(input("Desired source angle with respect to detector surface \n -->"))
+    
+    if detector == 'icpc':
+        source_rot, linear_move = positionCalc(radial_pos, source_angle)
+    elif detector == 'oppi':
+        source_rot, linear_move = positionCalc(radial_pos, source_angle, icpc=False)
+    else:
+        print("That is not a valid detector, please choose icpc or oppi")
+        exit()
+    
+    return source_rot, linear_move
 
 def zero_motor(motor_name, angle_check, history_df, verbose, constraints=True):
     """
@@ -473,7 +534,7 @@ def center_motor(motor_name, angle_check, history_df, verbose, constraints=True)
     if motor_name == "linear":
         print("move the thing forward 3.175 mm")
         move_motor("linear", 3.175, history_df, angle_check, constraints, verbose)
-    if motor_name == "source":
+    elif motor_name == "source":
         print('do the special limit checks')
         move_motor("source", -180, history_df, angle_check, constraints, verbose)
         # zero_motor("source",...)

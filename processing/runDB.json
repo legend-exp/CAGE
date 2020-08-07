@@ -6,10 +6,10 @@
   "dsp_prefix":"dsp",
   "suffix":"lh5",
 
-  "loc_dir":"$DATADIR/CAGE",
-  "daq_dir":"$DATADIR/CAGE/Data",
-  "raw_dir":"$DATADIR/CAGE/pygama_raw",
-  "dsp_dir":"$DATADIR/CAGE/pygama_dsp",
+  "loc_dir":"$CAGEDATADIR",
+  "daq_dir":"$CAGEDATADIR/Data",
+  "raw_dir":"$CAGEDATADIR/pygama_raw",
+  "dsp_dir":"$CAGEDATADIR/pygama_dsp",
 
   "meta_dir":"$DATADIR/CAGE/metadata",
   "rocks_dir":"/data/LEGEND/Data/CAGE",
@@ -26,7 +26,12 @@
     "0":["1,10", "initial Cs+bkg runs.  2500 V, 0x10 thr.  25 MHz noise, max varcap value."],
     "1":["11,14", "initial Cs+bkg runs.  2800 V, same settings otherwise"],
     "2":["15,41", "HV pulser meas.  Cs source + bkg.  0x15.  see elog 85"],
-    "3":["42,45", "bkg runs, 2800 V, 0x10 thresh"]
+    "3":["42,45", "bkg runs, 2800 V, 0x10 thresh"],
+    "4":["126,127", "first bkg runs with PPM ICPC, before preamp tuning. 0x8 thresh. see elog 172"],
+    "5":["128,131", "first bkg runs with PPM ICPC, after preamp tuning. 0x8 thresh. see elog 172"],
+    "6":["132", "short bkg run with detector at 4500 V. 0x8 thresh. Saw a bad -10.8 rail 14 minutes into run and biased down. See Elog 173"],
+    "7":["133,134", "Lower bias run. 3000 V. 0x8 thresh. See Elog 173"],
+    "8":["135,136", "0x10 threshold, 3500 V bias, top hat lifted 5 cm and warming, preamp tuned to minimize rise time of waveforms (some oscillatory noise is present). see elog 175"]
   },
 
   "build_options":{
@@ -36,56 +41,7 @@
         "daq":"ORCA",
         "digitizer":"ORSIS3302DecoderForEnergy"
       },
-      "raw_to_dsp_options":{
-        "clk" : 100e6,
-        "fit_bl" : {"ihi":500, "order":1},
-        "blsub" : {},
-        "dADC": {},
-        "pz" : {"decay":82},
-        "notch" : {"f_notch":2.5e7, "Q":2},
-        "savgol" : [
-            {"wfin":"wf_blsub", "wfout":"wf_savgol", "window":47, "order":2},
-            {"wfin":"wf_notch", "wfout":"wf_notsav", "window":47, "order":2}
-        ],
-        "trap" : [
-            {"wfout":"wf_etrap", "wfin":"wf_notch", "rise":1.75, "flat":2.5, "decay":72},
-            {"wfout":"wf_strap", "wfin":"wf_notch", "rise":1, "flat":1.5, "decay":72},
-            {"wfout":"wf_atrap", "wfin":"wf_notch", "rise":0.04, "flat":0.1, "fall":2},
-            {"wfout":"wf_ttrap", "wfin":"wf_notch", "rise":1, "flat":0, "fall":1}
-        ],
-        "current" : [
-            {"wfin":"wf_blsub", "wfout":"wf_current", "sigma":5}
-        ],
-        "fS" : {"wfin":"wf_ttrap"},
-        "get_max" : [
-            {"wfin":"wf_etrap"}, {"wfin":"wf_strap"}, {"wfin":"wf_atrap"},
-            {"wfin":"wf_ttrap"}, {"wfin":"wf_savgol"}, {"wfin":"wf_current"}
-        ],
-        "timepoint" : {"wfin":"wf_savgol", "pct":[5,10,50,90,100]},
-        "peakdet" : [
-            {"delta":0.5, "sigma":5, "ihi":600}
-        ],
-        "num_peaks" : {},
-        "ftp" : {},
-        "overflow" : {},
-        "dcr" : [
-            {"wfin":"wf_savgol"},
-            {"wfin":"wf_pz"}
-        ],
-        "tail_fit" : [
-            {"wfin":"wf_savgol", "order":1, "tp_thresh":0.8, "vec":0},
-            {"wfin":"wf_pz", "order":1, "tp_thresh":0.8, "vec":0}
-        ]
-      },
-      "unused":{
-          "center": {"wfin":"wf_notch"},
-          "current_pass2" : {"wfin":"wf_ctr", "wfout":"wf_current_ctr", "sigma":5},
-          "test_peakdet" : {"wfin":"wf_current_ctr", "delta":0.1, "sigma":5, "ihi":600, "test":1},
-          "psd" : {"nseg":100,"test":1,"note":"this one is slow, use w/ -m mode only"},
-          "trim": {"n_pre":100, "n_post":1000},
-          "peakdet_test":{"delta":1.5, "sigma":0, "ihi":600},
-          "trap_test":{"rise":4, "flat":2, "fall":4, "decay":72}
-      }
+      "raw_to_dsp_options":{}
     }
   },
 

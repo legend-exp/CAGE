@@ -15,8 +15,8 @@
   <constant name="PI" value="1.*pi"/>
   <constant name="TWOPI" value="2.*pi"/>
 
-  <quantity name="source_radius" type="length" value="25.0/2" unit="mm"/>
-  <quantity name="source_thickness" type="length" value="0.5" unit="mm"/>
+  <quantity name="ss_radius" type="length" value="25.0/2" unit="mm"/>
+  <quantity name="ss_thickness" type="length" value="0.5" unit="mm"/>
 
  </define>
 
@@ -24,7 +24,7 @@
 
  <solids>
 
-  <cone name="source_cylinder" rmin1="0" rmax1="source_radius" rmin2="0" rmax2="source_radius" z="source_thickness" startphi="0" deltaphi="TWOPI" aunit="rad"/>
+  <cone name="ss_cylinder" rmin1="0" rmax1="ss_radius" rmin2="0" rmax2="ss_radius" z="ss_thickness" startphi="0" deltaphi="TWOPI" aunit="rad"/>
 
  </solids>
 
@@ -34,7 +34,7 @@
 
  <volume name="ss_sourceDisk_ezag">
    <materialref ref="G4_STAINLESS-STEEL"/>
-   <solidref ref="source_cylinder"/>
+   <solidref ref="ss_cylinder"/>
   </volume>
 
  </structure>
