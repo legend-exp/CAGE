@@ -12,7 +12,7 @@ using Unitful
 using Plots; pyplot(fmt = :png);
 
 function main()
-    base_filename = "tracking_allSteps_oppi_ring_y9_norm_241Am_1000000"
+    base_filename = "oppi_ring_y9_norm_241Am_1000000"
     raw_dir = "../alpha/raw_out/oppi/"
     processed_dir = "../alpha/processed_out/oppi/"
     raw_extension = ".hdf5"
@@ -77,7 +77,7 @@ function processHits_steps(raw_dir, processed_dir, base_filename, raw_extension,
     # Need to turn DataFrame into a table before saving to lh5
     table_df = TypedTables.Table(det_hits)
 
-    out_filename = processed_dir * "joulesmachine_test_processed_" * base_filename * processed_extension
+    out_filename = processed_dir * "processed_" * base_filename * processed_extension
 
     # println(typeof(out_filename))
 
@@ -99,7 +99,7 @@ function processHits_forSSD(raw_dir, processed_dir, base_filename, raw_extension
 
     evtno = read(g4sntuple["event"]["pages"])
     detno = read(g4sntuple["iRep"]["pages"])
-    thit = read(g4sntuple["t"]["pages"]).*u"s"
+    thit = read(g4sntuple["t"]["pages"]).*u"ns"
     edep = read(g4sntuple["Edep"]["pages"]).*u"MeV"
     ekin = read(g4sntuple["KE"]["pages"]).*u"MeV"
     volID = read(g4sntuple["volID"]["pages"])
@@ -153,7 +153,7 @@ function processHits_forSSD(raw_dir, processed_dir, base_filename, raw_extension
     # Need to turn DataFrame into a TypedTable before saving to lh5
     hits = TypedTables.Table(det_hits)
 
-    out_filename = processed_dir * "test_SSD_processed_" * base_filename * processed_extension
+    out_filename = processed_dir * "SSD_processed_" * base_filename * processed_extension
 
     # println(typeof(out_filename))
 

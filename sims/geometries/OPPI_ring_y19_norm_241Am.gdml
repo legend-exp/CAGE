@@ -71,7 +71,7 @@ See these elogs for more diagrams and information: https://elog.legend-exp.org/U
    <physvol>
      <file name="./geometries/OPPI1_ring.gdml"/>
      <position name= "ring_center" x="0.0" y="0.0" z="-(22.0 + 3)" unit="mm"/>
-     <rotation name="identity" x="0.00" unit="deg"/>
+     <rotation name="OPPI1_ring_Rotation" z="180-17.92" unit="deg"/>
    </physvol>
 
    <physvol>
