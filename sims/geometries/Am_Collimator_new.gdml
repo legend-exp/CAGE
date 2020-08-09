@@ -5,7 +5,7 @@
 
 # February 5, 2020
 # Gulden Othman
-# New collimator to be made of Pb. Drawing in this elog: https://elog.legend-exp.org/UWScanner/135
+# New collimator to be made of Pb. Drawing in this elog: https://elog.legend-exp.org/UWScanner/180
 # This way of unioning/differencing seems to work correctly
 
 ##########################################
@@ -57,8 +57,12 @@
 
     <!-- Primary solids -->
     <cone name="body_bottom" rmin1="body_bottom_innerradius" rmax1="body_bottom_radius" rmin2="body_bottom_innerradius" rmax2="body_bottom_radius" z="body_bottom_height" startphi="0" deltaphi="TWOPI" aunit="rad" />
-    <cone name="body_middle" rmin1="body_middle_innerradius" rmax1="body_middle_radius" rmin2="body_middle_innerradius" rmax2="body_middle_radius" z="body_middle_height" startphi="0" deltaphi="TWOPI" aunit="rad" />
+
+    <cone name="body_middle" rmin1="body_middle_innerradius-0.000001" rmax1="body_middle_radius" rmin2="body_middle_innerradius-0.000001" rmax2="body_middle_radius" z="body_middle_height" startphi="0" deltaphi="TWOPI" aunit="rad" /> <!-- the 0.000001 offset is a bandaid for a bug (or feature) that is making a gap between the top of the of the collimator portion and the attenuator body to prevent what it thinks are accidental overlapping geometries -->
+
     <cone name="body_top" rmin1="0.0" rmax1="body_top_radius" rmin2="0.0" rmax2="body_top_radius" z="body_top_height" startphi="0" deltaphi="TWOPI" aunit="rad" />
+
+
 
     <!-- subtraction solids -->
     <cone name="body_sourceOffset" rmin1="0.0" rmax1="body_sourceOffset_radius" rmin2="0.0" rmax2="body_sourceOffset_radius" z="body_sourceOffset_height" startphi="0" deltaphi="TWOPI" aunit="rad" />
