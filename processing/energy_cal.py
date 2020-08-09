@@ -37,7 +37,7 @@ with warnings.catch_warnings():
 
 def main():
     doc="""
-    === pygama: auto_cal.py ====================================================
+    === pygama: energy_cal.py ====================================================
 
     energy calibration app
 
@@ -190,7 +190,7 @@ def init_ecaldb(config):
 
 def show_ecaldb(config):
     """
-    $ ./auto_cal.py --show_db
+    $ ./energy_cal.py --show_db
     """
     # show the file as-is on disk
     with open(config['ecaldb']) as f:
@@ -205,14 +205,14 @@ def show_ecaldb(config):
 
 def check_raw_spectrum(dg, config, db_ecal):
     """
-    $ ./auto_cal.py -q 'query' --raw
+    $ ./energy_cal.py -q 'query' --raw
     """
     import h5py
 
     # load energy data
     lh5_dir = os.path.expandvars(config['lh5_dir'])
     dsp_list = lh5_dir + dg.file_keys['dsp_path'] + '/' + dg.file_keys['dsp_file']
-    raw_data = load_nda(dsp_list, config['rawe'], config['input_table'])
+    raw_data = lh5.load_nda(dsp_list, config['rawe'], config['input_table'])
     runtime_min = dg.file_keys['runtime'].sum()
 
     print('\nShowing raw spectra ...')
@@ -255,7 +255,7 @@ def check_raw_spectrum(dg, config, db_ecal):
 
 def run_peakdet(dg, config, db_ecal):
     """
-    $ ./auto_cal.py -q 'query' -p1 [-p : show plot]
+    $ ./energy_cal.py -q 'query' -p1 [-p : show plot]
     Run "first guess" calibration of an arbitrary energy estimator.
 
     NOTE: if you use too high a peakdet threshold, you may not capture
@@ -306,7 +306,7 @@ def peakdet_group(df_group, config):
     lh5_dir = os.path.expandvars(config['lh5_dir'])
     dsp_list = lh5_dir + df_group['dsp_path'] + '/' + df_group['dsp_file']
 
-    edata = load_nda(dsp_list, config['rawe'], config['input_table'])
+    edata = lh5.load_nda(dsp_list, config['rawe'], config['input_table'])
     print('Found energy data:', [(et, len(ev)) for et, ev in edata.items()])
 
     runtime_min = df_group['runtime'].sum()
@@ -398,21 +398,6 @@ def peakdet_group(df_group, config):
         pd_results[f'{et}_lcpass'] = str(mp_success)
 
     return pd.Series(pd_results)
-
-
-def load_nda(f_list, ene_list, tb_in):
-    """
-    given a list of files, a list of energy estimators, and the HDF5 path,
-    return a numpy array with all values for each estimator.
-    """
-    sto = lh5.Store()
-    ene_data = {et : [] for et in ene_list}
-    for f in f_list:
-        for et in ene_list:
-            data = sto.read_object(f'{tb_in}/{et}', f)
-            ene_data[et].append(data.nda)
-    ene_data = {et : np.concatenate(ene_data[et]) for et in ene_list}
-    return ene_data
 
 
 def match_peaks(maxes, exp_pks, tst_pks, mode='first', ene_tol=10):
@@ -584,7 +569,7 @@ def peakfit_group(df_group, config, db_ecal):
     # load data
     lh5_dir = os.path.expandvars(config['lh5_dir'])
     dsp_list = lh5_dir + df_group['dsp_path'] + '/' + df_group['dsp_file']
-    raw_data = load_nda(dsp_list, config['rawe'], config['input_table'])
+    raw_data = lh5.load_nda(dsp_list, config['rawe'], config['input_table'])
     runtime_min = df_group['runtime'].sum()
 
     # loop over energy estimators of interest
@@ -628,17 +613,19 @@ def peakfit_group(df_group, config, db_ecal):
                                         var=hist_var, guess=p_init)
             p_err = np.sqrt(np.diag(p_cov))
 
-            # # diagnostic plot, don't delete
-            # plt.axvline(bins[ibin_bkg], c='m', label='bkg region')
-            # xfit = np.arange(xlo, xhi, xpb * 0.1)
-            # plt.plot(xfit, pgf.gauss_bkg(xfit, *p_init), '-', c='orange',
-            #          label='init')
-            # plt.plot(xfit, pgf.gauss_bkg(xfit, *p_fit), '-', c='red',
-            #          label='fit')
-            # plt.plot(bins[1:], hist_norm, c='b', lw=1.5, ds='steps')
-            # plt.legend(fontsize=12)
-            # plt.show()
-            # plt.close()
+            # diagnostic plot, don't delete
+            if config['show_plot']:
+                plt.axvline(bins[ibin_bkg], c='m', label='bkg region')
+                xfit = np.arange(xlo, xhi, xpb * 0.1)
+                plt.plot(xfit, pgf.gauss_bkg(xfit, *p_init), '-', c='orange',
+                         label='init')
+                plt.plot(xfit, pgf.gauss_bkg(xfit, *p_fit), '-', c='red',
+                         label='fit')
+                plt.plot(bins[1:], hist_norm, c='b', lw=1.5, ds='steps')
+                plt.xlabel('pass-1 energy (kev)', ha='right', x=1)
+                plt.legend(fontsize=12)
+                plt.show()
+                plt.close()
 
             # goodness of fit
             chisq = []
