@@ -1,163 +1,149 @@
 #!/usr/bin/env python3
-import sys, os, io
+import os
 import json
-import argparse
 import numpy as np
+import argparse
 import pandas as pd
 from pprint import pprint
-from pygama import DataSet
-import pygama.utils as pu
-from pygama.dsp.ProcessingChain import ProcessingChain
-from pygama.dsp.processors import *
-from pygama.dsp.units import *
-from pygama.dsp.processors import *
-from pygama.io import io_base as io
-from pygama.io import lh5
+from collections import OrderedDict
+
+from pygama import DataGroup
+from pygama.io.daq_to_raw import daq_to_raw
+from pygama.io.raw_to_dsp import raw_to_dsp
 
 
-def main(argv):
+def main():
+    doc="""
+    CAGE data processing routine.
+    TODO: parallelize, submit processing jobs
     """
-    Uses pygama's amazing DataSet class to process runs
-    for different data sets and arbitrary configuration options
-    defined in a JSON file.
-    """
-    # datadir = os.environ["CAGEDATA"]
-    run_db, cal_db = f'./runDB.json', f'./calDB.json'
+    rthf = argparse.RawTextHelpFormatter
+    par = argparse.ArgumentParser(description=doc, formatter_class=rthf)
+    arg, st, sf = par.add_argument, 'store_true', 'store_false'
 
-    # -- parse args --
-    par = argparse.ArgumentParser(description="data processing suite for CAGE")
-    arg, st, sf = par.add_argument, "store_true", "store_false"
-    arg("-ds", nargs='*', action="store", help="load runs for a DS")
-    arg("-r", "--run", nargs=1, help="load a single run")
-    arg("-d2r", "--daq_to_raw", action=st, help="run daq_to_raw on list")
-    arg("-r2d", "--raw_to_dsp", action=st, help="run raw_to_dsp on list")
-    arg("-t", "--test", action=st, help="test mode, don't run")
-    arg("-n", "--nevt", nargs='?', default=np.inf, help="limit max num events")
-    arg("-i", "--ioff", nargs='?', default=0, help="start at index [i]")
-    arg("-o", "--ovr", action=st, help="overwrite existing files")
+    # declare datagroup
+    arg('-q', '--query', nargs=1, type=str,
+        help="select file group to calibrate: -q 'run==1' ")
 
-    arg('-v', '--verbose', default=2, type=int,
-        help="Verbosity level: 0=silent, 1=basic warnings, 2=verbose output, 3=debug. Default is 2.")
+    # routines
+    arg('--d2r', action=st, help='run daq_to_raw')
+    arg('--r2d', action=st, help='run raw_to_dsp')
+    arg('--r2d_file', nargs=2, type=str, help='single-file raw_to_dsp')
 
-    arg('-b', '--block', default=8, type=int,
-                        help="Number of waveforms to process simultaneously. Default is 8")
+    # options
+    arg('-o', '--over', action=st, help='overwrite existing files')
+    arg('-n', '--nwfs', nargs='*', type=int, help='limit num. waveforms')
+    arg('-v', '--verbose', action=st, help='verbose mode')
 
-    arg('-g', '--group', default='/daqdata',
-                        help="Name of group in LH5 file. Default is daqdata.")
-
-    # -- declare the DataSet --
     args = par.parse_args()
-    d_args = vars(par.parse_args())
-    ds = pu.get_dataset_from_cmdline(d_args, run_db, cal_db)
 
-    # print(ds.runs)
-    # pprint(ds.paths)
+    # load main DataGroup, select files to calibrate
+    dg = DataGroup('cage.json', load=True)
+    if args.query:
+        que = args.query[0]
+        dg.file_keys.query(que, inplace=True)
+    else:
+        dg.file_keys = dg.file_keys[-1:]
 
-    # -- start processing --
-    if args.daq_to_raw:
-        daq_to_raw(ds, args.ovr, args.nevt, args.verbose, args.test)
+    view_cols = ['run','cycle','daq_file','runtype','startTime']#,'threshold',
+                 # 'stopTime','runtime']
+    print(dg.file_keys[view_cols].to_string())
+    print('Files:', len(dg.file_keys))
+    # exit()
 
-    if args.raw_to_dsp:
-        raw_to_dsp(ds, args.ovr, args.nevt, args.test, args.verbose, args.block,
-                   args.group)
+    # -- set options --
+    nwfs = args.nwfs[0] if args.nwfs is not None else np.inf
+
+    print('Processing settings:'
+          # '\n$LPGTA_DATA =', os.environ.get('LPGTA_DATA'),
+          # '\n$LEGEND_META =', os.environ.get('LEGEND_META'),
+          f'\n  overwrite? {args.over}'
+          f'\n  limit wfs? {nwfs}')
+
+    # -- run routines --
+
+    if args.d2r: d2r(dg, args.over, nwfs, args.verbose)
+    if args.r2d: r2d(dg, args.over, nwfs, args.verbose)
+
+    if args.r2d_file:
+        f_raw, f_dsp = args.r2d_file
+        r2d_file(f_raw, f_dsp, args.over, nwfs, args.verbose)
 
 
-def daq_to_raw(ds, overwrite=False, nevt=np.inf, v=False, test=False):
+def d2r(dg, overwrite=False, nwfs=None, vrb=False):
     """
-    Run daq_to_raw on a set of runs.
-    [raw file] ---> [raw_run{}.lh5] (basic info & waveforms)
+    run daq_to_raw on the current DataGroup
     """
-    from pygama.io.daq_to_raw import daq_to_raw
+    # print(dg.file_keys)
+    # print(dg.file_keys.columns)
 
-    for run in ds.runs:
+    subs = dg.subsystems # can be blank: ['']
+    # subs = ['geds'] # TODO: ignore other datastreams
+    # chans = ['g035', 'g042'] # TODO: select a subset of detectors
 
-        daq_file = ds.paths[run]["daq_path"]
-        raw_file = ds.paths[run]["raw_path"]
-        if raw_file is not None and overwrite is False:
-            print("file exists, overwrite flag isn't set.  continuing ...")
+    print(f'Processing {dg.file_keys.shape[0]} files ...')
+
+    for i, row in dg.file_keys.iterrows():
+
+        f_daq = f"{dg.daq_dir}/{row['daq_dir']}/{row['daq_file']}"
+        f_raw = f"{dg.lh5_dir}/{row['raw_path']}/{row['raw_file']}"
+        # f_raw = 'test.lh5'
+        subrun = row['cycle'] if 'cycle' in row else None
+
+        if not overwrite and os.path.exists(f_raw):
+            print('file exists, overwrite not set, skipping f_raw:\n   ', f_raw)
             continue
 
-        conf = ds.paths[run]["build_opt"]
-        opts = ds.config["build_options"][conf]["daq_to_raw_options"]
-
-        if test:
-            print("test mode (dry run), processing DAQ file:", daq_file)
-            print("output file:", raw_file)
-            continue
-
-        # # old pandas version
-        # daq_to_raw(daq_file, run, verbose=v, output_dir=ds.raw_dir,
-        #              overwrite=overwrite, n_max=nevt, config=ds.config)#settings=opts)
-
-        # new lh5 version
-        daq_to_raw(daq_file, raw_filename=raw_file, run=run, chan_list=None,
-                   prefix=ds.rawpre, n_max=nevt, verbose=v, output_dir=ds.raw_dir,
-                   overwrite=overwrite, config=ds.config)
+        daq_to_raw(f_daq, f_raw, config=dg.config, systems=subs, verbose=vrb,
+                   n_max=nwfs, overwrite=overwrite, subrun=subrun)#, chans=chans)
 
 
-def raw_to_dsp(ds, overwrite=False, nevt=None, test=False, verbose=2, block=8,
-               group='daqdata'):
+def r2d(dg, overwrite=False, nwfs=None, vrb=False):
     """
-    Run raw_to_dsp on a set of runs.
-    [raw file] ---> [dsp_run{}.lh5] (digital signal processing results)
     """
-    for run in ds.runs:
-        raw_file = ds.paths[run]["raw_path"]
-        dsp_file = ds.paths[run]["dsp_path"]
+    # print(dg.file_keys)
+    # print(dg.file_keys.columns)
 
-        if dsp_file is not None and overwrite is False:
+    with open(f'config_dsp.json') as f:
+        dsp_config = json.load(f, object_pairs_hook=OrderedDict)
+
+    for i, row in dg.file_keys.iterrows():
+
+        f_raw = f"{dg.lh5_dir}/{row['raw_path']}/{row['raw_file']}"
+        f_dsp = f"{dg.lh5_dir}/{row['dsp_path']}/{row['dsp_file']}"
+
+        if "sysn" in f_raw:
+            tmp = {'sysn' : 'geds'} # hack for lpgta
+            f_raw = f_raw.format_map(tmp)
+            f_dsp = f_dsp.format_map(tmp)
+
+        if not overwrite and os.path.exists(f_dsp):
+            print('file exists, overwrite not set, skipping f_dsp:\n   ', f_dsp)
             continue
 
-        if dsp_file is None:
-            # declare new file name
-            dsp_file = raw_file.replace('raw_', 'dsp_')
+        raw_to_dsp(f_raw, f_dsp, dsp_config, n_max=nwfs, verbose=vrb,
+                   overwrite=overwrite)
 
-        if test:
-            print("test mode (dry run), processing raw file:", raw_file)
-            continue
 
-        # new LH5 version
-        f_lh5 = lh5.Store()
-        data = f_lh5.read_object("/ORSIS3302DecoderForEnergy", raw_file)
+def r2d_file(f_raw, f_dsp, overwrite=True, nwfs=None, vrb=False):
+    """
+    single-file mode, for testing
+    """
+    print('raw_to_dsp, single-file mode.')
+    print('  input:', f_raw)
+    print('  output:', f_dsp)
 
-        wf_in = data['waveform']['values'].nda
-        dt = data['waveform']['dt'].nda[0] * unit_parser.parse_unit(data['waveform']['dt'].attrs['units'])
+    # always overwrite
+    if os.path.exists(f_dsp):
+        os.remove(f_dsp)
 
-        # Set up processing chain
-        proc = ProcessingChain(block_width=block, clock_unit=dt, verbosity=verbose)
-        proc.add_input_buffer("wf", wf_in, dtype='float32')
+    with open('oppi_dsp.json') as f:
+        dsp_config = json.load(f, object_pairs_hook=OrderedDict)
 
-        proc.add_processor(mean_stdev, "wf[0:1000]", "bl", "bl_sig")
-        proc.add_processor(np.subtract, "wf", "bl", "wf_blsub")
-        proc.add_processor(pole_zero, "wf_blsub", 70*us, "wf_pz")
-        proc.add_processor(trap_filter, "wf_pz", 10*us, 5*us, "wf_trap")
-        proc.add_processor(np.amax, "wf_trap", 1, "trapmax", signature='(n),()->()', types=['fi->f'])
-        proc.add_processor(np.divide, "trapmax", 10*us, "trapE")
-        proc.add_processor(avg_current, "wf_pz", 10, "curr")
-        proc.add_processor(np.amax, "curr", 1, "A_10", signature='(n),()->()', types=['fi->f'])
-        proc.add_processor(np.divide, "A_10", "trapE", "AoE")
-
-        # Set up the LH5 output
-        lh5_out = lh5.Table(size=proc._buffer_len)
-        lh5_out.add_field("trapE", lh5.Array(proc.get_output_buffer("trapE"),
-                                               attrs={"units":"ADC"}))
-        lh5_out.add_field("bl", lh5.Array(proc.get_output_buffer("bl"),
-                                            attrs={"units":"ADC"}))
-        lh5_out.add_field("bl_sig", lh5.Array(proc.get_output_buffer("bl_sig"),
-                                                attrs={"units":"ADC"}))
-        lh5_out.add_field("A", lh5.Array(proc.get_output_buffer("A_10"),
-                                           attrs={"units":"ADC"}))
-        lh5_out.add_field("AoE", lh5.Array(proc.get_output_buffer("AoE"),
-                                             attrs={"units":"ADC"}))
-
-        print("Processing:\n",proc)
-        proc.execute()
-
-        print("Writing to: ", dsp_file)
-        f_lh5.write_object(lh5_out, "data", dsp_file)
+    raw_to_dsp(f_raw, f_dsp, dsp_config, n_max=nwfs, verbose=vrb,
+               overwrite=overwrite)
 
 
 
-
-if __name__ == "__main__":
-    main(sys.argv[1:])
+if __name__=="__main__":
+    main()

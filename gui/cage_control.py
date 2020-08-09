@@ -136,7 +136,7 @@ class DBMonitor(QWidget):
 
         # default time window
         self.t_later = datetime.utcnow()
-        self.t_earlier = datetime.utcnow() - timedelta(hours=2)
+        self.t_earlier = datetime.utcnow() - timedelta(hours=0.5)
 
         # create a parameter tree widget from the DB endpoints
         pt_initial = [
