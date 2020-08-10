@@ -49,7 +49,8 @@ def main():
     # show_cal_spectrum(dg)
     # show_wfs(dg)
     # data_cleaning(dg)
-    peak_drift(dg)
+    # peak_drift(dg)
+    pole_zero(dg)
 
 
 def show_raw_spectrum(dg):
@@ -307,7 +308,26 @@ def data_cleaning(dg):
         # plt.show()
         plt.savefig('./plots/oppi_lowe_cut.png')
         plt.cla()
+        
+    if i_plot <= 3:
+        # show DCR vs E
+        etype = 'trapEmax_cal'
+        elo, ehi, epb = 0, 6000, 10
+        dlo, dhi, dpb = -1000, 1000, 10
 
+        nbx = int((ehi-elo)/epb)
+        nby = int((dhi-dlo)/dpb)
+
+        h = plt.hist2d(df_cut['trapEmax_cal'], df_cut['dcr'], bins=[nbx,nby],
+                       range=[[elo, ehi], [dlo, dhi]], cmap='jet', norm=LogNorm())
+
+        plt.xlabel('trapEmax_cal', ha='right', x=1)
+        plt.ylabel('DCR', ha='right', y=1)
+        plt.tight_layout()
+        # plt.show()
+        plt.savefig('./plots/oppi_dcr_vs_e.png', dpi=300)
+        plt.cla()
+        
 
 def peak_drift(dg):
     """
@@ -345,6 +365,75 @@ def peak_drift(dg):
     plt.tight_layout()
     # plt.show()
     plt.savefig('./plots/oppi_1460_drift.png', dpi=300)
+
+
+def pole_zero(dg):
+    """
+    """
+    # load hit data
+    lh5_dir = os.path.expandvars(dg.config['lh5_dir'])
+    hit_list = lh5_dir + dg.file_keys['hit_path'] + '/' + dg.file_keys['hit_file']
+    df_hit = lh5.load_dfs(hit_list, ['trapEmax'], 'ORSIS3302DecoderForEnergy/hit')
+    df_hit.reset_index(inplace=True)
+    rt_min = dg.file_keys['runtime'].sum()
+    # print(f'runtime: {rt_min:.2f} min')
+    
+    # load waveforms
+    etype = 'trapEmax_cal'
+    nwfs = 20
+    elo, ehi = 1455, 1465
+    
+    # select waveforms
+    idx = df_hit[etype].loc[(df_hit[etype] >= elo) &
+                            (df_hit[etype] <= ehi)].index[:nwfs]
+    raw_store = lh5.Store()
+    tb_name = 'ORSIS3302DecoderForEnergy/raw'
+    raw_list = lh5_dir + dg.file_keys['raw_path'] + '/' + dg.file_keys['raw_file']
+    f_raw = raw_list.values[0] # fixme, only works for one file rn
+    data_raw = raw_store.read_object(tb_name, f_raw, start_row=0, n_rows=idx[-1]+1)
+
+    wfs_all = data_raw['waveform']['values'].nda
+    wfs = wfs_all[idx.values, :]
+    df_wfs = pd.DataFrame(wfs)
+    # print(df_wfs)
+    
+    # simple test function to compute pole-zero constant for a few wfs.
+    # the final one should become a dsp processor
+    clock = 1e8 # 100 MHz
+    istart = 5000
+    iwinlo, iwinhi, iwid = 500, 2500, 20 # two-point slope 
+    # ts = np.arange(istart, df_wfs.shape[1]-1, 1) / 1e3 # usec
+    ts = np.arange(0, df_wfs.shape[1]-1-istart, 1) / 1e3 # usec
+    
+    def get_rc(row):
+        # two-point method
+        wf = row[istart:-1].values
+        wflog = np.log(wf)
+        win1 = np.mean(np.log(row[istart+iwinlo : istart+iwinlo+iwid]))
+        win2 = np.mean(np.log(row[istart+iwinhi : istart+iwinhi+iwid]))
+        slope = (win2 - win1) / (ts[iwinhi] - ts[iwinlo])
+        tau = 1/slope
+        
+        # # diagnostic plot: check against expo method
+        # guess_tau = 60
+        # a = wf.max()
+        # expdec = lambda x : a * np.exp(-x / guess_tau)
+        # logdec = lambda x : np.log(a * np.exp(-x / guess_tau))
+        # slopeway = lambda x: wflog[0] + x / tau
+        # plt.plot(ts, wflog, '-r', lw=1)
+        # plt.plot(ts, logdec(ts), '-b', lw=1)
+        # plt.plot(ts, slopeway(ts), '-k', lw=1)
+        # plt.show()
+        # exit()
+        
+        return tau
+        
+        # return tau
+    
+    res = df_wfs.apply(get_rc, axis=1)
+    
+    tau_avg, tau_std = res.mean(), res.std()
+    print(f'average RC decay constant: {tau_avg:.2f} pm {tau_std:.2f}')
 
 
 if __name__=="__main__":
