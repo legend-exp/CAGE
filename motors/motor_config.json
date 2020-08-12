@@ -20,6 +20,7 @@
     "1":["air_tests"],
     "2":["commissioning"],
     "3":["pre_oppi2_updates"],
-    "4":["OPPI_Commissioning"]
+    "4":["OPPI_Commissioning"],
+    "5":["OPPI_biased_motor_test_runs"]
   }
 }
