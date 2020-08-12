@@ -34,7 +34,7 @@ def main():
     rpins = {key['rpi_pin'] : name for name, key in mconf.items()}
 
     # TODO: change this when we want to do a new campaign
-    campaign_number = "4"
+    campaign_number = "5"
 
     # parse user args
     par = argparse.ArgumentParser(description=doc, formatter_class=rthf)
@@ -212,7 +212,7 @@ def lift_interlock():
     result = float(result.output.decode("utf-8"))
     print(result)
     
-    if result != 0:
+    if result != 1:
         print("WARNING: Rack and Pinion is not lifted to safe distance")
         print("Lift rack and pinion and place motor movement block so that pressure pad is engaged")
         print("Then retry your command")
