@@ -10,5 +10,7 @@
     "8":["133-134", "lower bias run.  3000 V"],
     "9":["135-136", "0x10 thresh, 3500 V, top hat lifted 5 cm"],
     "10":["137-138", "OPPI: initial runs"],
-    "11":["139-142", "OPPI low-noise commissioning bkg runs"]
+    "11":["139-142", "OPPI low-noise commissioning bkg runs"],
+    "12":["143-144", "OPPI lowered gain commissioning bkg runs"],
+    "13":["145-152", "alpha scan data -- need to label this better"]
 }

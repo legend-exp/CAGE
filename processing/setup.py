@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import os
+import os, sys
 import pandas as pd
 import numpy as np
 from pprint import pprint
@@ -19,9 +19,9 @@ def main():
     """
     Requires cage.json
     """
-    # setup()
-    # scan_orca_headers()
-    get_runtimes() # requires dsp file rn (at least raw)
+    setup()
+    scan_orca_headers()
+    # get_runtimes() # requires dsp file rn (at least raw)
     # show_dg()
 
 
@@ -41,48 +41,44 @@ def setup():
         """
         map cycle numbers to physics runs, and identify detector
         """
-        cyc = row['cycle']
+        myrow = row.copy() # i have no idea why mjcenpa makes me do this
+        cyc = myrow['cycle']
         for run, cycles in dg.runDB.items():
             tmp = cycles[0].split(',')
             for rng in tmp:
                 if '-' in rng:
                     clo, chi = [int(x) for x in rng.split('-')]
                     if clo <= cyc <= chi:
-                        row['run'] = run
+                        myrow['run'] = run
                         break
                 else:
                     clo = int(rng)
                     if cyc == clo:
-                        row['run'] = run
+                        myrow['run'] = run
                         break
 
         # label the detector
         if 0 < cyc <= 124:
-            row['runtype'] = 'oppi_v1'
+            myrow['runtype'] = 'oppi_v1'
         elif 125 <= cyc <= 136:
-            row['runtype'] = 'icpc_v1'
+            myrow['runtype'] = 'icpc_v1'
         elif 137 <= cyc <= 9999:
-            row['runtype'] = 'oppi_v2'
-        return row
+            myrow['runtype'] = 'oppi_v2'
+        return myrow
 
     dg.file_keys = dg.file_keys.apply(get_cyc_info, axis=1)
 
     dg.get_lh5_cols()
 
-    for col in ['run']:
+    for col in ['run', 'cycle']:
         dg.file_keys[col] = pd.to_numeric(dg.file_keys[col])
 
     # -- filter out old runs --
     # dg.file_keys = dg.file_keys.loc[dg.file_keys.run>=0].copy()
-    print('hi')
     dg.file_keys = dg.file_keys.loc[dg.file_keys.cycle>=139].copy()
-    # print(dg.file_keys['run'])
-    # exit()
 
-    dg.file_keys['run'] = dg.file_keys['run'].astype(int)
-    # exit()
-
-    print(dg.file_keys)
+    print(dg.file_keys[['run','cycle','daq_file']])
+    print(dg.file_keys.dtypes)
 
     dg.save_df(dg.config['fileDB'])
 
