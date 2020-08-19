@@ -19,9 +19,9 @@ def main():
     """
     Requires cage.json
     """
-    setup()
-    scan_orca_headers()
-    # get_runtimes() # requires dsp file rn (at least raw)
+    # setup()
+    # scan_orca_headers()
+    get_runtimes() # requires dsp file rn (at least raw)
     # show_dg()
 
 

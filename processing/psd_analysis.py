@@ -17,7 +17,7 @@ import pygama.analysis.histograms as pgh
 import pygama.analysis.peak_fitting as pgf
 
 def main():
-    doc=""" 
+    doc="""
     analysis of Aug 2020 OPPI+CAGE commissioning runs (138-141)
     tasks:
     - load calibration from energy_cal
@@ -25,7 +25,7 @@ def main():
     - show removal of low-e retrigger noise
     - look at waveforms near 5 MeV, confirm they're muon-related
     - look at low-e waveforms, examine noise
-    - determine pz correction value 
+    - determine pz correction value
     """
     rthf = argparse.RawTextHelpFormatter
     par = argparse.ArgumentParser(description=doc, formatter_class=rthf)
@@ -33,7 +33,7 @@ def main():
     arg('-q', '--query', nargs=1, type=str,
         help="select file group to calibrate: -q 'run==1' ")
     args = par.parse_args()
-    
+
     # load main DataGroup, select files from cmd line
     dg = DataGroup('cage.json', load=True)
     if args.query:
@@ -43,14 +43,14 @@ def main():
         dg.file_keys = dg.file_keys[-1:]
     view_cols = ['runtype', 'run', 'cycle', 'startTime', 'runtime', 'threshold']
     print(dg.file_keys[view_cols])
-    
-    # -- run routines -- 
+
+    # -- run routines --
     # show_raw_spectrum(dg)
     # show_cal_spectrum(dg)
     # show_wfs(dg)
-    # data_cleaning(dg)
+    data_cleaning(dg)
     # peak_drift(dg)
-    pole_zero(dg)
+    # pole_zero(dg)
 
 
 def show_raw_spectrum(dg):
@@ -74,15 +74,15 @@ def show_raw_spectrum(dg):
 
     ene_uncal = edata[etype]
     hist, bins, _ = pgh.get_hist(ene_uncal, range=(elo, ehi), dx=epb)
-    
+
     # normalize by runtime
     hist_rt = np.divide(hist, rt_min * 60)
-    
+
     plt.plot(np.nan, np.nan, '-w', lw=1, label=t_start)
-    
-    plt.semilogy(bins[1:], hist_rt, ds='steps', c='b', lw=1, 
+
+    plt.semilogy(bins[1:], hist_rt, ds='steps', c='b', lw=1,
                  label=f'{etype}, {rt_min:.2f} mins')
-    
+
     plt.xlabel(etype, ha='right', x=1)
     plt.ylabel('cts / sec', ha='right', y=1)
     plt.legend()
@@ -103,7 +103,7 @@ def show_cal_spectrum(dg):
     t_start = pd.to_datetime(u_start, unit='s') # str
     print('Found energy data:', [(et, len(ev)) for et, ev in edata.items()])
     print(f'Runtime (min): {rt_min:.2f}')
-    
+
     # load calibration from peakfit
     cal_db = db.TinyDB(storage=MemoryStorage)
     with open('ecalDB.json') as f:
@@ -124,20 +124,20 @@ def show_cal_spectrum(dg):
     pol = np.poly1d(cal_pars) # handy numpy polynomial object
     cal_data = pol(edata['trapEmax'])
 
-    elo, ehi, epb, etype = 0, 3000, 1, 'trapEmax_cal' # gamma region 
-    elo, ehi, epb, etype = 2500, 6500, 10, 'trapEmax_cal' # overflow region
-    elo, ehi, epb, etype = 0, 250, 1, 'trapEmax_cal' # low-e region
+    elo, ehi, epb, etype = 0, 3000, 1, 'trapEmax_cal' # gamma region
+    elo, ehi, epb, etype = 2500, 8000, 10, 'trapEmax_cal' # overflow region
+    # elo, ehi, epb, etype = 0, 250, 1, 'trapEmax_cal' # low-e region
 
     hist, bins, _ = pgh.get_hist(cal_data, range=(elo, ehi), dx=epb)
-    
+
     # normalize by runtime
     hist_rt = np.divide(hist, rt_min * 60)
-    
+
     plt.plot(np.nan, np.nan, '-w', lw=1, label=f'start: {t_start}')
-    
-    plt.plot(bins[1:], hist_rt, ds='steps', c='b', lw=1, 
+
+    plt.plot(bins[1:], hist_rt, ds='steps', c='b', lw=1,
                  label=f'{etype}, {rt_min:.2f} mins')
-    
+
     plt.xlabel(etype, ha='right', x=1)
     plt.ylabel('cts / sec', ha='right', y=1)
     plt.legend(loc=1, fontsize=12)
@@ -156,9 +156,9 @@ def show_wfs(dg):
     df_hit = lh5.load_dfs(hit_list, ['trapEmax'], 'ORSIS3302DecoderForEnergy/hit')
     print(df_hit)
     print(df_hit.columns)
-    
+
     # settings
-    etype = 'trapEmax_cal' 
+    etype = 'trapEmax_cal'
     nwfs = 20
     # elo, ehi, epb = 0, 100, 0.2 # low-e region
     elo, ehi, epb = 0, 20, 0.2 # noise region
@@ -208,7 +208,7 @@ def data_cleaning(dg):
     note, 'energy_first' from first value of energy gate.
     """
     i_plot = 0 # run all plots after this number
-    
+
     # get file list and load hit data
     lh5_dir = os.path.expandvars(dg.config['lh5_dir'])
     hit_list = lh5_dir + dg.file_keys['hit_path'] + '/' + dg.file_keys['hit_file']
@@ -269,7 +269,8 @@ def data_cleaning(dg):
         # alo, ahi, apb = -1300, 350, 1
         # elo, ehi, epb = 0, 250, 1
         alo, ahi, apb = 0, 0.4, 0.005
-        elo, ehi, epb = 0, 3000, 10
+        # elo, ehi, epb = 0, 3000, 10
+        elo, ehi, epb = 0, 6000, 10
 
         nbx = int((ehi-elo)/epb)
         nby = int((ahi-alo)/apb)
@@ -308,7 +309,7 @@ def data_cleaning(dg):
         # plt.show()
         plt.savefig('./plots/oppi_lowe_cut.png')
         plt.cla()
-        
+
     if i_plot <= 3:
         # show DCR vs E
         etype = 'trapEmax_cal'
@@ -327,7 +328,7 @@ def data_cleaning(dg):
         # plt.show()
         plt.savefig('./plots/oppi_dcr_vs_e.png', dpi=300)
         plt.cla()
-        
+
 
 def peak_drift(dg):
     """
@@ -339,7 +340,7 @@ def peak_drift(dg):
     df_hit.reset_index(inplace=True)
     rt_min = dg.file_keys['runtime'].sum()
     print(f'runtime: {rt_min:.2f} min')
-    
+
     # settings
     elo, ehi, epb, etype = 1450, 1470, 1, 'trapEmax_cal'
     df_hit = df_hit.query(f'trapEmax_cal > {elo} and trapEmax_cal < {ehi}').copy()
@@ -351,7 +352,7 @@ def peak_drift(dg):
 
     t0 = df_hit['ts_glo'].values[0]
     df_hit['ts_adj'] = (df_hit['ts_glo'] - t0) / 60 # minutes after 0
-    
+
     tlo, thi, tpb = 0, df_hit['ts_adj'].max(), 1
 
     nbx = int((thi-tlo)/tpb)
@@ -377,12 +378,12 @@ def pole_zero(dg):
     df_hit.reset_index(inplace=True)
     rt_min = dg.file_keys['runtime'].sum()
     # print(f'runtime: {rt_min:.2f} min')
-    
+
     # load waveforms
     etype = 'trapEmax_cal'
     nwfs = 20
     elo, ehi = 1455, 1465
-    
+
     # select waveforms
     idx = df_hit[etype].loc[(df_hit[etype] >= elo) &
                             (df_hit[etype] <= ehi)].index[:nwfs]
@@ -396,15 +397,15 @@ def pole_zero(dg):
     wfs = wfs_all[idx.values, :]
     df_wfs = pd.DataFrame(wfs)
     # print(df_wfs)
-    
+
     # simple test function to compute pole-zero constant for a few wfs.
     # the final one should become a dsp processor
     clock = 1e8 # 100 MHz
     istart = 5000
-    iwinlo, iwinhi, iwid = 500, 2500, 20 # two-point slope 
+    iwinlo, iwinhi, iwid = 500, 2500, 20 # two-point slope
     # ts = np.arange(istart, df_wfs.shape[1]-1, 1) / 1e3 # usec
     ts = np.arange(0, df_wfs.shape[1]-1-istart, 1) / 1e3 # usec
-    
+
     def get_rc(row):
         # two-point method
         wf = row[istart:-1].values
@@ -413,7 +414,7 @@ def pole_zero(dg):
         win2 = np.mean(np.log(row[istart+iwinhi : istart+iwinhi+iwid]))
         slope = (win2 - win1) / (ts[iwinhi] - ts[iwinlo])
         tau = 1/slope
-        
+
         # # diagnostic plot: check against expo method
         # guess_tau = 60
         # a = wf.max()
@@ -425,13 +426,13 @@ def pole_zero(dg):
         # plt.plot(ts, slopeway(ts), '-k', lw=1)
         # plt.show()
         # exit()
-        
+
         return tau
-        
+
         # return tau
-    
+
     res = df_wfs.apply(get_rc, axis=1)
-    
+
     tau_avg, tau_std = res.mean(), res.std()
     print(f'average RC decay constant: {tau_avg:.2f} pm {tau_std:.2f}')
 

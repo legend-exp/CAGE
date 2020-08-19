@@ -579,7 +579,7 @@ def peakfit_group(df_group, config, db_ecal):
         # load first-guess calibration constant from its table in the DB
         db_table = db_ecal.table(f'peakdet_{et}').all()
         df_cal = pd.DataFrame(db_table)
-        lin_cal = df_cal.loc[df_cal.run == str(gb_run[0])]['lincal'][0]
+        lin_cal = df_cal.loc[df_cal.run == str(gb_run[0])]['lincal'].values[0]
         cal_data = raw_data[et] * lin_cal
 
         # compute expected peak locations and widths (fit to Gaussians)
