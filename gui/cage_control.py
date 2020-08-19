@@ -136,7 +136,7 @@ class DBMonitor(QWidget):
 
         # default time window
         self.t_later = datetime.utcnow()
-        self.t_earlier = datetime.utcnow() - timedelta(hours=2)
+        self.t_earlier = datetime.utcnow() - timedelta(hours=0.5)
 
         # create a parameter tree widget from the DB endpoints
         pt_initial = [
@@ -203,10 +203,12 @@ class DBMonitor(QWidget):
     def update_plot(self):
         """
         """
+        print('got to here')
         self.layout.removeWidget(self.rp)
         self.rp.deleteLater()
         self.rp = RabbitPlot(self.endpts_enabled, self.t_earlier, self.t_later,
                              self.cursor)
+        print('made rabbit plot')
         self.layout.addWidget(self.rp, 0,1)
         self.show()
 
