@@ -23,12 +23,12 @@ sensors:
   - target: cage_baseline
     alarms:
       - payload_field: value_cal
-        max_value: -1.5
-        alarm_message: "@wisecg and <@gothman> and <@timmeh08>: the CAGE baseline has risen above -1.5 V, the detector has been biased down"
+        max_value: .5
+        alarm_message: "@wisecg and <@gothman> and <@timmeh08>: the CAGE baseline has risen above 0 V, the detector has been biased down"
         alarm_limit: 1
         alarm_recurrence: 3600
       - payload_field: value_cal
-        min_value: -9.5
-        alarm_message: "@wisecg and <@gothman> and <@timmeh08>: the CAGE baseline has dropped below -9.5 V, the detector has been biased down"
+        min_value: -3.5
+        alarm_message: "@wisecg and <@gothman> and <@timmeh08>: the CAGE baseline has dropped below -3.5 V, the detector has been biased down"
         alarm_limit: 1
         alarm_recurrence: 3600

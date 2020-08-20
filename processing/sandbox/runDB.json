@@ -1,0 +1,77 @@
+{
+  "elog":"https://elog.legend-exp.org/UWScanner/",
+
+  "daq_prefix":"",
+  "raw_prefix":"raw",
+  "dsp_prefix":"dsp",
+  "suffix":"lh5",
+
+  "loc_dir":"$DATADIR/CAGE",
+  "daq_dir":"$DATADIR/CAGE/Data",
+  "raw_dir":"$DATADIR/CAGE/pygama_raw",
+  "dsp_dir":"$DATADIR/CAGE/pygama_dsp",
+
+  "meta_dir":"$DATADIR/CAGE/metadata",
+  "rocks_dir":"/data/LEGEND/Data/CAGE",
+  "rocks_login":"wisecg@cenpa-rocks.npl.washington.edu",
+
+  "digitizer":"ORSIS3302Model",
+  "daq":"ORCA",
+  "chunksize":1000,
+  "clock":100e6,
+  "rollover":1,
+
+  "ds":{
+    "note":"data sets",
+    "0":["1,10", "initial Cs+bkg runs.  2500 V, 0x10 thr.  25 MHz noise, max varcap value."],
+    "1":["11,14", "initial Cs+bkg runs.  2800 V, same settings otherwise"],
+    "2":["15,41", "HV pulser meas.  Cs source + bkg.  0x15.  see elog 85"],
+    "3":["42,45", "bkg runs, 2800 V, 0x10 thresh"],
+    "4":["125,127", "first ICPC bkg runs, no tuning.  3500 V, 30 mins"],
+    "5":["128,131", "bkg runs after preamp tuning"],
+    "6":["132", "high-bias run, 4500 V.  bad spark 14 mins into run 132"],
+    "7":["133,134", "lower bias run.  3000 V"],
+    "8":["135,136", "0x10 thresh, 3500 V, top hat lifted 5 cm"]
+  },
+
+  "build_options":{
+    "conf1":{
+      "run_coverage":[0,999999],
+      "daq_to_raw_options":{
+        "daq":"ORCA",
+        "digitizer":"ORSIS3302DecoderForEnergy"
+      },
+      "raw_to_dsp_options":{}
+    }
+  },
+
+  "expected_peaks":[2614.5, 1764.5, 1460.8, 583.2],
+  "main_peaks":[2614.5, 1460.8],
+
+  "pks":{
+    "238.6":"212Pb", "351.9":"214Pb", "511.0":"beta+",
+    "583.2":"208Tl", "609.3":"214Bi", "911.2":"228Ac",
+    "969.0":"228Ac", "1120.3":"214Bi", "1460.8":"40K",
+    "1764.5":"214Bi", "2614.5":"208Tl"
+  },
+
+  "ecal":{
+    "note":"inputs for each energy estimator are organized by ds",
+    "0,999999999": {
+      "e_ftp": {
+        "ds_coverage":"0, 9999",
+        "xlims":[0, 10000, 10],
+        "peakdet_thresh":100,
+        "match_thresh":0.01,
+        "width_thresh":99,
+        "peak_lim_keV":40
+      },
+      "energy": {
+        "ds_coverage":"0, 9999",
+        "xlims":[0, 3000000, 3000],
+        "peakdet_thresh":100,
+        "match_thresh":0.01
+      }
+    }
+  }
+}

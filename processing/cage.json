@@ -1,0 +1,26 @@
+{
+  "experiment" : "cage",
+  "runDB" : "./runDB.json",
+  "fileDB" : "./fileDB.h5",
+
+  "daq" : "ORCA",
+  "daq_dir" : "$CAGE_DAQ",
+  "daq_ignore" : [".log",".DS_Store", "openFiles"],
+  "lh5_dir" : "$CAGE_LH5",
+
+  "rocks_dir":"/data/eliza1/LEGEND/Data/CAGE",
+  "rocks_login":"wisecg@cenpa-rocks.npl.washington.edu",
+
+  "nersc_dir":"idk",
+
+  "tier_dirs" : ["raw","dsp","hit"],
+  "subsystems" : [""],
+  "run_types" : ["",""],
+  "evt_dirs" : [""],
+
+  "unique_key" : "cage-cyc{cycle}-{YYYY}{mm}{dd}",
+  "daq_template" : "{YYYY}-{mm}-{dd}-CAGERun{cycle}",
+  "lh5_template" : "cage_run{run}_cyc{cycle}_{tier}.lh5",
+
+  "ecal_config": "config_ecal.json"
+}
