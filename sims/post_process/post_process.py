@@ -25,8 +25,8 @@ def main():
 
     raw_dir = '../alpha/raw_out/oppi/'
     processed_dir = '../alpha/processed_out/oppi/'
-    base_filenames = ['test_oppi_y19mm_norm_241Am_1000000.hdf5']
-    # base_filenames =['oppi_ring_y3_norm_241Am_100000000.hdf5', 'oppi_ring_y6_norm_241Am_100000000.hdf5', 'oppi_ring_y9_norm_241Am_100000000.hdf5']
+    # base_filenames = ['test_oppi_y19mm_norm_241Am_1000000.hdf5']
+    base_filenames =['oppi_ring_y0_norm_241Am_100000000.hdf5', 'oppi_ring_y5_norm_241Am_100000000.hdf5', 'oppi_ring_y10_norm_241Am_100000000.hdf5', 'oppi_ring_y15_norm_241Am_100000000.hdf5', 'oppi_ring_y20_norm_241Am_100000000.hdf5', 'oppi_ring_y25_norm_241Am_100000000.hdf5', 'oppi_ring_y16_norm_241Am_100000000.hdf5', 'oppi_ring_y19_norm_241Am_100000000.hdf5', 'oppi_ring_y22_norm_241Am_100000000.hdf5']
 
 
     for file in range(len(base_filenames)):
@@ -79,14 +79,15 @@ def pandarize(filename, hits=False, tracking=False):
 
     if tracking==True:
         detector_hits = g4sdf.loc[(g4sdf.volID==1)] #do this when debugging/looking at tracks
-        procdf= pd.DataFrame(detector_hits.groupby(['event','volID'], as_index=False)['trackID', 'parentID', 'step', 'KE', 'Edep','x_weights','y_weights', 'z_weights', 'pid'].sum())
+        procdf= pd.DataFrame(detector_hits.groupby(['event','volID'], as_index=False)['trackID', 'parentID', 'step', 'KE', 'Edep','x','y', 'z', 'pid'].sum())
     else:
         detector_hits = g4sdf.loc[(g4sdf.Edep>1.e-6)&(g4sdf.volID==1)] # this for normal post-processing
         # detector_hits = g4sdf.loc[(g4sdf.Edep>0)&(g4sdf.volID==1)]
+
         detector_hits['x_weights'] = detector_hits['x'] * detector_hits['Edep']
         detector_hits['y_weights'] = detector_hits['y'] * detector_hits['Edep']
         detector_hits['z_weights'] = detector_hits['z'] * detector_hits['Edep']
-        
+
         procdf= pd.DataFrame(detector_hits.groupby(['event','volID'], as_index=False)['Edep','x_weights','y_weights', 'z_weights', 'pid'].sum())
 
 
