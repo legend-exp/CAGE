@@ -1,6 +1,6 @@
 {
   "outputs": [
-    "timestamp", "channel", "trapEmax", "triE", "bl", "bl_sig", "A_10", "AoE", "dcr"
+    "channel", "timestamp", "energy", "trapEftp", "trapEmax", "triE", "bl", "bl_sig", "A_10", "AoE", "dcr"
   ],
   "processors":{
     "bl, bl_sig":{
@@ -53,21 +53,21 @@
       "unit": "ns",
       "prereqs": ["wf_atrap"]
      },
-     "trapEftp": {
+    "trapEftp": {
        "function": "fixed_time_pickoff",
        "module": "pygama.dsp.processors",
        "args": ["wf_trap", "tp_0+(5*us+9*us)", "trapEftp"],
-       "unit": "ns",
+       "unit": "ADC",
        "prereqs": ["wf_trap", "tp_0"]
      },
-     "dcr_raw": {
+    "dcr_raw": {
        "function": "trap_pickoff",
        "module": "pygama.dsp.processors",
        "args": ["wf_pz", 200, 1000, "tp_0+1.5*us", "dcr_raw"],
        "unit": "ADC",
        "prereqs": ["wf_pz", "tp_0"]
      },
-     "dcr": {
+    "dcr": {
        "function": "divide",
        "module": "numpy",
        "args": ["dcr_raw", "trapEftp", "dcr"],
