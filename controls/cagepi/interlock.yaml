@@ -28,7 +28,7 @@ sensors:
         alarm_limit: 1
         alarm_recurrence: 3600
       - payload_field: value_cal
-        min_value: -5.5
-        alarm_message: "@wisecg and <@gothman> and <@timmeh08>: the CAGE baseline has dropped below -5.5 V, the detector has been biased down"
+        min_value: -3.5
+        alarm_message: "@wisecg and <@gothman> and <@timmeh08>: the CAGE baseline has dropped below -3.5 V, the detector has been biased down"
         alarm_limit: 1
         alarm_recurrence: 3600
