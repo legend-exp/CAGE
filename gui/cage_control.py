@@ -348,7 +348,7 @@ class RabbitPlot(pg.GraphicsLayoutWidget):
         self.show()
 
         self.n_days = 1
-        self.n_deque = 10000 # should add a check if one exceeds the other
+        self.n_deque = 10 # should add a check if one exceeds the other
         self.cursor = db_cursor
 
         # declare endpoints of interest
@@ -416,6 +416,7 @@ class RabbitPlot(pg.GraphicsLayoutWidget):
             ts = xv.utcnow().timestamp()
 
             # print(ept, ts, yv)
+            print(ept, len(self.deques[ept]))
 
             self.deques[ept].append(yv)
             self.deques[ept+"_ts"].append(ts)

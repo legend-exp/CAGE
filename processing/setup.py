@@ -17,73 +17,102 @@ with warnings.catch_warnings():
 
 def main():
     """
-    Requires cage.json
-    """
-    # setup()
-    # scan_orca_headers()
-    get_runtimes() # requires dsp file rn (at least raw)
-    # show_dg()
-
-
-def setup():
-    """
-    Save an hdf5 file with pygama daq, raw, and dsp names + paths.
     """
     dg = DataGroup('cage.json')
-    # dg.lh5_dir_setup(create=True) # <-- run this once with create=True
+
+    # init(dg) # only run first time
+    # update(dg) # FIXME: add new files to existing fileDB
+    # scan_orca_headers(dg)
+    get_runtimes(dg) # requires dsp file rn (at least raw)
+    # show_dg(dg)
+
+
+def init(dg):
+    """
+    Initial setup of the fileDB.  Only run once!
+    """
+    dg.lh5_dir_setup(create=True)
     dg.scan_daq_dir()
 
-    # -- experiment-specific choices --
     dg.file_keys.sort_values(['cycle'], inplace=True)
     dg.file_keys.reset_index(drop=True, inplace=True)
-
-    def get_cyc_info(row):
-        """
-        map cycle numbers to physics runs, and identify detector
-        """
-        myrow = row.copy() # i have no idea why mjcenpa makes me do this
-        cyc = myrow['cycle']
-        for run, cycles in dg.runDB.items():
-            tmp = cycles[0].split(',')
-            for rng in tmp:
-                if '-' in rng:
-                    clo, chi = [int(x) for x in rng.split('-')]
-                    if clo <= cyc <= chi:
-                        myrow['run'] = run
-                        break
-                else:
-                    clo = int(rng)
-                    if cyc == clo:
-                        myrow['run'] = run
-                        break
-
-        # label the detector
-        if 0 < cyc <= 124:
-            myrow['runtype'] = 'oppi_v1'
-        elif 125 <= cyc <= 136:
-            myrow['runtype'] = 'icpc_v1'
-        elif 137 <= cyc <= 9999:
-            myrow['runtype'] = 'oppi_v2'
-        return myrow
-
-    dg.file_keys = dg.file_keys.apply(get_cyc_info, axis=1)
-
-    dg.get_lh5_cols()
-
+    dg.file_keys = dg.file_keys.apply(get_cyc_info, args=[dg], axis=1)
+    dg.file_keys = dg.get_lh5_cols(update_df=dg.file_keys)
     for col in ['run', 'cycle']:
         dg.file_keys[col] = pd.to_numeric(dg.file_keys[col])
 
-    # -- filter out old runs --
+    # filter out old runs
     # dg.file_keys = dg.file_keys.loc[dg.file_keys.run>=0].copy()
     dg.file_keys = dg.file_keys.loc[dg.file_keys.cycle>=139].copy()
-
-    print(dg.file_keys[['run','cycle','daq_file']])
-    print(dg.file_keys.dtypes)
 
     dg.save_df(dg.config['fileDB'])
 
 
-def scan_orca_headers():
+def update(dg):
+    """
+    After taking new data, run this function to add rows to fileDB.
+    New rows will not have all columns yet
+    """
+    df_scan = dg.scan_daq_dir(update=True)
+
+    df_scan.sort_values(['cycle'], inplace=True)
+    df_scan.reset_index(drop=True, inplace=True)
+    df_scan = df_scan.apply(get_cyc_info, args=[dg], axis=1)
+    df_scan = dg.get_lh5_cols(update_df=df_scan)
+    for col in ['run', 'cycle']:
+        df_scan[col] = pd.to_numeric(df_scan[col])
+
+    # filter out old runs
+    df_scan = df_scan.loc[df_scan.cycle>=139].copy()
+
+    # merge the new df into the existing one based on unique key
+    df_keys = pd.read_hdf(dg.config['fileDB'], key='file_keys')
+    print(df_scan)
+    print(df_keys)
+    print('clint, you need to merge by unique_key')
+    exit()
+
+    # this might work, but you have to pull out the duplicates first
+    # dg.file_keys = pd.concat([df_keys, df_scan])
+
+    print(dg.file_keys)
+
+    ans = input('Save file key DF? y/n')
+    if ans.lower() == 'y':
+        dg.save_df(dg.config['fileDB'])
+
+
+def get_cyc_info(row, dg):
+    """
+    map cycle numbers to physics runs, and identify detector
+    """
+    myrow = row.copy() # i have no idea why mjcenpa makes me do this
+    cyc = myrow['cycle']
+    for run, cycles in dg.runDB.items():
+        tmp = cycles[0].split(',')
+        for rng in tmp:
+            if '-' in rng:
+                clo, chi = [int(x) for x in rng.split('-')]
+                if clo <= cyc <= chi:
+                    myrow['run'] = run
+                    break
+            else:
+                clo = int(rng)
+                if cyc == clo:
+                    myrow['run'] = run
+                    break
+
+    # label the detector
+    if 0 < cyc <= 124:
+        myrow['runtype'] = 'oppi_v1'
+    elif 125 <= cyc <= 136:
+        myrow['runtype'] = 'icpc_v1'
+    elif 137 <= cyc <= 9999:
+        myrow['runtype'] = 'oppi_v2'
+    return myrow
+
+
+def scan_orca_headers(dg):
     """
     add runtime and threshold columns to the fileDB.
     to get threshold, read it out of the orca header.
@@ -92,7 +121,6 @@ def scan_orca_headers():
     """
     write_output = True
 
-    dg = DataGroup('cage.json')
     df_keys = pd.read_hdf(dg.config['fileDB'])
 
     # clear new colums if they exist
@@ -118,7 +146,7 @@ def scan_orca_headers():
         print(f"Wrote output file: {dg.config['fileDB']}")
 
 
-def get_runtimes():
+def get_runtimes(dg):
     """
     Requires DSP files.
     compute runtime (# minutes in run) and stopTime (unix timestamp) using
@@ -126,7 +154,6 @@ def get_runtimes():
     """
     write_output = True
 
-    dg = DataGroup('cage.json')
     df_keys = pd.read_hdf(dg.config['fileDB'])
 
     # clear new colums if they exist
@@ -182,7 +209,7 @@ def get_runtimes():
         print(f"Wrote output file: {dg.config['fileDB']}")
 
 
-def show_dg():
+def show_dg(dg):
     """
     datagroup columns:
     ['YYYY', 'cycle', 'daq_dir', 'daq_file', 'dd', 'mm', 'run', 'runtype',
@@ -190,7 +217,6 @@ def show_dg():
        'hit_file', 'hit_path', 'startTime', 'threshold', 'stopTime',
        'runtime']
     """
-    dg = DataGroup('cage.json')
     df_keys = pd.read_hdf(dg.config['fileDB'])
     # print(df_keys.columns)
 

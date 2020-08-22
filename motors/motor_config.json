@@ -21,6 +21,7 @@
     "2":["commissioning"],
     "3":["pre_oppi2_updates"],
     "4":["OPPI_Commissioning"],
-    "5":["OPPI_biased_motor_test_runs"]
+    "5":["OPPI_biased_motor_test_runs"],
+    "6":["OPPI_spot_scans"]
   }
 }

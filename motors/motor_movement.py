@@ -34,7 +34,7 @@ def main():
     rpins = {key['rpi_pin'] : name for name, key in mconf.items()}
 
     # TODO: change this when we want to do a new campaign
-    campaign_number = "5"
+    campaign_number = "6"
 
     # parse user args
     par = argparse.ArgumentParser(description=doc, formatter_class=rthf)
@@ -113,7 +113,6 @@ def main():
 
     if args['status']:
         check_limit_switches(verbose=True)
-        lift_interlock()
         print(history_df)
 
     if args['read_enc']:
@@ -139,15 +138,15 @@ def main():
         input_val = float(args['move'][1])
         approve_move(history_df, motor_name, input_val, False, constraints)
         move_motor(motor_name, input_val, history_df, angle_check, constraints, verbose)
-        
-        
+
+
     # incorporating Joule's source placement code--TEST
     if args['beam_pos_move']:
-        source_amount, linear_amount = beam_pos_move(args['beam_pos_move'][0]) 
+        source_amount, linear_amount = beam_pos_move(args['beam_pos_move'][0])
 
         approve_move(history_df, 'linear', linear_amount, False, constraints)
         move_motor('linear', linear_amount, history_df, angle_check, constraints, verbose)
-        
+
         approve_move(history_df, 'source', source_amount, False, constraints)
         move_motor('source', -1*source_amount, history_df, angle_check, constraints, verbose)
         exit()
@@ -206,18 +205,19 @@ def lift_interlock():
                           username=ipconf["pressure_rpi_usr"],
                           password=ipconf["pressure_rpi_pwd"])
     with shell:
-        
-        result = shell.run(["python3", "lift_interlock.py"])
-    
+        result = shell.run(["python3", "/home/pi/cage/motors/lift_interlock.py"])
+
     result = float(result.output.decode("utf-8"))
-    print(result)
-    
+    print('lift interlock status:', result)
+
+    print("NOTE: when you install the new switch, you need to fix this")
+
     if result != 1:
         print("WARNING: Rack and Pinion is not lifted to safe distance")
         print("Lift rack and pinion and place motor movement block so that pressure pad is engaged")
         print("Then retry your command")
         exit()
-        
+
 
 def check_limit_switches(verbose=True):
     """
@@ -249,7 +249,7 @@ def check_limit_switches(verbose=True):
 
     # return the labels instead of the bools
     return source, linear_fwd, linear_rev, rotary
-    
+
 
 def query_encoder(rpi_pin, t_sleep=0.01, com_spd=10000, verbose=True, max_reads=3, zero=False):
     """
@@ -494,12 +494,12 @@ def move_motor(motor_name, input_val, history_df, angle_check=180, constraints=T
     update_history(motor_name, relative_pos, n_moved, zero, steps, move_completed=move_complete)
 
 
-def beam_pos_move(detector): 
-    
+def beam_pos_move(detector):
+
 
     radial_pos = float(input("Desired radial position of beam \n -->"))
     source_angle = float(input("Desired source angle with respect to detector surface \n -->"))
-    
+
     if detector == 'icpc':
         source_rot, linear_move = positionCalc(radial_pos, source_angle)
     elif detector == 'oppi':
@@ -507,7 +507,7 @@ def beam_pos_move(detector):
     else:
         print("That is not a valid detector, please choose icpc or oppi")
         exit()
-    
+
     return source_rot, linear_move
 
 def zero_motor(motor_name, angle_check, history_df, verbose, constraints=True):
