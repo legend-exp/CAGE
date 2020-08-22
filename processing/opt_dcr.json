@@ -1,0 +1,96 @@
+{
+  "outputs": [
+    "channel", "timestamp", "energy", "trapEmax", "bl", "bl_sig", "dcr_raw", "dcr",
+    "a10", "aoe"
+  ],
+  "processors":{
+    "bl, bl_sig":{
+      "function": "mean_stdev",
+      "module": "pygama.dsp.processors",
+      "args" : ["waveform[0:1000]", "bl", "bl_sig"],
+      "prereqs": ["waveform"],
+      "unit": ["ADC", "ADC"]
+    },
+    "wf_blsub":{
+      "function": "subtract",
+      "module": "numpy",
+      "args": ["waveform", "bl", "wf_blsub"],
+      "prereqs": ["waveform", "bl"],
+      "unit": "ADC"
+    },
+    "wf_pz": {
+      "function": "pole_zero",
+      "module": "pygama.dsp.processors",
+      "args": ["wf_blsub", "db.pz.tau", "wf_pz"],
+      "prereqs": ["wf_blsub"],
+      "unit": "ADC",
+      "defaults": { "db.pz.tau":"64.4*us" }
+    },
+    "wf_trap": {
+      "function": "trap_norm",
+      "module": "pygama.dsp.processors",
+      "args": ["wf_pz", "10*us", "5*us", "wf_trap"],
+      "prereqs": ["wf_pz"],
+      "unit": "ADC"
+    },
+    "trapEmax": {
+      "function": "amax",
+      "module": "numpy",
+      "args": ["wf_trap", 1, "trapEmax"],
+      "kwargs": {"signature":"(n),()->()", "types":["fi->f"]},
+      "unit": "ADC",
+      "prereqs": ["wf_trap"]
+    },
+    "wf_atrap": {
+      "function": "asymTrapFilter",
+      "module": "pygama.dsp.processors",
+      "args": ["wf_pz", "0.05*us", "2*us", "3*us", "wf_atrap"],
+      "prereqs": ["wf_pz"],
+      "unit": "ADC"
+    },
+    "tp_0": {
+      "function": "time_point_thresh",
+      "module": "pygama.dsp.processors",
+      "args": ["wf_atrap[0:2000]", 0, "tp_0"],
+      "unit": "ns",
+      "prereqs": ["wf_atrap"]
+     },
+    "dcr_raw": {
+       "function": "trap_pickoff",
+       "module": "pygama.dsp.processors",
+       "args": ["wf_pz", 200, 1000, "tp_0+1.5*us", "dcr_raw"],
+       "unit": "ADC",
+       "prereqs": ["wf_pz", "tp_0"]
+     },
+    "dcr": {
+       "function": "divide",
+       "module": "numpy",
+       "args": ["dcr_raw", "trapEmax", "dcr"],
+       "unit": "ADC",
+       "prereqs": ["dcr_raw", "trapEmax"]
+     },
+     "curr": {
+       "comment": "3rd argument allocates memory for a derivative of type float",
+       "function": "avg_current",
+       "module": "pygama.dsp.processors",
+       "args": ["wf_pz", 10, "curr(len(wf_pz)-10, f)"],
+       "unit": "ADC/sample",
+       "prereqs": ["wf_pz"]
+     },
+     "a10": {
+       "function": "amax",
+       "module": "numpy",
+       "args": ["curr", 1, "a10"],
+       "kwargs": {"signature":"(n),()->()", "types":["fi->f"]},
+       "unit": "ADC",
+       "prereqs": ["curr"]
+     },
+     "aoe": {
+       "function": "divide",
+       "module": "numpy",
+       "args":["a10", "trapEmax", "aoe"],
+       "unit": "1/sample",
+       "prereqs": ["a10", "trapEmax"]
+     }
+  }
+}

@@ -9,38 +9,15 @@ from pygama.utils import *
 
 def main():
     """
-    sync MJ60/OPPI/CAGE data with cenpa-rocks.
-    - rsync the entire Data/MJ60 directory using the $DATADIR variable
-    - set flags to then remove raw/raw_to_dsp/tier2 files
-    Hopefully we can reuse this script for C1.
+    sync CAGE data with cenpa-rocks and NERSC.
     """
-    global expDB
-    with open("oppi.json") as f:
+    with open("cage.json") as f:
         expDB = json.load(f)
 
-    # run_rsync()
-    daq_cleanup()
+    daq_cleanup(expDB)
 
 
-def run_rsync(test=False):
-    """
-    run rsync on the entire $DATADIR/MJ60 folder (can take a while ...)
-    """
-    if "mjcenpa" not in os.environ["USER"]:
-        print("Error, we're not on the MJ60 DAQ machine.  Exiting ...")
-        exit()
-
-    daq_dir = os.path.expandvars(expDB["daq_dir"] + "/")
-    daq_rocks = "{}:{}/".format(expDB["rocks_login"], expDB["rocks_dir"])
-
-    if test:
-        cmd = "rsync -avh --dry-run {} {}".format(daq_dir, daq_rocks)
-    else:
-        cmd = "rsync -avh {} {}".format(daq_dir, daq_rocks)
-    sh(cmd)
-
-
-def daq_cleanup(keep_t1=False, keep_t2=False):
+def daq_cleanup(expDB):
     """
     build a list of files on the DAQ and rocks, check integrity,
     and delete files on the DAQ only if we're sure the transfer was successful.
@@ -57,7 +34,8 @@ def daq_cleanup(keep_t1=False, keep_t2=False):
         # print(f)
 
     # remote list
-    args = ['ssh', expDB['rocks_login'], 'ls -R '+expDB["rocks_dir"]]
+    # args = ['ssh', expDB['rocks_login'], 'ls -R '+expDB["rocks_dir"]]
+    args = ['ssh', expDB['nersc_login'], 'ls -R '+expDB['nersc_dir']]
     ls = sp.Popen(args, stdout=sp.PIPE, stderr=sp.PIPE)
     out, err = ls.communicate()
     out = out.decode('utf-8')
