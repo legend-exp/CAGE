@@ -3,17 +3,17 @@
     "1":["11-14", "elog 84. initial Cs+bkg runs.  2800 V.  elog 84"],
     "2":["15-41", "elog 85. HV pulser capacitance meas.  Cs source + bkg. 0x15"],
     "3":["42-45", "elog 84. bkg runs, 2800 V, 0x10 thresh"],
-    
+
     "4":["46-56", "elog 115?. jan 2020: initial test runs"],
     "5":["57-90", "elog 118. background run"],
     "6":["91-124", "elog 127. initial alpha run (suspect collimator)"],
-    
+
     "5":["125-127", "elog 172. ICPC: first bkg runs, no tuning.  3500 V"],
     "6":["128-131", "elog 172. bkg runs after preamp tuning"],
     "7":["132", "elog 172. high-bias run, 4500 V.  bad spark 14 mins into 132"],
     "8":["133-134", "elog 173. lower bias run.  3000 V"],
     "9":["135-136", "elog 175.  0x10 thresh, 3500 V, top hat lifted 5 cm"],
-    
+
     "10":["137-138", "elog 196. OPPI: initial runs"],
     "11":["139-142", "elog 197. low-noise commissioning bkg runs"],
     "12":["143-144", "elog 197. bkg runs after engineers lowered gain again"],
@@ -27,5 +27,9 @@
     "20":["388-394", "elog 215. linear edge scan, 20--25 mm, 1 mm/run"],
     "21":["395", "elog 216. forced-acquisition baseline data"],
     "22":["396", "elog 218.  brief bkg run before more digitizer optimization"],
-    "23":["397-440", "elog 218.  overnight bkg run after digitizer optimization"]
+    "23":["397-440", "elog 218.  overnight bkg run after digitizer optimization"],
+    "24":["441-448", "elog 220.  2020/08/25. centering test w/ rotary motor"],
+    "25":["449-483", "elog 221.  2020/08/25. overnight bkg run"],
+    "26":["484-485", "elog 220.  2020/08/26. centering test w/ rotary motor, cont'd"],
+    "27":["486", "elog 223.  2020/08/26.  bkg runs, rise time/stability study"]
 }

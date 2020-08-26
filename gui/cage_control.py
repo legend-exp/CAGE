@@ -419,7 +419,7 @@ class RabbitPlot(pg.GraphicsLayoutWidget):
             ts = xv.utcnow().timestamp()
 
             # print(ept, ts, yv)
-            print(ept, len(self.deques[ept]))
+            # print(ept, len(self.deques[ept]))
 
             self.deques[ept].append(yv)
             self.deques[ept+"_ts"].append(ts)
