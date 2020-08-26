@@ -20,10 +20,11 @@ def main():
     """
     dg = DataGroup('cage.json')
 
-    # init(dg) # only run first time
-    # update(dg) # FIXME: add new files to existing fileDB
+    init(dg) # only run first time
+    # update(dg) 
     # scan_orca_headers(dg)
-    get_runtimes(dg) # requires dsp file rn (at least raw)
+    # get_runtimes(dg) # requires dsp file right now (at least raw)
+    
     # show_dg(dg)
 
 
@@ -37,15 +38,13 @@ def init(dg):
     dg.file_keys.sort_values(['cycle'], inplace=True)
     dg.file_keys.reset_index(drop=True, inplace=True)
     dg.file_keys = dg.file_keys.apply(get_cyc_info, args=[dg], axis=1)
-    dg.file_keys = dg.get_lh5_cols(update_df=dg.file_keys)
+    dg.get_lh5_cols()
+    
     for col in ['run', 'cycle']:
         dg.file_keys[col] = pd.to_numeric(dg.file_keys[col])
 
-    # filter out old runs
-    # dg.file_keys = dg.file_keys.loc[dg.file_keys.run>=0].copy()
-    dg.file_keys = dg.file_keys.loc[dg.file_keys.cycle>=139].copy()
-
-    dg.save_df(dg.config['fileDB'])
+    # dg.save_df(dg.config['fileDB'])
+    print(dg.file_keys)
 
 
 def update(dg):
