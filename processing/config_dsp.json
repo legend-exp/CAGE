@@ -49,7 +49,7 @@
     "tp_0": {
       "function": "time_point_thresh",
       "module": "pygama.dsp.processors",
-      "args": ["wf_atrap[0:2000]", 0, "tp_0"],
+      "args": ["wf_atrap[0:2000]", 0, 2, "tp_0"],
       "unit": "ns",
       "prereqs": ["wf_atrap"]
      },

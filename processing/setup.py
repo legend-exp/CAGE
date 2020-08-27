@@ -20,12 +20,12 @@ def main():
     """
     dg = DataGroup('cage.json')
 
-    init(dg) # only run first time
+    # init(dg) # only run first time
     # update(dg) 
     # scan_orca_headers(dg)
     # get_runtimes(dg) # requires dsp file right now (at least raw)
     
-    # show_dg(dg)
+    show_dg(dg)
 
 
 def init(dg):
@@ -43,7 +43,7 @@ def init(dg):
     for col in ['run', 'cycle']:
         dg.file_keys[col] = pd.to_numeric(dg.file_keys[col])
 
-    # dg.save_df(dg.config['fileDB'])
+    dg.save_df(dg.config['fileDB'])
     print(dg.file_keys)
 
 
@@ -220,7 +220,8 @@ def show_dg(dg):
     # print(df_keys.columns)
 
     dbg_cols = ['run', 'cycle', 'unique_key', 'startTime']
-    print(df_keys[dbg_cols].to_string())
+    # print(df_keys[dbg_cols].to_string())
+    print(df_keys[dbg_cols])
 
 
 

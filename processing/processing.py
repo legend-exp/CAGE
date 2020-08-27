@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-import os
+import sys, os
 import json
 import numpy as np
 import argparse
 import pandas as pd
+import subprocess as sp
 from pprint import pprint
 from collections import OrderedDict
 import tinydb as db
@@ -18,7 +19,6 @@ from pygama.io.raw_to_dsp import raw_to_dsp
 def main():
     doc="""
     CAGE data processing routine.
-    TODO: parallelize, submit processing jobs
     """
     rthf = argparse.RawTextHelpFormatter
     par = argparse.ArgumentParser(description=doc, formatter_class=rthf)
@@ -65,7 +65,6 @@ def main():
           f'\n  limit wfs? {nwfs}')
 
     # -- run routines --
-
     if args.d2r: d2r(dg, args.over, nwfs, args.verbose)
     if args.r2d: r2d(dg, args.over, nwfs, args.verbose)
     if args.d2h: d2h(dg, args.over, nwfs, args.verbose)
@@ -125,7 +124,7 @@ def r2d(dg, overwrite=False, nwfs=None, vrb=False):
         if not overwrite and os.path.exists(f_dsp):
             print('file exists, overwrite not set, skipping f_dsp:\n   ', f_dsp)
             continue
-
+        
         raw_to_dsp(f_raw, f_dsp, dsp_config, n_max=nwfs, verbose=vrb,
                    overwrite=overwrite)
 
@@ -247,7 +246,7 @@ def dsp_to_hit_cage(f_dsp, f_hit, dg, n_max=None, verbose=False, t_start=None):
     print(f'Writing table: {tb_name} in file:\n   {f_hit}')
     sto.write_object(tb_lh5, tb_name, f_hit)
     
-    
+
 
 
 if __name__=="__main__":
