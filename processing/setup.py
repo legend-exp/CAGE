@@ -19,20 +19,20 @@ def main():
     """
     """
     dg = DataGroup('cage.json')
-
+    
     # init(dg) # only run first time
     # update(dg) 
-    # scan_orca_headers(dg)
+    scan_orca_headers(dg)
     # get_runtimes(dg) # requires dsp file right now (at least raw)
     
-    show_dg(dg)
+    # show_dg(dg)
 
 
 def init(dg):
     """
-    Initial setup of the fileDB.  Only run once!
+    Initial setup of the fileDB.
     """
-    dg.lh5_dir_setup(create=True)
+    # dg.lh5_dir_setup(create=True)
     dg.scan_daq_dir()
 
     dg.file_keys.sort_values(['cycle'], inplace=True)
@@ -42,9 +42,11 @@ def init(dg):
     
     for col in ['run', 'cycle']:
         dg.file_keys[col] = pd.to_numeric(dg.file_keys[col])
+    # dg.file_keys['run'] = dg.file_keys['run'].astype(int)
 
+    print(dg.file_keys[['run', 'cycle', 'unique_key', 'daq_file']].to_string())
     dg.save_df(dg.config['fileDB'])
-    print(dg.file_keys)
+    print('Wrote output file.')
 
 
 def update(dg):
@@ -60,9 +62,8 @@ def update(dg):
     df_scan = dg.get_lh5_cols(update_df=df_scan)
     for col in ['run', 'cycle']:
         df_scan[col] = pd.to_numeric(df_scan[col])
-
-    # filter out old runs
-    df_scan = df_scan.loc[df_scan.cycle>=139].copy()
+        
+    # look for nan's to identify cycles not covered in runDB
 
     # merge the new df into the existing one based on unique key
     df_keys = pd.read_hdf(dg.config['fileDB'], key='file_keys')

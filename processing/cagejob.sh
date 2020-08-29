@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --qos=shared
-#SBATCH --time=12:00:00
+#SBATCH --time=24:00:00
 #SBATCH --constraint=haswell
 #SBATCH --account=m2676
 #SBATCH --export=HDF5_USE_FILE_LOCKING=FALSE
@@ -24,17 +24,20 @@ if [ -n "$SHIFTER_RUNTIME" ]; then
   echo "ROOT:"`root-config --version`
 fi
 
-# shifter python processing.py -q 'cycle>438' --d2r --r2d -o -v
+# NOTE, don't run -v on --d2r jobs, there's a progress bar that fills up
+# log files with garbage
 
-# run everything
-shifter python processing.py -q 'cycle>1' --d2r --r2d -o -v
+# shifter python processing.py -q 'cycle>438' --d2r --r2d -o
+
+# overwrite everything (~24 hr job)
+# shifter python processing.py -q 'cycle>0' --d2r --r2d -o
+
+# update everything
+shifter python processing.py -q 'cycle>0' --d2r --r2d
 
 # This runs whatever we pass to it (maybe from python)
 # echo "${@}"
 # ${@}
-
-# note, to check resource usage while this job is running you can do:
-# ssh_job <JobID>
 
 echo "Job Complete:"
 date
