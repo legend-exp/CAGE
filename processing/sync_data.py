@@ -9,42 +9,41 @@ from pygama.utils import *
 
 def main():
     """
-    sync MJ60/OPPI/CAGE data with cenpa-rocks.
-    - rsync the entire Data/MJ60 directory using the $DATADIR variable
-    - set flags to then remove raw/raw_to_dsp/tier2 files
-    Hopefully we can reuse this script for C1.
+    sync CAGE data with NERSC.
     """
-    global expDB
-    with open("oppi.json") as f:
+    with open("cage.json") as f:
         expDB = json.load(f)
 
-    # run_rsync()
-    daq_cleanup()
+    # run_rsync(expDB)
+    daq_cleanup(expDB)
 
 
-def run_rsync(test=False):
+def run_rsync(expDB, test=False):
     """
-    run rsync on the entire $DATADIR/MJ60 folder (can take a while ...)
+    NOTE: this doesn't work yet for wisecg, file permissions
+    at the source directory appear to be messed up.  Need to
+    talk with Robert Varner to fix.
     """
     if "mjcenpa" not in os.environ["USER"]:
         print("Error, we're not on the MJ60 DAQ machine.  Exiting ...")
         exit()
 
     daq_dir = os.path.expandvars(expDB["daq_dir"] + "/")
-    daq_rocks = "{}:{}/".format(expDB["rocks_login"], expDB["rocks_dir"])
+    daq_nersc = "{}:{}/".format(expDB["nersc_login"], expDB["nersc_dir"])
 
     if test:
-        cmd = "rsync -avh --dry-run {} {}".format(daq_dir, daq_rocks)
+        cmd = "rsync -avh --dry-run {} {}".format(daq_dir, daq_nersc)
     else:
-        cmd = "rsync -avh {} {}".format(daq_dir, daq_rocks)
+        # cmd = "rsync -avh --no-perms {} {}".format(daq_dir, daq_nersc)
+        # try to fix permissions issue?
+        cmd = "rsync -avh --no-o --no-g --no-perms {} {}".format(daq_dir, daq_nersc)
     sh(cmd)
 
 
-def daq_cleanup(keep_t1=False, keep_t2=False):
+def daq_cleanup(expDB):
     """
-    build a list of files on the DAQ and rocks, check integrity,
+    build a list of files on the DAQ and nersc, check integrity,
     and delete files on the DAQ only if we're sure the transfer was successful.
-    MJ60 and C1 ORCA raw files have "BackgroundRun" in the filenames
     """
     if "mjcenpa" not in os.environ["USER"]:
         print("Error, we're not on the MJ60 DAQ machine.  Exiting ...")
@@ -57,13 +56,14 @@ def daq_cleanup(keep_t1=False, keep_t2=False):
         # print(f)
 
     # remote list
-    args = ['ssh', expDB['rocks_login'], 'ls -R '+expDB["rocks_dir"]]
+    # args = ['ssh', expDB['nersc_login'], 'ls -R '+expDB["nersc_dir"]]
+    args = ['ssh', expDB['nersc_login'], 'ls -R '+expDB['nersc_dir']]
     ls = sp.Popen(args, stdout=sp.PIPE, stderr=sp.PIPE)
     out, err = ls.communicate()
     out = out.decode('utf-8')
-    filelist_rocks = out.split("\n")
-    filelist_rocks = [f for f in filelist_rocks if ":" not in f and len(f)!=0]
-    # for f in filelist_rocks:
+    filelist_nersc = out.split("\n")
+    filelist_nersc = [f for f in filelist_nersc if ":" not in f and len(f)!=0]
+    # for f in filelist_nersc:
         # print(f)
 
     # make sure all files have successfully transferred
@@ -71,47 +71,31 @@ def daq_cleanup(keep_t1=False, keep_t2=False):
         fname = f.split("/")[-1]
         if len(fname) == 0:
             continue
-        if fname not in filelist_rocks:
+        if fname not in filelist_nersc:
             print("whoa, ", fname, "not found in remote list!")
             exit()
 
-    print("All files in:\n    {}\nhave been backed up to cenpa-rocks."
+    print("All files in:\n    {}\nhave been backed up to NERSC."
           .format(datadir_loc))
     print("It should be OK to delete local files.")
 
     # don't delete these files, orca needs them
     ignore_list = [".Orca", "RunNumber"]
 
-    # TODO: update this code to work with pygama LH5
-    # # set these bools to not remove the pygama files
-    # if keep_t1:
-    #     ignore_list.append("t1_run")
-    # if keep_t2:
-    #     ignore_list.append("t2_run")
-
     # now delete old files, ask for Y/N confirmation
-    print("OK to delete local files? [y/n]")
-    if input() in ["y","Y"]:
+    ans = input("OK to delete local files? y/n:")
+    if ans.lower() == 'y':
         for f in filelist_loc:
             f.replace(" ", "\ ")
             if os.path.isfile(f):
                 if any(ig in f for ig in ignore_list):
                     continue
-
                 print("Deleting:", f)
                 os.remove(f)
 
     now = datetime.now()
     print("Processing is up to date!", now.strftime("%Y-%m-%d %H:%M"))
 
-
-def download_rocks():
-    """
-    fk , i also need to write a function to recall the raw
-    files from cenpa-rocks for reprocessing (since for now
-    all processing happens on the DAQ computer)
-    """
-    print("hi clint")
 
 
 if __name__=="__main__":
