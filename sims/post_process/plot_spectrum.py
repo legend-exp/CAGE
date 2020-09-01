@@ -156,6 +156,14 @@ def getCounts(processed_filename):
 	counts = len(energy)
 	print('%f counts in PV' %counts)
 
+def getRate(processed_filename):
+	df = pd.read_hdf(processed_filename, keys='procdf')
+	energy = np.array(df['energy'])
+	gamma_df = df.loc[(df.energy > .05) & (df.energy < 0.07)]
+	gamma_energy = np.array(gamma_df['energy']*1000)
+
+
+
 def plotHist(filename):
 	# df = pandarize(filename)
 	pctResAt1MeV = 0.5 #0.5% energy resolution
