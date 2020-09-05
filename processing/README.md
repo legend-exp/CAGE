@@ -1,3 +1,6 @@
+
+## Data Processing
+
 CAGE processing is organized using the `DataGroup` class from pygama.  
 
 A user must scan the DAQ directory for new files, and create a `fileDB` with a row for every file.
