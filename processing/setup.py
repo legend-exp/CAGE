@@ -111,8 +111,7 @@ def update(dg):
     New rows will not have all columns yet.
     TODO: look for nan's to identify cycles not covered in runDB
     """
-    dbg_cols = ['unique_key', 'run', 'cycle', 'daq_file', 'startTime',
-                'stopTime', 'runtime']
+    dbg_cols = ['unique_key', 'run', 'cycle', 'daq_file']
     
     # load existing file keys
     dg.load_df() 
@@ -143,7 +142,7 @@ def update(dg):
         df_upd = pd.concat([dg.file_keys, dg_new.file_keys.loc[new_idx]])
         print(df_upd[dbg_cols])
 
-        ans = input('Save updated fileDB? y/n')
+        ans = input('Save updated fileDB? (y/n):')
         if ans.lower() == 'y':
             dg.file_keys = df_upd
             dg.save_df(dg.config['fileDB'])
