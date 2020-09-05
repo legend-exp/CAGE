@@ -37,7 +37,7 @@ def main():
     # options
     arg('--show', action=st, help='show current on-disk fileDB')
     arg('-o', '--over', action=st, help='overwrite existing fileDB')
-    # arg('--lh5_user', action=st, help='use $CAGE_LH5_USER over $CAGE_LH5')
+    arg('--lh5_user', action=st, help='use $CAGE_LH5_USER over $CAGE_LH5')
     
     args = par.parse_args()
     
@@ -45,8 +45,8 @@ def main():
     dg = DataGroup('cage.json')
     
     # -- run routines -- 
+    if args.mkdirs: dg.lh5_dir_setup(self.user)
     if args.show: show_fileDB(dg)
-    if args.mkdirs: dg.lh5_dir_setup(create=True)
     if args.init: init(dg)
     if args.update: update(dg)
     if args.orca: scan_orca_headers(dg, args.over)
@@ -57,16 +57,14 @@ def show_fileDB(dg):
     """
     $ ./setup.py --show
     Show current on-disk fileDB.
-    
+
     Columns:
-    - Added by get_cyc_info:
-        'YYYY', 'cycle', 'daq_dir', 'daq_file', 'dd', 'mm', 'run', 'runtype', 'unique_key'
-    - Added by get_lh5_cols:
-       'raw_file', 'raw_path', 'dsp_file', 'dsp_path', 'hit_file', 'hit_path'
-    - Added by scan_orca_headers:
-       'startTime', 'threshold', 
-    - Added by get_runtime:
-        'stopTime', 'runtime'
+    - Added by get_cyc_info: 'YYYY', 'cycle', 'daq_dir', 'daq_file', 'dd', 'mm',
+                             'run', 'runtype', 'unique_key'
+    - Added by get_lh5_cols: 'raw_file', 'raw_path', 'dsp_file', 'dsp_path',
+                             'hit_file', 'hit_path'
+    - Added by scan_orca_headers: 'startTime', 'threshold', 
+    - Added by get_runtime: 'stopTime', 'runtime'
     """
     dg.load_df()
 
@@ -132,10 +130,8 @@ def update(dg):
     # print(dg_new.file_keys[dbg_cols])
     
     # identify new keys, save new indexes
-    # pd.Series(list(set(s1) & set(s2)))
     df1 = dg.file_keys['unique_key']
-    df2 = dg_new.file_keys['unique_key']
-    
+    df2 = dg_new.file_keys['unique_key']    
     new_keys = pd.concat([df1, df2]).drop_duplicates(keep=False)
     new_idx = new_keys.index
     
