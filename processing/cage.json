@@ -7,6 +7,7 @@
   "daq_dir" : "$CAGE_DAQ",
   "daq_ignore" : [".log",".DS_Store", "openFiles"],
   "lh5_dir" : "$CAGE_LH5",
+  "lh5_user" : "$CAGE_LH5_USER",
 
   "rocks_login":"wisecg@cenpa-rocks.npl.washington.edu",
   "rocks_dir":"/data/eliza1/LEGEND/Data/CAGE",
