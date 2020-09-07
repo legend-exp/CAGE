@@ -45,7 +45,7 @@ def main():
     dg = DataGroup('cage.json')
     
     # -- run routines -- 
-    if args.mkdirs: dg.lh5_dir_setup(self.user)
+    if args.mkdirs: dg.lh5_dir_setup(args.lh5_user)
     if args.show: show_fileDB(dg)
     if args.init: init(dg)
     if args.update: update(dg)
@@ -76,7 +76,6 @@ def show_fileDB(dg):
     if 'runtime' in dg.file_keys.columns:
         dbg_cols += ['runtime']
 
-    
     print(dg.file_keys[dbg_cols])
 
 
@@ -192,7 +191,8 @@ def scan_orca_headers(dg, overwrite=False):
     # load existing fileDB
     dg.load_df()
     
-    if overwrite:
+    # first-time setup
+    if 'startTime' not in dg.file_keys.columns or overwrite:
         df_keys = dg.file_keys.copy()
         print('Re-scanning entire fileDB')
     
@@ -206,7 +206,7 @@ def scan_orca_headers(dg, overwrite=False):
             update_existing = True
         else:
             print('No empty startTime values found.')
-    
+            
     if len(df_keys) == 0:
         print('No files to update.  Exiting...')
         exit()
