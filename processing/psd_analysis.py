@@ -46,9 +46,9 @@ def main():
 
     # -- run routines --
     # show_raw_spectrum(dg)
-    # show_cal_spectrum(dg)
+#     show_cal_spectrum(dg)
     # show_wfs(dg)
-    data_cleaning(dg)
+    data_cleaning(dg) # doesn't work right now, I think due to same error as experienced before fix in line 171 in setup.py, but not entirely sure how to fix yet
     # peak_drift(dg)
     # pole_zero(dg)
 
@@ -142,7 +142,8 @@ def show_cal_spectrum(dg):
     plt.ylabel('cts / sec', ha='right', y=1)
     plt.legend(loc=1, fontsize=12)
     plt.tight_layout()
-    plt.show()
+    plt.savefig('./plots/CalSpectrum.png')
+#     plt.show()
 
 
 def show_wfs(dg):

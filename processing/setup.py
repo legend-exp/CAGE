@@ -20,10 +20,10 @@ def main():
     """
     dg = DataGroup('cage.json')
     
-    # init(dg) # only run first time
-    # update(dg) 
-    scan_orca_headers(dg)
-    # get_runtimes(dg) # requires dsp file right now (at least raw)
+#     init(dg) # only run first time
+#     update(dg) # doesn't work yet
+#     scan_orca_headers(dg)
+    get_runtimes(dg) # requires dsp file right now (at least raw)
     
     # show_dg(dg)
 
@@ -164,17 +164,20 @@ def get_runtimes(dg):
 
     sto = lh5.Store()
     def get_runtime(df_row):
+        # print(df_row)
 
         # load timestamps from dsp file
         f_dsp = dg.lh5_dir + df_row['dsp_path'] + '/' + df_row['dsp_file']
-        data = sto.read_object('ORSIS3302DecoderForEnergy/dsp', f_dsp)
+        data, n_rows = sto.read_object('ORSIS3302DecoderForEnergy/dsp', f_dsp)
+
 
         # correct for timestamp rollover
         clock = 100e6 # 100 MHz
         UINT_MAX = 4294967295 # (0xffffffff)
         t_max = UINT_MAX / clock
+        
 
-        # ts = data['timestamp'].nda.astype(np.int64) # must be signed for np.diff
+       # ts = data['timestamp'].nda.astype(np.int64) # must be signed for np.diff
         ts = data['timestamp'].nda / clock # converts to float
 
         tdiff = np.diff(ts)
