@@ -136,6 +136,7 @@ class DBMonitor(QWidget):
         self.endpts_enabled[11]['value'] = True
         self.endpts_enabled[14]['value'] = True
         self.endpts_enabled[16]['value'] = True
+        self.endpts_enabled[17]['value'] = True
 
         # default time window
         self.t_later = datetime.utcnow()

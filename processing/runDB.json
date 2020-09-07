@@ -33,5 +33,6 @@
     "28":["484-485", "elog 220.  2020/08/26. centering test w/ rotary motor, cont'd"],
     "29":["486-495", "elog 223.  2020/08/26.  bkg runs, rise time/stability study"],
     "30":["496-530", "elog 227, 2020/09/03.  2700 V, bkg runs, fast pulses!"],
-    "31":["531-999", "elog 228, 2020/09/04.  alphas, 16 mm lin, norm incid."]
+    "31":["531-534", "elog 228, 2020/09/04.  alphas, 16 mm lin, norm incid."],
+    "32":["535-568", "elog 228, 2020/09/04.  bkg runs after retuning amp"]
 }

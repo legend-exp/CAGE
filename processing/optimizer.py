@@ -72,12 +72,12 @@ def main():
     # print(f'Found {len(dg.file_keys)} files.')
     
     # -- run routines -- 
-    # optimize_trap(dg)
-    # show_trap_results()
+    optimize_trap(dg)
+    show_trap_results()
     
     # optimize_dcr(dg) 
-    # show_dcr_results()
-    check_wfs(dg)
+    # show_dcr_results(dg)
+    # check_wfs(dg)
     
     
 def optimize_trap(dg):
@@ -94,7 +94,7 @@ def optimize_trap(dg):
     # epar, elo, ehi, epb = 'energy', 0, 1e7, 10000 # full range
     epar, elo, ehi, epb = 'energy', 3.88e6, 3.92e6, 500 # K40 peak
     
-    show_movie = False
+    show_movie = True
     write_output = True
     n_rows = None # default None
     
@@ -194,7 +194,7 @@ def optimize_trap(dg):
             print('  ', key, obj.nda.shape, obj.attrs)
 
     # clear new colums if they exist
-    new_cols = ['e_fit', 'fwhm_fit', 'rchisq', 'xF_err']
+    new_cols = ['e_fit', 'fwhm_fit', 'rchisq', 'xF_err', 'fwhm_ovr_mean']
     for col in new_cols:
         if col in df_grid.columns:
             df_grid.drop(col, axis=1, inplace=True)
@@ -257,6 +257,7 @@ def optimize_trap(dg):
             diff = (model - h)**2 / model
             chisq.append(abs(diff))
         rchisq = sum(np.array(chisq) / len(hE))
+        fwhm_ovr_mean = fwhm_fit / e_fit
 
         if show_movie:
             
@@ -279,12 +280,15 @@ def optimize_trap(dg):
 
         # return results
         return pd.Series({'e_fit':e_fit, 'fwhm_fit':fwhm_fit, 'rchisq':rchisq,
-                          'fwhm_err':xF_err[0]})
+                          'fwhm_err':xF_err[0], 'fwhm_ovr_mean': fwhm_ovr_mean})
     
     # df_grid=df_grid[:10]
     df_tmp = df_grid.progress_apply(run_dsp, axis=1)
     df_grid[new_cols] = df_tmp
     # print(df_grid)
+    
+    if show_movie:
+        plt.close()
     
     print('elapsed:', time.time() - t_start)
     if write_output:
@@ -300,9 +304,9 @@ def show_trap_results():
     print(df_grid)
     
     print('Minimum fwhm:')
-    print(df_grid[df_grid.fwhm_fit==df_grid.fwhm_fit.min()])
+    print(df_grid[df_grid.fwhm_ovr_mean==df_grid.fwhm_ovr_mean.min()])
     
-    plt.plot(df_grid.e_fit, df_grid.fwhm_fit, '.b')
+    plt.plot(df_grid.e_fit, df_grid.fwhm_ovr_mean, '.b')
     plt.show()
     
     
@@ -316,18 +320,19 @@ def optimize_dcr(dg):
     perhaps we can try a grid search optimization like the one done in 
     optimize_trap.
     """
-    f_results = './temp_results.h5'
-    write_output = True
-    
     # files to consider.  fixme: right now only works with one file
     sto = lh5.Store()
     lh5_dir = os.path.expandvars(dg.config['lh5_dir'])
     raw_list = lh5_dir + dg.file_keys['raw_path'] + '/' + dg.file_keys['raw_file']
     f_raw = raw_list.values[0] 
-    print(f_raw)
-    exit()
+    
     tb_raw = 'ORSIS3302DecoderForEnergy/raw/'
     tb_data = sto.read_object(tb_raw, f_raw)
+    
+    cycle = dg.file_keys['cycle'].values[0]
+    f_results = f'./temp_{cycle}.h5'
+    
+    write_output = True
     
     # adjust dsp config 
     with open('opt_dcr.json') as f:
@@ -337,8 +342,8 @@ def optimize_dcr(dg):
     
     # set dcr parameters
     # rise, flat, dcr_tstart = 200, 1000, 'tp_0+1.5*us' # default
-    dcr_rise, dcr_flat, dcr_tstart = 100, 3000, 'tp_0+3*us' # best so far?
-    # dcr_rise, dcr_flat, dcr_tstart = 200, 2000, 'tp_0+2*us'
+    # dcr_rise, dcr_flat, dcr_tstart = 100, 3000, 'tp_0+3*us' # best so far?
+    dcr_rise, dcr_flat, dcr_tstart = 100, 2500, 'tp_0+1*us'
     dsp_config['processors']['dcr_raw']['args'][1] = dcr_rise
     dsp_config['processors']['dcr_raw']['args'][2] = dcr_flat
     dsp_config['processors']['dcr_raw']['args'][3] = dcr_tstart
@@ -369,20 +374,23 @@ def optimize_dcr(dg):
         print('Wrote output file:', f_results)
     
     
-def show_dcr_results():
+def show_dcr_results(dg):
     """
     plot of dcr vs energy for a single setting
     """
-    df_dsp = pd.read_hdf('./temp_results.h5', 'opt_dcr')
+    cycle = dg.file_keys['cycle'].values[0]
+    df_dsp = pd.read_hdf(f'./temp_{cycle}.h5', 'opt_dcr')
     # print(df_dsp.describe())    
 
     # compare DCR and A/E distributions
     fig, (p0, p1) = plt.subplots(2, 1, figsize=(8, 8))
     
-    elo, ehi, epb = 0, 20000, 10
+    elo, ehi, epb = 0, 25000, 100
     
     # aoe distribution
-    ylo, yhi, ypb = -1, 2, 0.1
+    # ylo, yhi, ypb = -1, 2, 0.1
+    # ylo, yhi, ypb = -0.1, 0.3, 0.005
+    ylo, yhi, ypb = 0.05, 0.08, 0.0005
     nbx = int((ehi-elo)/epb)
     nby = int((yhi-ylo)/ypb)
     h = p0.hist2d(df_dsp['trapEmax'], df_dsp['aoe'], bins=[nbx,nby],
@@ -393,8 +401,12 @@ def show_dcr_results():
 
     # dcr distribution
     # ylo, yhi, ypb = -20, 20, 1 # dcr_raw
-    ylo, yhi, ypb = -5, 2.5, 0.1 # dcr = dcr_raw / trapEmax
-    ylo, yhi, ypb = -3, 2, 0.1
+    # ylo, yhi, ypb = -5, 2.5, 0.1 # dcr = dcr_raw / trapEmax
+    # ylo, yhi, ypb = -3, 2, 0.1
+    ylo, yhi, ypb = 0.9, 1.08, 0.001
+    ylo, yhi, ypb = 1.034, 1.0425, 0.00005 # best for 64.4 us pz
+    # ylo, yhi, ypb = 1.05, 1.056, 0.00005 # best for 50 us pz
+    # ylo, yhi, ypb = 1.016, 1.022, 0.00005 # best for 100 us pz
     nbx = int((ehi-elo)/epb)
     nby = int((yhi-ylo)/ypb)
     h = p1.hist2d(df_dsp['trapEmax'], df_dsp['dcr'], bins=[nbx,nby],
@@ -404,41 +416,75 @@ def show_dcr_results():
     p1.set_ylabel('DCR', ha='right', y=1)
     
     # plt.show()
-    plt.savefig('./plots/dcr_prelim.png', dpi=300)
+    plt.savefig(f'./plots/dcr_cyc{cycle}.png', dpi=300)
     plt.cla()
     
     
 def check_wfs(dg):
     """
     somebody inevitably asks you, 'have you looked at the waveforms?'
+    in this function, compare alpha wfs to gamma wfs
+    
     use the temp_results file to pick indexes, and grab the corresponding
     wfs.  LH5 doesn't let us only load particular indexes (yet), so we
-    have to load all the waveforms every time.  butts.
-    
-    in this function, compare alpha wfs to gamma wfs
+    have to load all the waveforms in the file every time.  butts.
     """
-    df_dsp = pd.read_hdf('./temp_results.h5', 'opt_dcr')
+    # load dsp results
+    cycle = dg.file_keys['cycle'].values[0]
+    df_dsp = pd.read_hdf(f'./temp_{cycle}.h5', 'opt_dcr')
     
+    # load waveforms
     sto = lh5.Store()
-    f_raw = '/Users/wisecg/Data/LH5/cage/raw/cage_run14_cyc311_raw.lh5'
-    tb_wfs = sto.read_object(f_raw, 'ORSIS3302DecoderForEnergy/raw')
-    
-    # select waveforms
-    idx = df_hit[etype].loc[(df_hit[etype] >= elo) &
-                            (df_hit[etype] <= ehi)].index[:nwfs]
-    raw_store = lh5.Store()
-    tb_name = 'ORSIS3302DecoderForEnergy/raw'
+    lh5_dir = os.path.expandvars(dg.config['lh5_dir'])
     raw_list = lh5_dir + dg.file_keys['raw_path'] + '/' + dg.file_keys['raw_file']
-    f_raw = raw_list.values[0] # fixme, only works for one file rn
-    data_raw = raw_store.read_object(tb_name, f_raw, start_row=0, n_rows=idx[-1]+1)
+    f_raw = raw_list.values[0] 
+    tb_wfs = sto.read_object('ORSIS3302DecoderForEnergy/raw/waveform', f_raw)
+    
+    # energy cut
+    et = 'trapEmax'
+    # elo, ehi = 8000, 16000
+    # elo, ehi = 8000, 10000
+    elo, ehi = 12000, 13000
+    
+    # dcr cut
+    # alp_lo, alp_hi = -0.5, 0.5
+    # gam_lo, gam_hi = 0.8, 1.2
+    
+    # aoe cut
+    alp_lo, alp_hi = 0.064, 0.068
+    gam_lo, gam_hi = 0.05, 0.06
+    
+    # selection
+    idx_alp = df_dsp[et].loc[(df_dsp[et] > elo) & (df_dsp[et] < ehi) & 
+                             (df_dsp.aoe > alp_lo) & (df_dsp.aoe < alp_hi)].index
+    
+    idx_gam = df_dsp[et].loc[(df_dsp[et] > elo) & (df_dsp[et] < ehi) & 
+                             (df_dsp.aoe > gam_lo) & (df_dsp.aoe < gam_hi)].index
+    
+    wfs_alp = tb_wfs['values'].nda[idx_alp]
+    wfs_gam = tb_wfs['values'].nda[idx_gam]
+    
+    print(f'found {wfs_alp.shape[0]} alpha candidates')
+    print(f'found {wfs_gam.shape[0]} gamma candidates')
+    
+    # plot 
+    # fig, (p0, p1) = plt.subplots(2, 1, figsize=(8, 8))
+    
+    ts = np.arange(0, wfs_gam.shape[1], 1)
 
-    wfs_all = data_raw['waveform']['values'].nda
-    wfs = wfs_all[idx.values, :]
-    ts = np.arange(0, wfs.shape[1], 1)
+    n_gam = 10 if wfs_gam.shape[0] > 10 else wfs_gam.shape[0]
+    for iwf in range(n_gam):
+        max = np.amax(wfs_gam[iwf,:])
+        # max = df_dsp[et].values[iwf]
+        plt.plot(ts[:-1], wfs_gam[iwf,:-1]/max, '-b', lw=1, alpha=0.5)
+    
+    n_alp = 10 if wfs_alp.shape[0] > 10 else wfs_alp.shape[0]
+    for iwf in range(n_alp):
+        max = np.amax(wfs_alp[iwf,:])
+        # max = df_dsp[et].values[iwf]
+        plt.plot(ts[:-1], wfs_alp[iwf,:-1]/max, '-r', lw=1, alpha=0.5)
 
-    # plot wfs
-    for iwf in range(wfs.shape[0]):
-        plt.plot(ts, wfs[iwf,:], lw=1)
+    # plt.xlim(1
 
     plt.xlabel('time (clock ticks)', ha='right', x=1)
     plt.ylabel('ADC', ha='right', y=1)
