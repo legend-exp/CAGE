@@ -53,7 +53,7 @@ def main():
                  # 'stopTime','runtime']
     print(dg.file_keys[view_cols].to_string())
     print('Files:', len(dg.file_keys))
-    # exit()
+#     exit()
 
     # -- set options --
     nwfs = args.nwfs[0] if args.nwfs is not None else np.inf
@@ -160,7 +160,7 @@ def d2h(dg, overwrite=False, nwfs=None, vrb=False):
     for i, row in dg.file_keys.iterrows():
 
         f_dsp = f"{dg.lh5_dir}/{row['dsp_path']}/{row['dsp_file']}"
-        f_hit = f"{dg.lh5_dir}/{row['hit_path']}/{row['hit_file']}"
+        f_hit = f"{dg.user_lh5_dir}/{row['hit_path']}/{row['hit_file']}"
 
         if not overwrite and os.path.exists(f_hit):
             print('file exists, overwrite not set, skipping f_hit:\n   ', f_dsp)
@@ -186,7 +186,7 @@ def dsp_to_hit_cage(f_dsp, f_hit, dg, n_max=None, verbose=False, t_start=None):
     
     # create initial 'hit' DataFrame from dsp data
     hit_store = lh5.Store()
-    data = hit_store.read_object(dg.config['input_table'], f_dsp)
+    data, n_rows = hit_store.read_object(dg.config['input_table'], f_dsp)
     df_hit = data.get_dataframe()
     
     # 1. get energy calibration for this run from peakfit 

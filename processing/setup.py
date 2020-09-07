@@ -75,6 +75,7 @@ def show_fileDB(dg):
         
     if 'runtime' in dg.file_keys.columns:
         dbg_cols += ['runtime']
+
     
     print(dg.file_keys[dbg_cols])
 
@@ -285,9 +286,11 @@ def get_runtimes(dg, overwrite=False):
 
     sto = lh5.Store()
     def get_runtime(df_row):
+        # print(df_row)
 
         # load timestamps from dsp file
         f_dsp = dg.lh5_dir + df_row['dsp_path'] + '/' + df_row['dsp_file']
+
         if not os.path.exists(f_dsp):
             print(f"Error, file doesn't exist:\n  {f_dsp}")
             exit()
@@ -297,8 +300,9 @@ def get_runtimes(dg, overwrite=False):
         clock = 100e6 # 100 MHz
         UINT_MAX = 4294967295 # (0xffffffff)
         t_max = UINT_MAX / clock
+        
 
-        # ts = data['timestamp'].nda.astype(np.int64) # must be signed for np.diff
+       # ts = data['timestamp'].nda.astype(np.int64) # must be signed for np.diff
         ts = data['timestamp'].nda / clock # converts to float
 
         tdiff = np.diff(ts)
