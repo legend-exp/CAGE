@@ -390,7 +390,7 @@ def peakdet_group(df_group, config):
             p1.legend(fontsize=10)
 
             if config['batch_mode']:
-                plt.savefig('./plots/peakdet_cal_{et}.pdf')
+                plt.savefig(f'./plots/peakdet_cal_{et}.pdf')
             else:
                 plt.show()
 
@@ -587,7 +587,7 @@ def peakfit_group(df_group, config, db_ecal):
         for ie, epk in enumerate(epeaks):
 
             # adjust the window.  resolution goes as roughly sqrt(energy)
-            window = np.sqrt(epk) * 0.5
+            window = np.sqrt(epk) * 0.8
             xlo, xhi = epk - window/2, epk + window/2
             nbins = int(window) * 5
             xpb = (xhi-xlo)/nbins
@@ -624,7 +624,10 @@ def peakfit_group(df_group, config, db_ecal):
                 plt.plot(bins[1:], hist_norm, c='b', lw=1.5, ds='steps')
                 plt.xlabel('pass-1 energy (kev)', ha='right', x=1)
                 plt.legend(fontsize=12)
-                plt.show()
+                if config['batch_mode']:
+                    plt.savefig('./plots/fit%d_peakfit.png' %ie)
+                else:
+                    plt.show()
                 plt.close()
 
             # goodness of fit
@@ -796,7 +799,7 @@ def peakfit_group(df_group, config, db_ecal):
             p1.legend(fontsize=11)
 
             if config['batch_mode']:
-                plt.savefig('./plots/peakdet_test.png')
+                plt.savefig('./plots/peakfit.png')
             else:
                 plt.show()
 
