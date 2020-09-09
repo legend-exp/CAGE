@@ -7,7 +7,7 @@
       "enc_slip":100
     },
     "linear": {
-      "rpi_pin":7, "axis":"B", "motor_spd":300000, "constraint":29,
+      "rpi_pin":7, "axis":"B", "motor_spd":300000, "constraint":26,
       "enc_slip":200
     },
     "rotary": {
