@@ -38,6 +38,7 @@ def main():
     arg('-o', '--over', action=st, help='overwrite existing files')
     arg('-n', '--nwfs', nargs='*', type=int, help='limit num. waveforms')
     arg('-v', '--verbose', action=st, help='verbose mode')
+    arg('-u', '--lh5_user', action=st, help='user lh5 mode')
 
     args = par.parse_args()
 
@@ -65,21 +66,22 @@ def main():
           f'\n  limit wfs? {nwfs}')
 
     # -- run routines --
-    if args.d2r: d2r(dg, args.over, nwfs, args.verbose)
-    if args.r2d: r2d(dg, args.over, nwfs, args.verbose)
-    if args.d2h: d2h(dg, args.over, nwfs, args.verbose)
+    if args.d2r: d2r(dg, args.over, nwfs, args.verbose, args.lh5_user)
+    if args.r2d: r2d(dg, args.over, nwfs, args.verbose, args.lh5_user)
+    if args.d2h: d2h(dg, args.over, nwfs, args.verbose, args.lh5_user)
 
     if args.r2d_file:
         f_raw, f_dsp = args.r2d_file
-        r2d_file(f_raw, f_dsp, args.over, nwfs, args.verbose)
+        r2d_file(f_raw, f_dsp, args.over, nwfs, args.verbose, args.lh5_user)
 
 
-def d2r(dg, overwrite=False, nwfs=None, vrb=False):
+def d2r(dg, overwrite=False, nwfs=None, vrb=False, user=False):
     """
     run daq_to_raw on the current DataGroup
     """
     # print(dg.file_keys)
     # print(dg.file_keys.columns)
+    
 
     subs = dg.subsystems # can be blank: ['']
     # subs = ['geds'] # TODO: ignore other datastreams
@@ -88,9 +90,11 @@ def d2r(dg, overwrite=False, nwfs=None, vrb=False):
     print(f'Processing {dg.file_keys.shape[0]} files ...')
 
     for i, row in dg.file_keys.iterrows():
+        lh5_dir = dg.lh5_user_dir if user else dg.lh5_dir
+        
 
         f_daq = f"{dg.daq_dir}/{row['daq_dir']}/{row['daq_file']}"
-        f_raw = f"{dg.lh5_dir}/{row['raw_path']}/{row['raw_file']}"
+        f_raw = f"{lh5_dir}/{row['raw_path']}/{row['raw_file']}"
         # f_raw = 'test.lh5'
         subrun = row['cycle'] if 'cycle' in row else None
 
@@ -102,7 +106,7 @@ def d2r(dg, overwrite=False, nwfs=None, vrb=False):
                    n_max=nwfs, overwrite=overwrite, subrun=subrun)#, chans=chans)
 
 
-def r2d(dg, overwrite=False, nwfs=None, vrb=False):
+def r2d(dg, overwrite=False, nwfs=None, vrb=False, user=False):
     """
     """
     # print(dg.file_keys)
@@ -112,9 +116,10 @@ def r2d(dg, overwrite=False, nwfs=None, vrb=False):
         dsp_config = json.load(f, object_pairs_hook=OrderedDict)
 
     for i, row in dg.file_keys.iterrows():
+        lh5_dir = dg.lh5_user_dir if user else dg.lh5_dir
 
         f_raw = f"{dg.lh5_dir}/{row['raw_path']}/{row['raw_file']}"
-        f_dsp = f"{dg.lh5_dir}/{row['dsp_path']}/{row['dsp_file']}"
+        f_dsp = f"{lh5_dir}/{row['dsp_path']}/{row['dsp_file']}"
 
         if "sysn" in f_raw:
             tmp = {'sysn' : 'geds'} # hack for lpgta
@@ -148,7 +153,7 @@ def r2d_file(f_raw, f_dsp, overwrite=True, nwfs=None, vrb=False):
                overwrite=overwrite)
 
 
-def d2h(dg, overwrite=False, nwfs=None, vrb=False):
+def d2h(dg, overwrite=False, nwfs=None, vrb=False, user=False):
     """
     """
     # merge main and ecal config JSON as dicts
@@ -158,9 +163,10 @@ def d2h(dg, overwrite=False, nwfs=None, vrb=False):
     dg.config = config
 
     for i, row in dg.file_keys.iterrows():
+        lh5_dir = dg.lh5_user_dir if user else dg.lh5_dir
 
         f_dsp = f"{dg.lh5_dir}/{row['dsp_path']}/{row['dsp_file']}"
-        f_hit = f"{dg.user_lh5_dir}/{row['hit_path']}/{row['hit_file']}"
+        f_hit = f"{lh5_dir}/{row['hit_path']}/{row['hit_file']}"
 
         if not overwrite and os.path.exists(f_hit):
             print('file exists, overwrite not set, skipping f_hit:\n   ', f_dsp)
