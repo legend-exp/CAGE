@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --qos=shared
-#SBATCH --time=24:00:00
+#SBATCH --time=6:00:00
 #SBATCH --constraint=haswell
 #SBATCH --account=m2676
 #SBATCH --export=HDF5_USE_FILE_LOCKING=FALSE

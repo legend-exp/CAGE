@@ -194,6 +194,7 @@ def scan_orca_headers(dg, overwrite=False):
     # first-time setup
     if 'startTime' not in dg.file_keys.columns or overwrite:
         df_keys = dg.file_keys.copy()
+        update_existing = False
         print('Re-scanning entire fileDB')
     
     elif 'startTime' in dg.file_keys.columns:
@@ -258,9 +259,11 @@ def get_runtimes(dg, overwrite=False):
     """
     # load existing fileDB
     dg.load_df()
-
-    if overwrite:
+    
+        # first-time setup
+    if 'runtime' not in dg.file_keys.columns or overwrite:
         df_keys = dg.file_keys.copy()
+        update_existing = False
         print('Re-scanning entire fileDB')
     
     elif 'runtime' in dg.file_keys.columns:
@@ -294,7 +297,7 @@ def get_runtimes(dg, overwrite=False):
         if not os.path.exists(f_dsp):
             print(f"Error, file doesn't exist:\n  {f_dsp}")
             exit()
-        data = sto.read_object('ORSIS3302DecoderForEnergy/dsp', f_dsp)
+        data, n_rows = sto.read_object('ORSIS3302DecoderForEnergy/dsp', f_dsp)
 
         # correct for timestamp rollover
         clock = 100e6 # 100 MHz
