@@ -210,8 +210,6 @@ def lift_interlock():
     result = float(result.output.decode("utf-8"))
     print('lift interlock status:', result)
 
-    print("NOTE: when you install the new switch, you need to fix this")
-
     if result != 1:
         print("WARNING: Rack and Pinion is not lifted to safe distance")
         print("Lift rack and pinion and place motor movement block so that pressure pad is engaged")
