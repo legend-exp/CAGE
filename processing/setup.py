@@ -35,6 +35,7 @@ def main():
     arg('--rt', action=st, help='get runtimes (requires dsp file)')
     
     # options
+    arg('-b', '--batch', action=st, help='batch mode, do not ask for user y/n')
     arg('--show', action=st, help='show current on-disk fileDB')
     arg('-o', '--over', action=st, help='overwrite existing fileDB')
     arg('--lh5_user', action=st, help='use $CAGE_LH5_USER over $CAGE_LH5')
@@ -48,9 +49,9 @@ def main():
     if args.mkdirs: dg.lh5_dir_setup(args.lh5_user)
     if args.show: show_fileDB(dg)
     if args.init: init(dg)
-    if args.update: update(dg)
-    if args.orca: scan_orca_headers(dg, args.over)
-    if args.rt: get_runtimes(dg, args.over) # requires dsp file for now
+    if args.update: update(dg, args.batch)
+    if args.orca: scan_orca_headers(dg, args.over, args.batch)
+    if args.rt: get_runtimes(dg, args.over, args.batch)
 
 
 def show_fileDB(dg):
@@ -96,6 +97,9 @@ def init(dg):
     for col in ['run', 'cycle']:
         dg.file_keys[col] = pd.to_numeric(dg.file_keys[col])
 
+    # manual file selection is applied to this column, default 0 = don't skip
+    dg.file_keys['skip'] = 0
+
     print(dg.file_keys[['run', 'cycle', 'unique_key', 'daq_file']].to_string())
     
     print('Ready to save.  This will overwrite any existing fileDB.')
@@ -105,7 +109,7 @@ def init(dg):
         print('Wrote fileDB:', dg.config['fileDB'])
 
 
-def update(dg):
+def update(dg, batch_mode=False):
     """
     After taking new data, run this function to add rows to fileDB.
     New rows will not have all columns yet.
@@ -141,9 +145,14 @@ def update(dg):
         print('Merging with existing fileDB:')
         df_upd = pd.concat([dg.file_keys, dg_new.file_keys.loc[new_idx]])
         print(df_upd[dbg_cols])
-
-        ans = input('Save updated fileDB? (y/n):')
-        if ans.lower() == 'y':
+        
+        if not batch_mode:
+            ans = input('Save updated fileDB? (y/n):')
+            if ans.lower() == 'y':
+                dg.file_keys = df_upd
+                dg.save_df(dg.config['fileDB'])
+                print('fileDB updated.')
+        else:
             dg.file_keys = df_upd
             dg.save_df(dg.config['fileDB'])
             print('fileDB updated.')
@@ -182,7 +191,7 @@ def get_cyc_info(row, dg):
     return myrow
 
 
-def scan_orca_headers(dg, overwrite=False):
+def scan_orca_headers(dg, overwrite=False, batch_mode=False):
     """
     $ ./setup.py --orca
     Add unix start time, threshold, and anything else in the ORCA XML header
@@ -207,6 +216,7 @@ def scan_orca_headers(dg, overwrite=False):
             update_existing = True
         else:
             print('No empty startTime values found.')
+            df_keys = pd.DataFrame()
             
     if len(df_keys) == 0:
         print('No files to update.  Exiting...')
@@ -244,13 +254,19 @@ def scan_orca_headers(dg, overwrite=False):
     print(dg.file_keys[dbg_cols])
         
     print('Ready to save.  This will overwrite any existing fileDB.')
-    ans = input('Continue? y/n: ')
-    if ans.lower() == 'y':
+    if not batch_mode:
+        ans = input('Save updated fileDB? (y/n):')
+        if ans.lower() == 'y':
+            dg.file_keys = df_upd
+            dg.save_df(dg.config['fileDB'])
+            print('fileDB updated.')
+    else:
+        dg.file_keys = df_upd
         dg.save_df(dg.config['fileDB'])
-        print('Wrote fileDB:', dg.config['fileDB'])
+        print('fileDB updated.')
 
 
-def get_runtimes(dg, overwrite=False):
+def get_runtimes(dg, overwrite=False, batch_mode=False):
     """
     $ ./setup.py --rt
     Compute runtime (# minutes in run) and stopTime (unix timestamp) using
@@ -343,10 +359,16 @@ def get_runtimes(dg, overwrite=False):
     print(dg.file_keys[dbg_cols])
         
     print('Ready to save.  This will overwrite any existing fileDB.')
-    ans = input('Continue? y/n: ')
-    if ans.lower() == 'y':
+    if not batch_mode:
+        ans = input('Save updated fileDB? (y/n):')
+        if ans.lower() == 'y':
+            dg.file_keys = df_upd
+            dg.save_df(dg.config['fileDB'])
+            print('fileDB updated.')
+    else:
+        dg.file_keys = df_upd
         dg.save_df(dg.config['fileDB'])
-        print('Wrote fileDB:', dg.config['fileDB'])
+        print('fileDB updated.')
 
 
 

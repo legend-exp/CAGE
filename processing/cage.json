@@ -2,19 +2,14 @@
   "experiment" : "cage",
   "runDB" : "./runDB.json",
   "fileDB" : "./fileDB.h5",
-
+    
   "daq" : "ORCA",
   "daq_dir" : "$CAGE_DAQ",
   "daq_ignore" : [".log",".DS_Store", "openFiles"],
   "lh5_dir" : "$CAGE_LH5",
   "lh5_user" : "$CAGE_LH5_USER",
 
-
-  "rocks_login":"wisecg@cenpa-rocks.npl.washington.edu",
-  "rocks_dir":"/data/eliza1/LEGEND/Data/CAGE",
-
   "nersc_dir":"/global/project/projectdirs/m2676/data/cage",
-  "nersc_login": "wisecg@cori.nersc.gov",
 
   "tier_dirs" : ["raw","dsp","hit"],
   "subsystems" : [""],
