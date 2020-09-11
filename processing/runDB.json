@@ -36,5 +36,6 @@
     "31":["531-534", "elog 228, 2020/09/04.  alphas, 16 mm lin, norm incid."],
     "32":["535-568", "elog 228, 2020/09/04.  bkg runs after retuning amp"],
     "33":["569-576", "elog 230, 2020/09/08.  rotary+linear centering test pt 2"],
-    "34":["577-580", "elog 230, 2020/09/08.  1hr bkg run with slow wfs again"]
+    "34":["577-580", "elog 230, 2020/09/08.  1hr bkg run with slow wfs again"],
+    "35":["581-588", "elog 232, 2020/09/10.  3hr alpha run, 16 mm"]
 }
