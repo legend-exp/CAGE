@@ -3,7 +3,7 @@
     "channel", "timestamp", 
     "bl", "bl_sig",
     "energy", "trapEftp", "trapEmax", "triE",  
-    "tp_max", "tp0", "tp10", "tp50", "tp80", "tp90",
+    "tp_max", "tp_0", "tp_10", "tp_50", "tp_80", "tp_90",
     "A_10", "AoE",
     "dcr_raw", "dcr_max", "dcr_ftp",
     "hf_max"
@@ -143,24 +143,23 @@
       "args":["A_10", "trapEmax", "AoE"],
       "unit": "1/sample",
       "prereqs": ["A_10", "trapEmax"]
-    }
-  },
+    },
   
-  "dcr_raw": {
-     "function": "trap_pickoff",
-     "module": "pygama.dsp.processors",
-     "args": ["wf_pz", 100, 3000, "tp_90+1*us", "dcr_raw"],
-     "unit": "ADC",
-     "prereqs": ["wf_pz", "tp_90"]
-   },
-  "dcr_ftp": {
-     "function": "divide",
-     "module": "numpy",
-     "args": ["dcr_raw", "trapEftp", "dcr_ftp"],
-     "unit": "ADC",
-     "prereqs": ["dcr_raw", "trapEftp"]
-   },
-   "dcr_max": {
+    "dcr_raw": {
+      "function": "trap_pickoff",
+      "module": "pygama.dsp.processors",
+      "args": ["wf_pz", 100, 3000, "tp_90+1*us", "dcr_raw"],
+      "unit": "ADC",
+      "prereqs": ["wf_pz", "tp_90"]
+    },
+    "dcr_ftp": {
+      "function": "divide",
+      "module": "numpy",
+      "args": ["dcr_raw", "trapEftp", "dcr_ftp"],
+      "unit": "ADC",
+      "prereqs": ["dcr_raw", "trapEftp"]
+    },
+    "dcr_max": {
       "function": "divide",
       "module": "numpy",
       "args": ["dcr_raw", "trapEmax", "dcr_max"],
@@ -184,4 +183,5 @@
       "unit": "",
       "prereqs": ["curr_psd"]
     }
+  }
 }

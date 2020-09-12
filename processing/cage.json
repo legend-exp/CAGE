@@ -2,6 +2,8 @@
   "experiment" : "cage",
   "runDB" : "./runDB.json",
   "fileDB" : "./fileDB.h5",
+  
+  "runSelectionDB" : "run_selection.json",
     
   "daq" : "ORCA",
   "daq_dir" : "$CAGE_DAQ",

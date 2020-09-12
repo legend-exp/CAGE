@@ -97,13 +97,10 @@ def init(dg):
     for col in ['run', 'cycle']:
         dg.file_keys[col] = pd.to_numeric(dg.file_keys[col])
 
-    # manual file selection is applied to this column, default 0 = don't skip
-    dg.file_keys['skip'] = 0
-
-    print(dg.file_keys[['run', 'cycle', 'unique_key', 'daq_file']].to_string())
+    print(dg.file_keys[['run', 'cycle', 'unique_key', 'daq_file', 'skip']].to_string())
     
     print('Ready to save.  This will overwrite any existing fileDB.')
-    ans = input('Continue? y/n')
+    ans = input('Continue? (y/n) ')
     if ans.lower() == 'y':
         dg.save_df(dg.config['fileDB'])
         print('Wrote fileDB:', dg.config['fileDB'])
@@ -165,30 +162,35 @@ def get_cyc_info(row, dg):
     """
     map cycle numbers to physics runs, and identify detector
     """
-    myrow = row.copy() # i have no idea why mjcenpa makes me do this
-    cyc = myrow['cycle']
+    # label physics run
+    cyc = row['cycle']
     for run, cycles in dg.runDB.items():
         tmp = cycles[0].split(',')
         for rng in tmp:
             if '-' in rng:
                 clo, chi = [int(x) for x in rng.split('-')]
                 if clo <= cyc <= chi:
-                    myrow['run'] = run
+                    row['run'] = run
                     break
             else:
                 clo = int(rng)
                 if cyc == clo:
-                    myrow['run'] = run
+                    row['run'] = run
                     break
 
     # label the detector
     if 0 < cyc <= 124:
-        myrow['runtype'] = 'oppi_v1'
+        row['runtype'] = 'oppi_v1'
     elif 125 <= cyc <= 136:
-        myrow['runtype'] = 'icpc_v1'
+        row['runtype'] = 'icpc_v1'
     elif 137 <= cyc <= 9999:
-        myrow['runtype'] = 'oppi_v2'
-    return myrow
+        row['runtype'] = 'oppi_v2'
+        
+    # apply file selection
+    skips = dg.runSelectionDB['daq_junk_cycles']    
+    row['skip'] = cyc in skips
+        
+    return row
 
 
 def scan_orca_headers(dg, overwrite=False, batch_mode=False):
@@ -257,11 +259,9 @@ def scan_orca_headers(dg, overwrite=False, batch_mode=False):
     if not batch_mode:
         ans = input('Save updated fileDB? (y/n):')
         if ans.lower() == 'y':
-            dg.file_keys = df_upd
             dg.save_df(dg.config['fileDB'])
             print('fileDB updated.')
     else:
-        dg.file_keys = df_upd
         dg.save_df(dg.config['fileDB'])
         print('fileDB updated.')
 
