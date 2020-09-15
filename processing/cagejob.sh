@@ -24,16 +24,22 @@ if [ -n "$SHIFTER_RUNTIME" ]; then
   echo "ROOT:"`root-config --version`
 fi
 
+# update fileDB (usually want to run this first)
+shifter python setup.py -u --orca -b
+
 # NOTE, don't run -v on --d2r jobs, there's a progress bar that fills up
 # log files with garbage
-
-# shifter python processing.py -q 'cycle>438' --d2r --r2d -o
 
 # overwrite everything (~24 hr job)
 # shifter python processing.py -q 'cycle>0' --d2r --r2d -o
 
 # update everything
-shifter python processing.py -q 'cycle>0' --d2r --r2d
+# shifter python setup.py -u --orca -b
+# shifter python processing.py -q 'cycle>0' --d2r --r2d
+
+# SPECIAL: d2r new runs and rerun r2d with a new processor list
+# shifter python processing.py -q 'cycle>0' --d2r
+# shifter python processing.py -q 'cycle>530' --r2d -o
 
 # This runs whatever we pass to it (maybe from python)
 # echo "${@}"

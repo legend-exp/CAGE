@@ -35,6 +35,7 @@ def main():
     arg('--rt', action=st, help='get runtimes (requires dsp file)')
     
     # options
+    arg('-b', '--batch', action=st, help='batch mode, do not ask for user y/n')
     arg('--show', action=st, help='show current on-disk fileDB')
     arg('-o', '--over', action=st, help='overwrite existing fileDB')
     arg('--lh5_user', action=st, help='use $CAGE_LH5_USER over $CAGE_LH5')
@@ -48,9 +49,9 @@ def main():
     if args.mkdirs: dg.lh5_dir_setup(args.lh5_user)
     if args.show: show_fileDB(dg)
     if args.init: init(dg)
-    if args.update: update(dg)
-    if args.orca: scan_orca_headers(dg, args.over)
-    if args.rt: get_runtimes(dg, args.over) # requires dsp file for now
+    if args.update: update(dg, args.batch)
+    if args.orca: scan_orca_headers(dg, args.over, args.batch)
+    if args.rt: get_runtimes(dg, args.over, args.batch)
 
 
 def show_fileDB(dg):
@@ -96,16 +97,16 @@ def init(dg):
     for col in ['run', 'cycle']:
         dg.file_keys[col] = pd.to_numeric(dg.file_keys[col])
 
-    print(dg.file_keys[['run', 'cycle', 'unique_key', 'daq_file']].to_string())
+    print(dg.file_keys[['run', 'cycle', 'unique_key', 'daq_file', 'skip']].to_string())
     
     print('Ready to save.  This will overwrite any existing fileDB.')
-    ans = input('Continue? y/n')
+    ans = input('Continue? (y/n) ')
     if ans.lower() == 'y':
         dg.save_df(dg.config['fileDB'])
         print('Wrote fileDB:', dg.config['fileDB'])
 
 
-def update(dg):
+def update(dg, batch_mode=False):
     """
     After taking new data, run this function to add rows to fileDB.
     New rows will not have all columns yet.
@@ -141,9 +142,14 @@ def update(dg):
         print('Merging with existing fileDB:')
         df_upd = pd.concat([dg.file_keys, dg_new.file_keys.loc[new_idx]])
         print(df_upd[dbg_cols])
-
-        ans = input('Save updated fileDB? (y/n):')
-        if ans.lower() == 'y':
+        
+        if not batch_mode:
+            ans = input('Save updated fileDB? (y/n):')
+            if ans.lower() == 'y':
+                dg.file_keys = df_upd
+                dg.save_df(dg.config['fileDB'])
+                print('fileDB updated.')
+        else:
             dg.file_keys = df_upd
             dg.save_df(dg.config['fileDB'])
             print('fileDB updated.')
@@ -156,33 +162,38 @@ def get_cyc_info(row, dg):
     """
     map cycle numbers to physics runs, and identify detector
     """
-    myrow = row.copy() # i have no idea why mjcenpa makes me do this
-    cyc = myrow['cycle']
+    # label physics run
+    cyc = row['cycle']
     for run, cycles in dg.runDB.items():
         tmp = cycles[0].split(',')
         for rng in tmp:
             if '-' in rng:
                 clo, chi = [int(x) for x in rng.split('-')]
                 if clo <= cyc <= chi:
-                    myrow['run'] = run
+                    row['run'] = run
                     break
             else:
                 clo = int(rng)
                 if cyc == clo:
-                    myrow['run'] = run
+                    row['run'] = run
                     break
 
     # label the detector
     if 0 < cyc <= 124:
-        myrow['runtype'] = 'oppi_v1'
+        row['runtype'] = 'oppi_v1'
     elif 125 <= cyc <= 136:
-        myrow['runtype'] = 'icpc_v1'
+        row['runtype'] = 'icpc_v1'
     elif 137 <= cyc <= 9999:
-        myrow['runtype'] = 'oppi_v2'
-    return myrow
+        row['runtype'] = 'oppi_v2'
+        
+    # apply file selection
+    skips = dg.runSelectionDB['daq_junk_cycles']    
+    row['skip'] = cyc in skips
+        
+    return row
 
 
-def scan_orca_headers(dg, overwrite=False):
+def scan_orca_headers(dg, overwrite=False, batch_mode=False):
     """
     $ ./setup.py --orca
     Add unix start time, threshold, and anything else in the ORCA XML header
@@ -207,6 +218,7 @@ def scan_orca_headers(dg, overwrite=False):
             update_existing = True
         else:
             print('No empty startTime values found.')
+            df_keys = pd.DataFrame()
             
     if len(df_keys) == 0:
         print('No files to update.  Exiting...')
@@ -244,13 +256,17 @@ def scan_orca_headers(dg, overwrite=False):
     print(dg.file_keys[dbg_cols])
         
     print('Ready to save.  This will overwrite any existing fileDB.')
-    ans = input('Continue? y/n: ')
-    if ans.lower() == 'y':
+    if not batch_mode:
+        ans = input('Save updated fileDB? (y/n):')
+        if ans.lower() == 'y':
+            dg.save_df(dg.config['fileDB'])
+            print('fileDB updated.')
+    else:
         dg.save_df(dg.config['fileDB'])
-        print('Wrote fileDB:', dg.config['fileDB'])
+        print('fileDB updated.')
 
 
-def get_runtimes(dg, overwrite=False):
+def get_runtimes(dg, overwrite=False, batch_mode=False):
     """
     $ ./setup.py --rt
     Compute runtime (# minutes in run) and stopTime (unix timestamp) using
@@ -343,10 +359,16 @@ def get_runtimes(dg, overwrite=False):
     print(dg.file_keys[dbg_cols])
         
     print('Ready to save.  This will overwrite any existing fileDB.')
-    ans = input('Continue? y/n: ')
-    if ans.lower() == 'y':
+    if not batch_mode:
+        ans = input('Save updated fileDB? (y/n):')
+        if ans.lower() == 'y':
+            dg.file_keys = df_upd
+            dg.save_df(dg.config['fileDB'])
+            print('fileDB updated.')
+    else:
+        dg.file_keys = df_upd
         dg.save_df(dg.config['fileDB'])
-        print('Wrote fileDB:', dg.config['fileDB'])
+        print('fileDB updated.')
 
 
 

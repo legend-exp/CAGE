@@ -90,8 +90,8 @@ def d2r(dg, overwrite=False, nwfs=None, vrb=False, user=False):
     print(f'Processing {dg.file_keys.shape[0]} files ...')
 
     for i, row in dg.file_keys.iterrows():
+
         lh5_dir = dg.lh5_user_dir if user else dg.lh5_dir
-        
 
         f_daq = f"{dg.daq_dir}/{row['daq_dir']}/{row['daq_file']}"
         f_raw = f"{lh5_dir}/{row['raw_path']}/{row['raw_file']}"
@@ -101,7 +101,13 @@ def d2r(dg, overwrite=False, nwfs=None, vrb=False, user=False):
         if not overwrite and os.path.exists(f_raw):
             print('file exists, overwrite not set, skipping f_raw:\n   ', f_raw)
             continue
+        
+        cyc = row['cycle']
+        if row.skip:
+            print(f'Cycle {cyc} has been marked junk, will not process.')
+            continue
 
+        print(f'Processing cycle {cyc}')
         daq_to_raw(f_daq, f_raw, config=dg.config, systems=subs, verbose=vrb,
                    n_max=nwfs, overwrite=overwrite, subrun=subrun)#, chans=chans)
 
@@ -130,6 +136,12 @@ def r2d(dg, overwrite=False, nwfs=None, vrb=False, user=False):
             print('file exists, overwrite not set, skipping f_dsp:\n   ', f_dsp)
             continue
         
+        cyc = row['cycle']
+        if row.skip:
+            print(f'Cycle {cyc} has been marked junk, will not process.')
+            continue
+        
+        print(f'Processing cycle {cyc}')
         raw_to_dsp(f_raw, f_dsp, dsp_config, n_max=nwfs, verbose=vrb,
                    overwrite=overwrite)
 
@@ -170,6 +182,10 @@ def d2h(dg, overwrite=False, nwfs=None, vrb=False, user=False):
 
         if not overwrite and os.path.exists(f_hit):
             print('file exists, overwrite not set, skipping f_hit:\n   ', f_dsp)
+            continue
+        
+        if row.skip:
+            print(f'Cycle {subrun} has been marked junk, will not process.')
             continue
 
         t_start = row['startTime']

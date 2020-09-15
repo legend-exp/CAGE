@@ -49,6 +49,8 @@ def daq_cleanup(expDB):
         print("Error, we're not on the MJ60 DAQ machine.  Exiting ...")
         exit()
 
+    nersc_login = 'wisecg@cori.nersc.gov'
+
     # local (DAQ) list
     datadir_loc = os.path.expandvars(expDB["daq_dir"] + "/")
     filelist_loc = glob.glob(datadir_loc + "/**", recursive=True)
@@ -56,8 +58,8 @@ def daq_cleanup(expDB):
         # print(f)
 
     # remote list
-    # args = ['ssh', expDB['nersc_login'], 'ls -R '+expDB["nersc_dir"]]
-    args = ['ssh', expDB['nersc_login'], 'ls -R '+expDB['nersc_dir']]
+    # args = ['ssh', nersc_login, 'ls -R '+expDB["nersc_dir"]]
+    args = ['ssh', nersc_login, 'ls -R '+expDB['nersc_dir']]
     ls = sp.Popen(args, stdout=sp.PIPE, stderr=sp.PIPE)
     out, err = ls.communicate()
     out = out.decode('utf-8')
