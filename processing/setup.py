@@ -78,6 +78,7 @@ def show_fileDB(dg):
         dbg_cols += ['runtime']
 
     print(dg.file_keys[dbg_cols])
+    print(dg.file_keys.columns)
 
 
 def init(dg):
@@ -232,9 +233,13 @@ def scan_orca_headers(dg, overwrite=False, batch_mode=False):
 
     def scan_orca_header(df_row):
         f_daq = dg.daq_dir + df_row['daq_dir'] + '/' + df_row['daq_file']
-        if not os.path.exists(f_daq):
+        
+        if not os.path.exists(f_daq) and not df_row.skip:
             print(f"Error, file doesn't exist:\n  {f_daq}")
             exit()
+        elif df_row.skip:
+            print(f'Skipping cycle file:\n  {f_daq}')
+            return pd.Series({'startTime':0, 'threshold':0})
         
         _,_, header_dict = parse_header(f_daq)
         # pprint(header_dict)
@@ -305,14 +310,17 @@ def get_runtimes(dg, overwrite=False, batch_mode=False):
 
     sto = lh5.Store()
     def get_runtime(df_row):
-        # print(df_row)
 
         # load timestamps from dsp file
         f_dsp = dg.lh5_dir + df_row['dsp_path'] + '/' + df_row['dsp_file']
 
-        if not os.path.exists(f_dsp):
+        if not os.path.exists(f_dsp) and not df_row.skip:
             print(f"Error, file doesn't exist:\n  {f_dsp}")
             exit()
+        elif df_row.skip:
+            print(f'Skipping cycle file:\n  {f_dsp}')
+            return pd.Series({'stopTime':0, 'runtime':0})
+
         data, n_rows = sto.read_object('ORSIS3302DecoderForEnergy/dsp', f_dsp)
 
         # correct for timestamp rollover
@@ -362,11 +370,9 @@ def get_runtimes(dg, overwrite=False, batch_mode=False):
     if not batch_mode:
         ans = input('Save updated fileDB? (y/n):')
         if ans.lower() == 'y':
-            dg.file_keys = df_upd
             dg.save_df(dg.config['fileDB'])
             print('fileDB updated.')
     else:
-        dg.file_keys = df_upd
         dg.save_df(dg.config['fileDB'])
         print('fileDB updated.')
 
