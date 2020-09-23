@@ -114,6 +114,7 @@ def main():
     if args['status']:
         check_limit_switches(verbose=True)
         print(history_df)
+        # print(history_df.to_string())
 
     if args['read_enc']:
         rpi_pin = int(args['read_enc'][0])

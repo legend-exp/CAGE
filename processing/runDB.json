@@ -3,7 +3,6 @@
     "1":["11-14", "elog 84. initial Cs+bkg runs.  2800 V.  elog 84"],
     "2":["15-41", "elog 85. HV pulser capacitance meas.  Cs source + bkg. 0x15"],
     "3":["42-45", "elog 84. bkg runs, 2800 V, 0x10 thresh"],
-
     "4":["46-56", "elog 115?. jan 2020: initial test runs"],
     "5":["57-90", "elog 118. background run"],
     "6":["91-124", "elog 127. initial alpha run (suspect collimator)"],
