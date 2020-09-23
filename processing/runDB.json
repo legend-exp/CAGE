@@ -37,5 +37,12 @@
     "32":["535-568", "elog 228, 2020/09/04. bkg runs after retuning amp"],
     "33":["569-576", "elog 230, 2020/09/08. rotary+linear centering test pt 2"],
     "34":["577-580", "elog 230, 2020/09/08. 1hr bkg run with slow wfs."],
-    "35":["581-588", "elog 232, 2020/09/10. 3hr alpha run, 16 mm"]
+    "35":["581-588", "elog 232, 2020/09/10. 3hr alpha run, 16 mm"],
+    "36":["589-619", "elog 239, 2020/09/21. Overnight background run after preamp repairs, tuning"],
+    "37":["620-621", "elog 240, 2020/09/22. cycle 620 transition run while moving motors for radial scan at 0 mm. cycle 621 motor controller still on"],
+    "38":["622-631", "elog 240, 2020/09/22. 5hr alpha run, at normal incidence, 0 mm"],
+    "39":["632", "elog 240, 2020/09/22. Transition run for parking the source after 5hr alpha run"],
+    "40":["633-652", "elog 240, 2020/09/22. Overnight background runs"],
+    "41":["653-656", "elog 240, 2020/09/23. Transition runs while moving motors for radial scan at 5 mm"],
+    "42":["657", "elog 240, 2020/09/23. 5hr alpha run, at normal incidence, 5 mm. Cycle 657 short run."]
 }
