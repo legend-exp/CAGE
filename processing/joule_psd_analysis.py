@@ -210,7 +210,7 @@ def data_cleaning_ucal(dg):
 
     note, 'energy_first' from first value of energy gate.
     """
-    i_plot = 0 # run all plots after this number
+    i_plot = 1 # run all plots after this number
 
     # get file list and load hit data
 #     lh5_dir = os.path.expandvars(dg.config['lh5_dir'])
@@ -275,10 +275,10 @@ def data_cleaning_ucal(dg):
         # add new A/E column
         df_cut['aoe'] = df_cut['A_10'] / df_cut['trapEmax']
 
-        # alo, ahi, apb = -1300, 350, 1
+#         alo, ahi, apb = -50, 50, 1
         # elo, ehi, epb = 0, 250, 1
 #         alo, ahi, apb = 0, 0.4, 0.005
-        alo, ahi, apb = 0.05, 0.08, 0.0005
+        alo, ahi, apb = 0.0, 0.08, 0.0005
         elo, ehi, epb = 0, 25000, 10
         # elo, ehi, epb = 0, 3000, 10
 #         elo, ehi, epb = 0, 6000, 10
@@ -294,7 +294,7 @@ def data_cleaning_ucal(dg):
         plt.ylabel('A/E', ha='right', y=1)
         plt.tight_layout()
         # plt.show()
-        plt.savefig('./plots/oppi_aoe_vs_e.png', dpi=300)
+        plt.savefig('./plots/bkg_run30_oppi_aoe_vs_e.png', dpi=200)
         plt.cla()
 
 
@@ -325,9 +325,11 @@ def data_cleaning_ucal(dg):
     if i_plot <= 3:
         # show DCR vs E
         etype = 'trapEmax'
-        elo, ehi, epb = 0, 6000, 10
+#         elo, ehi, epb = 0, 6000, 10
+        elo, ehi, epb = 0, 25000, 10
 #         dlo, dhi, dpb = -1000, 1000, 10
-        dlo, dhi, dpb = -100, 100, 10
+#         dlo, dhi, dpb = -0.25, 0.25, 0.0005
+        dlo, dhi, dpb = -1., 1., 0.005
 
         nbx = int((ehi-elo)/epb)
         nby = int((dhi-dlo)/dpb)
@@ -339,7 +341,7 @@ def data_cleaning_ucal(dg):
         plt.ylabel('DCR', ha='right', y=1)
         plt.tight_layout()
         # plt.show()
-        plt.savefig('./plots/oppi_dcr_vs_e.png', dpi=300)
+        plt.savefig('./plots/bkg_run30_oppi_dcr_vs_e.png', dpi=200)
         plt.cla()
     
 def data_cleaning(dg):

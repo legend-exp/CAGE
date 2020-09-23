@@ -19,7 +19,7 @@ controls/project8_authentications.json
 *.jpeg
 *.hdf5
 *.csv
-*.ipynb
+#*.ipynb
 *cori*.txt
 # -------------------- github-generated stuff -------------------
 # Byte-compiled / optimized / DLL files

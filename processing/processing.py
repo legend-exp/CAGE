@@ -184,8 +184,9 @@ def d2h(dg, overwrite=False, nwfs=None, vrb=False, user=False):
             print('file exists, overwrite not set, skipping f_hit:\n   ', f_dsp)
             continue
         
+        cyc = row['cycle']
         if row.skip:
-            print(f'Cycle {subrun} has been marked junk, will not process.')
+            print(f'Cycle {cyc} has been marked junk, will not process.')
             continue
 
         t_start = row['startTime']

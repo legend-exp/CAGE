@@ -235,13 +235,16 @@ def scan_orca_headers(dg, overwrite=False, batch_mode=False):
         if not os.path.exists(f_daq):
             print(f"Error, file doesn't exist:\n  {f_daq}")
             exit()
-        
-        _,_, header_dict = parse_header(f_daq)
-        # pprint(header_dict)
-        info = header_dict['ObjectInfo']
-        t_start = info['DataChain'][0]['Run Control']['startTime']
-        thresh = info['Crates'][0]['Cards'][1]['thresholds'][2]
-        return pd.Series({'startTime':t_start, 'threshold':thresh})
+        if df_row['skip']==True:
+            print(f"Skipping cycle: {df_row['cycle']}")
+            return pd.Series({'startTime':np.nan, 'threshold':np.nan})
+        else:
+            _,_, header_dict = parse_header(f_daq)
+            # pprint(header_dict)
+            info = header_dict['ObjectInfo']
+            t_start = info['DataChain'][0]['Run Control']['startTime']
+            thresh = info['Crates'][0]['Cards'][1]['thresholds'][2]
+            return pd.Series({'startTime':t_start, 'threshold':thresh})
     
     df_tmp = df_keys.progress_apply(scan_orca_header, axis=1)
     df_keys[new_cols] = df_tmp
@@ -310,40 +313,45 @@ def get_runtimes(dg, overwrite=False, batch_mode=False):
         # load timestamps from dsp file
         f_dsp = dg.lh5_dir + df_row['dsp_path'] + '/' + df_row['dsp_file']
 
-        if not os.path.exists(f_dsp):
+        if not os.path.exists(f_dsp) and df_row['skip']==False:
             print(f"Error, file doesn't exist:\n  {f_dsp}")
             exit()
-        data, n_rows = sto.read_object('ORSIS3302DecoderForEnergy/dsp', f_dsp)
-
-        # correct for timestamp rollover
-        clock = 100e6 # 100 MHz
-        UINT_MAX = 4294967295 # (0xffffffff)
-        t_max = UINT_MAX / clock
+            
+        if df_row['skip']==True:
+#             print(df_row['cycle'])
+            print(f"Skipping cycle: {df_row['cycle']}")
+            return pd.Series({'stopTime':np.nan, 'runtime':np.nan})
         
-
-       # ts = data['timestamp'].nda.astype(np.int64) # must be signed for np.diff
-        ts = data['timestamp'].nda / clock # converts to float
-
-        tdiff = np.diff(ts)
-        tdiff = np.insert(tdiff, 0 , 0)
-        iwrap = np.where(tdiff < 0)
-        iloop = np.append(iwrap[0], len(ts))
-
-        ts_new, t_roll = [], 0
-        for i, idx in enumerate(iloop):
-            ilo = 0 if i==0 else iwrap[0][i-1]
-            ihi = idx
-            ts_block = ts[ilo:ihi]
-            t_last = ts[ilo-1]
-            t_diff = t_max - t_last
-            ts_new.append(ts_block + t_roll)
-            t_roll += t_last + t_diff
-        ts_corr = np.concatenate(ts_new)
-
-        # calculate runtime and unix stopTime
-        rt = ts_corr[-1] / 60 # minutes
-        st = int(np.ceil(df_row['startTime'] + rt * 60))
-
+        else:
+            data, n_rows = sto.read_object('ORSIS3302DecoderForEnergy/dsp', f_dsp)
+            # correct for timestamp rollover
+            clock = 100e6 # 100 MHz
+            UINT_MAX = 4294967295 # (0xffffffff)
+            t_max = UINT_MAX / clock
+            
+            # ts = data['timestamp'].nda.astype(np.int64) # must be signed for np.diff
+            ts = data['timestamp'].nda / clock # converts to float
+            
+            tdiff = np.diff(ts)
+            tdiff = np.insert(tdiff, 0 , 0)
+            iwrap = np.where(tdiff < 0)
+            iloop = np.append(iwrap[0], len(ts))
+            
+            ts_new, t_roll = [], 0
+            for i, idx in enumerate(iloop):
+                ilo = 0 if i==0 else iwrap[0][i-1]
+                ihi = idx
+                ts_block = ts[ilo:ihi]
+                t_last = ts[ilo-1]
+                t_diff = t_max - t_last
+                ts_new.append(ts_block + t_roll)
+                t_roll += t_last + t_diff  
+            ts_corr = np.concatenate(ts_new)
+            
+            # calculate runtime and unix stopTime
+            rt = ts_corr[-1] / 60 # minutes
+            st = int(np.ceil(df_row['startTime'] + rt * 60))
+            
         return pd.Series({'stopTime':st, 'runtime':rt})
 
     df_tmp = df_keys.progress_apply(get_runtime, axis=1)
@@ -362,11 +370,11 @@ def get_runtimes(dg, overwrite=False, batch_mode=False):
     if not batch_mode:
         ans = input('Save updated fileDB? (y/n):')
         if ans.lower() == 'y':
-            dg.file_keys = df_upd
+            dg.file_keys = df_keys
             dg.save_df(dg.config['fileDB'])
             print('fileDB updated.')
     else:
-        dg.file_keys = df_upd
+        dg.file_keys = df_keys
         dg.save_df(dg.config['fileDB'])
         print('fileDB updated.')
 
