@@ -327,37 +327,31 @@ def get_runtimes(dg, overwrite=False, batch_mode=False):
         clock = 100e6 # 100 MHz
         UINT_MAX = 4294967295 # (0xffffffff)
         t_max = UINT_MAX / clock
-
-        else:
-            data, n_rows = sto.read_object('ORSIS3302DecoderForEnergy/dsp', f_dsp)
-            # correct for timestamp rollover
-            clock = 100e6 # 100 MHz
-            UINT_MAX = 4294967295 # (0xffffffff)
-            t_max = UINT_MAX / clock
-
-            # ts = data['timestamp'].nda.astype(np.int64) # must be signed for np.diff
-            ts = data['timestamp'].nda / clock # converts to float
-
-            tdiff = np.diff(ts)
-            tdiff = np.insert(tdiff, 0 , 0)
-            iwrap = np.where(tdiff < 0)
-            iloop = np.append(iwrap[0], len(ts))
-
-            ts_new, t_roll = [], 0
-            for i, idx in enumerate(iloop):
-                ilo = 0 if i==0 else iwrap[0][i-1]
-                ihi = idx
-                ts_block = ts[ilo:ihi]
-                t_last = ts[ilo-1]
-                t_diff = t_max - t_last
-                ts_new.append(ts_block + t_roll)
-                t_roll += t_last + t_diff
-            ts_corr = np.concatenate(ts_new)
-
-            # calculate runtime and unix stopTime
-            rt = ts_corr[-1] / 60 # minutes
-            st = int(np.ceil(df_row['startTime'] + rt * 60))
-
+        
+            
+        # ts = data['timestamp'].nda.astype(np.int64) # must be signed for np.diff
+        ts = data['timestamp'].nda / clock # converts to float
+            
+        tdiff = np.diff(ts)
+        tdiff = np.insert(tdiff, 0 , 0)
+        iwrap = np.where(tdiff < 0)
+        iloop = np.append(iwrap[0], len(ts))
+            
+        ts_new, t_roll = [], 0
+        for i, idx in enumerate(iloop):
+            ilo = 0 if i==0 else iwrap[0][i-1]
+            ihi = idx
+            ts_block = ts[ilo:ihi]
+            t_last = ts[ilo-1]
+            t_diff = t_max - t_last
+            ts_new.append(ts_block + t_roll)
+            t_roll += t_last + t_diff  
+        ts_corr = np.concatenate(ts_new)
+            
+        # calculate runtime and unix stopTime
+        rt = ts_corr[-1] / 60 # minutes
+        st = int(np.ceil(df_row['startTime'] + rt * 60))
+        
         return pd.Series({'stopTime':st, 'runtime':rt})
 
     df_tmp = df_keys.progress_apply(get_runtime, axis=1)
