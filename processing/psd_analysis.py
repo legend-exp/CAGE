@@ -211,6 +211,7 @@ def data_cleaning(dg):
     i_plot = 0 # run all plots after this number
 
     # get file list and load hit data
+    lh5_dir = dg.lh5_user_dir if user else dg.lh5_dir
     lh5_dir = os.path.expandvars(dg.config['lh5_dir'])
     hit_list = lh5_dir + dg.file_keys['hit_path'] + '/' + dg.file_keys['hit_file']
     df_hit = lh5.load_dfs(hit_list, ['trapEmax'], 'ORSIS3302DecoderForEnergy/hit')
