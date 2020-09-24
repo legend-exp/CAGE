@@ -44,5 +44,11 @@
     "39":["632", "elog 240, 2020/09/22. Transition run for parking the source after 5hr alpha run"],
     "40":["633-652", "elog 240, 2020/09/22. Overnight background runs"],
     "41":["653-656", "elog 240, 2020/09/23. Transition runs while moving motors for radial scan at 5 mm"],
-    "42":["657", "elog 240, 2020/09/23. 5hr alpha run, at normal incidence, 5 mm. Cycle 657 short run."]
+    "42":["657-667", "elog 240, 2020/09/23. 5hr alpha run, at normal incidence, 5 mm. Cycle 657 short run."],
+    "43":["668", "elog 240, 2020/09/23. Transition runs while moving motors for radial scan at 10 mm."],
+    "44":["669-678", "elog 240, 2020/09/23. 5hr alpha run, at normal incidence, 10 mm."],
+    "45":["679", "elog 240, 2020/09/23. Transition runs while moving motors to park the source for overnight background runs."],
+    "46":["680-699", "elog 240, 2020/09/23. Overnight background runs"],
+    "47":["700", "elog 240, 2020/09/24. Transition runs while moving motors for radial scan at 15 mm."],
+    "48":["701", "elog 240, 2020/09/24. 5hr alpha run, at normal incidence, 15 mm."]
 }
