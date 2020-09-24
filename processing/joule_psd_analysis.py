@@ -8,7 +8,7 @@ import numpy as np
 import tinydb as db
 from tinydb.storages import MemoryStorage
 import matplotlib.pyplot as plt
-plt.style.use('../clint.mpl')
+# plt.style.use('../clint.mpl')
 from matplotlib.colors import LogNorm
 
 from pygama import DataGroup
@@ -32,6 +32,7 @@ def main():
     arg, st, sf = par.add_argument, 'store_true', 'store_false'
     arg('-q', '--query', nargs=1, type=str,
         help="select file group to calibrate: -q 'run==1' ")
+#     arg('-u', '--lh5_user', action=st, help='user lh5 mode')
     args = par.parse_args()
 
     # load main DataGroup, select files from cmd line
@@ -45,10 +46,11 @@ def main():
     print(dg.file_keys[view_cols])
 
     # -- run routines --
-    # show_raw_spectrum(dg)
+#     show_raw_spectrum(dg)
 #     show_cal_spectrum(dg)
     # show_wfs(dg)
-    data_cleaning(dg) # doesn't work right now, I think due to same error as experienced before fix in line 171 in setup.py, but not entirely sure how to fix yet
+#     data_cleaning(dg) # doesn't work right now, I think due to same error as experienced before fix in line 171 in setup.py, but not entirely sure how to fix yet
+    data_cleaning_ucal(dg) # doesn't work right now, I think due to same error as experienced before fix in line 171 in setup.py, but not entirely sure how to fix yet
     # peak_drift(dg)
     # pole_zero(dg)
 
@@ -87,7 +89,8 @@ def show_raw_spectrum(dg):
     plt.ylabel('cts / sec', ha='right', y=1)
     plt.legend()
     plt.tight_layout()
-    plt.show()
+#     plt.show()
+    plt.savefig('./plots/uncalSpectrum.png')
 
 
 def show_cal_spectrum(dg):
@@ -196,7 +199,151 @@ def show_wfs(dg):
     # plt.savefig('./plots/noise_wfs.png', dpi=300)
     # plt.cla()
 
+def data_cleaning_ucal(dg):
+    """
+    using parameters in the hit file, plot 1d and 2d spectra to find cut values.
 
+    columns in file:
+        ['trapE', 'bl', 'bl_sig', 'A_10', 'AoE', 'packet_id', 'ievt', 'energy',
+        'energy_first', 'timestamp', 'crate', 'card', 'channel', 'energy_cal',
+        'trapE_cal']
+
+    note, 'energy_first' from first value of energy gate.
+    """
+    i_plot = 1 # run all plots after this number
+
+    # get file list and load hit data
+#     lh5_dir = os.path.expandvars(dg.config['lh5_dir'])
+    lh5_dir = dg.lh5_user_dir #if user else dg.lh5_dir
+    hit_list = lh5_dir + dg.file_keys['hit_path'] + '/' + dg.file_keys['hit_file']
+    df_hit = lh5.load_dfs(hit_list, ['trapEmax', 'bl','bl_sig','A_10','ts_sec', 'dcr'], 'ORSIS3302DecoderForEnergy/hit')
+    # print(df_hit)
+    print(df_hit.columns)
+#     exit()
+
+    # get info about df -- 'describe' is very convenient
+    dsc = df_hit[['bl','bl_sig','A_10','ts_sec']].describe()
+    print(dsc)
+#     exit()
+
+    if i_plot <= 0:
+        # bl vs energy
+
+        elo, ehi, epb = 0, 50, 1
+        blo, bhi, bpb = 0, 10000, 100
+        nbx = int((ehi-elo)/epb)
+        nby = int((bhi-blo)/bpb)
+        print('about to create hist')
+#         exit()
+
+        h = plt.hist2d(df_hit['trapEmax'], df_hit['bl'], bins=[nbx,nby],
+                       range=[[elo, ehi], [blo, bhi]], cmap='jet')
+        print('created hist')
+#         exit()
+
+        cb = plt.colorbar(h[3], ax=plt.gca())
+        plt.xlabel('trapEmax', ha='right', x=1)
+        plt.ylabel('bl', ha='right', y=1)
+        plt.tight_layout()
+        # plt.show()
+        plt.savefig('./plots/oppi_bl_vs_e.png', dpi=300)
+        cb.remove()
+        plt.cla()
+
+        # make a formal baseline cut from 1d histogram
+        hE, bins, vE = pgh.get_hist(df_hit['bl'], range=(blo, bhi), dx=bpb)
+        xE = bins[1:]
+        plt.semilogy(xE, hE, c='b', ds='steps')
+
+        bl_cut_lo, bl_cut_hi = 8000, 9500
+        plt.axvline(bl_cut_lo, c='r', lw=1)
+        plt.axvline(bl_cut_hi, c='r', lw=1)
+
+        plt.xlabel('bl', ha='right', x=1)
+        plt.ylabel('counts', ha='right', y=1)
+        # plt.show()
+        plt.savefig('./plots/oppi_bl_cut.png')
+        plt.cla()
+
+
+    if i_plot <= 1:
+        # A_10/trapEmax vs trapEmax (A/E vs E)
+
+        # use baseline cut
+        df_cut = df_hit.query('bl > 8000 and bl < 9500').copy()
+
+        # add new A/E column
+        df_cut['aoe'] = df_cut['A_10'] / df_cut['trapEmax']
+
+#         alo, ahi, apb = -50, 50, 1
+        # elo, ehi, epb = 0, 250, 1
+#         alo, ahi, apb = 0, 0.4, 0.005
+        alo, ahi, apb = 0.0, 0.08, 0.0005
+        elo, ehi, epb = 0, 25000, 10
+        # elo, ehi, epb = 0, 3000, 10
+#         elo, ehi, epb = 0, 6000, 10
+        
+
+        nbx = int((ehi-elo)/epb)
+        nby = int((ahi-alo)/apb)
+
+        h = plt.hist2d(df_cut['trapEmax'], df_cut['aoe'], bins=[nbx,nby],
+                       range=[[elo, ehi], [alo, ahi]], cmap='jet', norm=LogNorm())
+
+        plt.xlabel('trapEmax', ha='right', x=1)
+        plt.ylabel('A/E', ha='right', y=1)
+        plt.tight_layout()
+        # plt.show()
+        plt.savefig('./plots/bkg_run30_oppi_aoe_vs_e.png', dpi=200)
+        plt.cla()
+
+
+    if i_plot <= 2:
+        # show effect of baseline cut on low-energy spectrum
+
+        df_cut = df_hit.query('bl > 8000 and bl < 9500')
+
+        etype = 'trapEmax'
+        elo, ehi, epb = 0, 250, 0.5
+
+        # no cuts
+        h1, x1, v1 = pgh.get_hist(df_hit[etype], range=(elo, ehi), dx=epb)
+        x1 = x1[1:]
+        plt.plot(x1, h1, c='k', lw=1, ds='steps', label='raw')
+
+        # baseline cut
+        h2, x2, v2 = pgh.get_hist(df_cut[etype], range=(elo, ehi), dx=epb)
+        plt.plot(x1, h2, c='b', lw=1, ds='steps', label='bl cut')
+
+        plt.xlabel(etype, ha='right', x=1)
+        plt.ylabel('counts', ha='right', y=1)
+        plt.legend()
+        # plt.show()
+        plt.savefig('./plots/oppi_lowe_cut.png')
+        plt.cla()
+
+    if i_plot <= 3:
+        # show DCR vs E
+        etype = 'trapEmax'
+#         elo, ehi, epb = 0, 6000, 10
+        elo, ehi, epb = 0, 25000, 10
+#         dlo, dhi, dpb = -1000, 1000, 10
+#         dlo, dhi, dpb = -0.25, 0.25, 0.0005
+        dlo, dhi, dpb = -1., 1., 0.005
+
+        nbx = int((ehi-elo)/epb)
+        nby = int((dhi-dlo)/dpb)
+
+        h = plt.hist2d(df_cut['trapEmax'], df_cut['dcr'], bins=[nbx,nby],
+                       range=[[elo, ehi], [dlo, dhi]], cmap='jet', norm=LogNorm())
+
+        plt.xlabel('trapEmax', ha='right', x=1)
+        plt.ylabel('DCR', ha='right', y=1)
+        plt.tight_layout()
+        # plt.show()
+        plt.savefig('./plots/bkg_run30_oppi_dcr_vs_e.png', dpi=200)
+        plt.cla()
+    
 def data_cleaning(dg):
     """
     using parameters in the hit file, plot 1d and 2d spectra to find cut values.
