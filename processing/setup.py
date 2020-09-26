@@ -15,7 +15,6 @@ with warnings.catch_warnings():
     from tqdm import tqdm
     tqdm.pandas() # suppress annoying FutureWarning
 
-
 def main():
     doc="""
     Create and maintain the 'fileDB' needed by DataGroup.
@@ -83,8 +82,11 @@ def show_fileDB(dg):
 
 def init(dg):
     """
+    ./setup.py --init
     Run first scan of the fileDB over the DAQ directory ($CAGE_DAQ)
     """
+    print('Initializing fileDB...')
+    
     # scan over DAQ directory, then organize by cycle (ORCA run number)
     dg.scan_daq_dir()
     dg.file_keys.sort_values(['cycle'], inplace=True)
@@ -98,7 +100,7 @@ def init(dg):
     for col in ['run', 'cycle']:
         dg.file_keys[col] = pd.to_numeric(dg.file_keys[col])
 
-    print(dg.file_keys[['run', 'cycle', 'unique_key', 'daq_file', 'skip']].to_string())
+    print(dg.file_keys[['run', 'cycle', 'daq_file', 'runtype', 'skip']].to_string())
 
     print('Ready to save.  This will overwrite any existing fileDB.')
     ans = input('Continue? (y/n) ')
@@ -109,10 +111,13 @@ def init(dg):
 
 def update(dg, batch_mode=False):
     """
+    ./setup.py -u
     After taking new data, run this function to add rows to fileDB.
     New rows will not have all columns yet.
     TODO: look for nan's to identify cycles not covered in runDB
     """
+    print('Updating fileDB ...')
+    
     dbg_cols = ['unique_key', 'run', 'cycle', 'daq_file']
 
     # load existing file keys
@@ -161,9 +166,10 @@ def update(dg, batch_mode=False):
 
 def get_cyc_info(row, dg):
     """
-    map cycle numbers to physics runs, and identify detector
+    using the runDB, map cycle numbers to physics runs, identify detector,
+    physics run type, etc.
     """
-    # label physics run
+    # loop over the runDB and add columns to each row of dg.file_keys
     cyc = row['cycle']
     for run, cycles in dg.runDB.items():
         tmp = cycles[0].split(',')
@@ -172,25 +178,27 @@ def get_cyc_info(row, dg):
                 clo, chi = [int(x) for x in rng.split('-')]
                 if clo <= cyc <= chi:
                     row['run'] = run
+                    row['runtype'] = cycles[1]
                     break
             else:
                 clo = int(rng)
                 if cyc == clo:
                     row['run'] = run
+                    row['runtype'] = cycles[1]
                     break
 
     # label the detector
     if 0 < cyc <= 124:
-        row['runtype'] = 'oppi_v1'
+        row['detector'] = 'oppi_v1'
     elif 125 <= cyc <= 136:
-        row['runtype'] = 'icpc_v1'
+        row['detector'] = 'icpc_v1'
     elif 137 <= cyc <= 9999:
-        row['runtype'] = 'oppi_v2'
-
+        row['detector'] = 'oppi_v2'
+        
     # apply file selection
     skips = dg.runSelectionDB['daq_junk_cycles']
     row['skip'] = cyc in skips
-
+    
     return row
 
 
@@ -200,6 +208,8 @@ def scan_orca_headers(dg, overwrite=False, batch_mode=False):
     Add unix start time, threshold, and anything else in the ORCA XML header
     for the fileDB.
     """
+    print('Scanning ORCA headers ...')
+    
     # load existing fileDB
     dg.load_df()
 
@@ -226,27 +236,30 @@ def scan_orca_headers(dg, overwrite=False, batch_mode=False):
         exit()
 
     # clear new colums if they exist
-    new_cols = ['startTime', 'threshold']
+    new_cols = ['startTime', 'threshold', 'daq_gb']
     for col in new_cols:
         if col in df_keys.columns:
             df_keys.drop(col, axis=1, inplace=True)
 
     def scan_orca_header(df_row):
         f_daq = dg.daq_dir + df_row['daq_dir'] + '/' + df_row['daq_file']
+        daq_gb = os.path.getsize(f_daq) / 1e9
 
         if not os.path.exists(f_daq) and not df_row.skip:
             print(f"Error, file doesn't exist:\n  {f_daq}")
             exit()
         if df_row['skip']==True:
             print(f"Skipping cycle: {df_row['cycle']}")
-            return pd.Series({'startTime':np.nan, 'threshold':np.nan})
+            return pd.Series({'startTime':np.nan, 'threshold':np.nan, 
+                              'daq_gb':daq_gb})
         else:
             _,_, header_dict = parse_header(f_daq)
             # pprint(header_dict)
             info = header_dict['ObjectInfo']
             t_start = info['DataChain'][0]['Run Control']['startTime']
             thresh = info['Crates'][0]['Cards'][1]['thresholds'][2]
-            return pd.Series({'startTime':t_start, 'threshold':thresh})
+            return pd.Series({'startTime':t_start, 'threshold':thresh,
+                              'daq_gb':daq_gb})
 
     df_tmp = df_keys.progress_apply(scan_orca_header, axis=1)
     df_keys[new_cols] = df_tmp
@@ -257,7 +270,7 @@ def scan_orca_headers(dg, overwrite=False, batch_mode=False):
     else:
         dg.file_keys = df_keys
 
-    dbg_cols = ['run', 'cycle', 'unique_key', 'startTime']
+    dbg_cols = ['run', 'cycle', 'daq_file', 'startTime', 'daq_gb']
     print(dg.file_keys[dbg_cols])
 
     print('Ready to save.  This will overwrite any existing fileDB.')
@@ -274,14 +287,20 @@ def scan_orca_headers(dg, overwrite=False, batch_mode=False):
 def get_runtimes(dg, overwrite=False, batch_mode=False):
     """
     $ ./setup.py --rt
+    
     Compute runtime (# minutes in run) and stopTime (unix timestamp) using
     the timestamps in the DSP file.
+    
+    NOTE: Could change this to use the raw file timestamps instead of dsp file, 
+          but that still makes this function dependent on a processing step.
     NOTE: CAGE uses struck channel 2 (0-indexed)
     """
+    print('Scanning DSP files for runtimes ...')
+    
     # load existing fileDB
     dg.load_df()
 
-        # first-time setup
+    # first-time setup
     if 'runtime' not in dg.file_keys.columns or overwrite:
         df_keys = dg.file_keys.copy()
         update_existing = False
@@ -377,8 +396,6 @@ def get_runtimes(dg, overwrite=False, batch_mode=False):
         dg.file_keys = df_keys
         dg.save_df(dg.config['fileDB'])
         print('fileDB updated.')
-
-
 
 
 if __name__=='__main__':
