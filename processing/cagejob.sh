@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --qos=shared
-#SBATCH --time=8:00:00
+#SBATCH --time=10:00:00
 #SBATCH --constraint=haswell
 #SBATCH --account=m2676
 #SBATCH --export=HDF5_USE_FILE_LOCKING=FALSE
@@ -25,6 +25,7 @@ if [ -n "$SHIFTER_RUNTIME" ]; then
 fi
 
 # update fileDB (usually want to run this first)
+# NOTE: you need to update runDB.json before running this!
 shifter python setup.py --update --orca -b
 
 # update everything (no overwriting)

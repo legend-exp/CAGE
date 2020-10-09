@@ -150,6 +150,7 @@ def update(dg, batch_mode=False):
         print(df_upd[dbg_cols])
 
         if not batch_mode:
+            print("RunDB Check -- did you update runDB.json?  Are there any NaN's in filenames/paths above?")
             ans = input('Save updated fileDB? (y/n):')
             if ans.lower() == 'y':
                 dg.file_keys = df_upd
