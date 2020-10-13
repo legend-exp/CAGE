@@ -131,9 +131,12 @@ class DBMonitor(QWidget):
         for endpt in self.endpt_types:
             self.endpts_enabled.append({'name':endpt, 'type':'bool', 'value':False})
 
-        # set the default endpoint
+        # set the default endpoints
+        # ['cage_pressure', 'cage_coldPlate_temp', 'cage_topHat_temp',
+        # 'cage_ln_level', 'cage_baseline', 'cage_hv_vmon']
         self.endpts_enabled[10]['value'] = True
         self.endpts_enabled[11]['value'] = True
+        self.endpts_enabled[12]['value'] = True
         self.endpts_enabled[14]['value'] = True
         self.endpts_enabled[16]['value'] = True
         self.endpts_enabled[17]['value'] = True
