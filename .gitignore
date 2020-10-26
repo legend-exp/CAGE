@@ -18,6 +18,7 @@ controls/project8_authentications.json
 *.jpeg
 *.hdf5
 *.csv
+*.pkl
 sims/post_process/*.ipynb
 *cori*.txt
 processing/WaveformBrowserDemo.ipynb

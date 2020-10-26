@@ -70,7 +70,7 @@
     "65":["879", "transit", "elog 250"],
     "66":["880-889", "alp", "elog 250. 5hr alpha run, normal incidence, 12.5 mm"],
     "67":["890", "transit", "elog 250"],
-    "68":["891-899", "bkg", "elog 250"],
+    "68":["891-899", "bkg", "elog 250. Evening background runs"],
     "69":["900", "transit", "elog 250"],
     "70":["901-910", "alp", "elog 250. 5hr alpha run, normal incidence, 17.5 mm"],
     "71":["911", "transit", "elog 250"],
