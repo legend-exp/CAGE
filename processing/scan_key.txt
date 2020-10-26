@@ -1,4 +1,4 @@
-run, radius, angle
+run,radius,angle
 38, 0., -180
 42, 5., -180
 44, 10., -180
