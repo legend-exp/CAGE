@@ -20,6 +20,7 @@ controls/project8_authentications.json
 *.csv
 sims/post_process/*.ipynb
 *cori*.txt
+processing/WaveformBrowserDemo.ipynb
 # -------------------- github-generated stuff -------------------
 # Byte-compiled / optimized / DLL files
 __pycache__/
