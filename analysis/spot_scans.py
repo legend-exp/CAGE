@@ -9,16 +9,18 @@ import pandas as pd
 
 def main():
 
-    data = rotary_edge()
+    data, title, runtime = linear_edge()
     # data = linear_edge()
 
-    plot_rotary(data)
-    # plot_linear(data)
+    # plot_rotary(data, title, runtime)
+    plot_linear(data, title, runtime)
 
 def rotary():
     # elog 220
+    title = 'Rotary Scan at 22 mm radius'
+    runtime = 30. # 30 min runs
     data = {'linear': [22, 22, 22, 22, 22, 22, 22, 22],
-            'rotary': [0, -15, -30, -45, -60, 75, -90, -105, -120, -135],
+            'rotary': [0, -15, -30, -45, -60, -75, -90, -135],
             'source': [-180, -180, -180, -180, -180, -180, -180, -180],
             'peak_cts': [475, 459, 470, 428, 507, 479, 618, 838],
             'peak_left': [148, 148, 148, 148, 148, 148, 147, 147],
@@ -30,10 +32,12 @@ def rotary():
     df = pd.DataFrame(data, columns = ['linear', 'rotary', 'source', 'peak_cts',
                                        'peak_left', 'peak_right', 'bkg_cts',
                                        'bkg_left', 'bkg_right'])
-    return df
+    return df, title, runtime
 
 def rotary_edge():
     # elog 230
+    title = 'Rotary Edge Scan at -135 deg'
+    runtime = 30.# 30 min runs
     data_135 = {'linear': [22, 23, 24, 25],
             'rotary': [-135, -135, -135, -135],
             'source': [-180, -180, -180, -180],
@@ -57,11 +61,13 @@ def rotary_edge():
     df = pd.DataFrame(data_135, columns = ['linear', 'rotary', 'source', 'peak_cts',
                                        'peak_left', 'peak_right', 'bkg_cts',
                                        'bkg_left', 'bkg_right'])
-    return df
+    return df, title, runtime
 
 
 def linear_coarse():
     # elog 212
+    title = 'Coarse Linear Scan at 0 deg rotary'
+    runtime = 15. # 15 min runs
     data = {'linear': [0, 5, 10, 15, 20, 25],
             'rotary': [0, 0, 0, 0, 0, 0],
             'source': [-180, -180, -180, -180, -180, -180],
@@ -74,10 +80,12 @@ def linear_coarse():
     df = pd.DataFrame(data, columns = ['linear', 'rotary', 'source', 'peak_cts',
                                        'peak_left', 'peak_right', 'bkg_cts',
                                        'bkg_left', 'bkg_right'])
-    return df
+    return df, title, runtime
 
 def linear_edge():
     # elog 215
+    title = 'Linear Edge Scan at 0 deg rotary'
+    runtime = 15. # 15 minute runs
     data = {'linear': [20, 21, 22, 23, 24, 25],
             'rotary': [0, 0, 0, 0, 0, 0],
             'source': [-180, -180, -180, -180, -180, -180],
@@ -91,13 +99,14 @@ def linear_edge():
     df = pd.DataFrame(data, columns = ['linear', 'rotary', 'source', 'peak_cts',
                                        'peak_left', 'peak_right', 'bkg_cts',
                                        'bkg_left', 'bkg_right'])
-    return df
+    return df, title, runtime
 
-def plot_rotary(data):
+def plot_rotary(data, title, runtime):
     df = data
     print(data)
 
     linear = np.array(df['linear'])
+    rotary = np.array(df['rotary'])
 
     peak_cts = np.array(df['peak_cts'])
     peak_left = np.array(df['peak_left'])
@@ -117,14 +126,17 @@ def plot_rotary(data):
         final_cts[i] = peak_cts[i] - bkg_cts[i]/bin_ratio
         uncertainty[i] = np.sqrt(peak_cts[i]) + np.sqrt(bkg_cts[i])/bin_ratio
 
+    norm_cts = final_cts/runtime
+    uncertainty_norm = uncertainty/runtime
+
     fig = plt.figure()
-    plt.errorbar(linear, final_cts, yerr=uncertainty, marker = '.', ls='none')
-    plt.title('Rotary Edge Scan')
-    plt.xlabel('linear position (mm)')
-    plt.ylabel('Background Subtracted Counts')
+    plt.errorbar(rotary, norm_cts, yerr=uncertainty_norm, marker = '.', ls='none')
+    plt.title(title)
+    plt.xlabel('Rotary position (deg)')
+    plt.ylabel('Background Subtracted Counts/min')
     plt.show()
 
-def plot_linear(data):
+def plot_linear(data, title, runtime):
     df = data
     print(data)
 
@@ -148,11 +160,16 @@ def plot_linear(data):
         final_cts[i] = peak_cts[i] - bkg_cts[i]/bin_ratio
         uncertainty[i] = np.sqrt(peak_cts[i]) + np.sqrt(bkg_cts[i])/bin_ratio
 
+    norm_cts = final_cts/runtime
+    uncertainty_norm = uncertainty/runtime
+    # print(norm_cts)
+    # exit()
+
     fig = plt.figure()
-    plt.errorbar(linear, final_cts, yerr=uncertainty, marker = '.', ls='none')
-    plt.title('Linear Scan')
+    plt.errorbar(linear, norm_cts, yerr=uncertainty_norm, marker = '.', ls='none')
+    plt.title(title)
     plt.xlabel('linear position (mm)')
-    plt.ylabel('Background Subtracted Counts')
+    plt.ylabel('Background Subtracted Counts/min')
     plt.show()
 
 

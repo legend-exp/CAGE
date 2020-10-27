@@ -26,7 +26,7 @@ fi
 
 # update fileDB (usually want to run this first)
 # NOTE: you need to update runDB.json before running this!
-shifter python setup.py --update --orca -b
+# shifter python setup.py --update --orca -b
 
 # update everything (no overwriting)
 shifter python processing.py -q 'cycle>0' --d2r --r2d
