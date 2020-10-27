@@ -27,7 +27,7 @@ def main():
 def plot_energy(runs):
     radius_arr = []
     mean_energy_arr = []
-    counts_arr = []
+    count_arr = []
 
 
     for run in runs:
@@ -77,13 +77,24 @@ def plot_energy(runs):
 
         radius_arr.append(radius)
         mean_energy_arr.append(mean_energy)
-        count_arr.append(len(mean_energy))
+        count_arr.append(len(alpha_energy))
 
     energy_plot = plt.plot(radius_arr, mean_energy_arr, '.r')
+    plt.xlabel('Radial position (mm)')
+    plt.ylabel('Mean energy (trapEmax; uncal)')
+#     plt.yscale('log')
+    plt.title('Mean energy of alphas by radial position; normal incidence')
     plt.savefig('./plots/normScan/energy_deg.png', dpi=200)
+    
+    plt.clf()
 
     rate_plot = plt.plot(radius_arr, count_arr, '.r')
+    plt.xlabel('Radial position (mm)')
+    plt.ylabel('Total counts)')
+#     plt.yscale('log')
+    plt.title('Alpha counts by radial position (based on DCR cut)')
     plt.savefig('./plots/normScan/counts_alpha.png', dpi=200)
+#     print(len(count_arr), len(radius_arr))
 
 
 
