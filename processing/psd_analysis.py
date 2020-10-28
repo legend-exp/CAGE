@@ -175,8 +175,9 @@ def show_wfs(dg):
 
 
     # elo, ehi, epb = 0, 100, 0.2 # low-e region
-    elo, ehi, epb = 0, 20, 0.2 # noise region
+    # elo, ehi, epb = 0, 20, 0.2 # noise region
     # elo, ehi, epb = 1458, 1468, 1 # good physics events
+    elo, ehi, epb = 7100, 7200, 1 # good physics events, uncal
     # elo, ehi, epb = 6175, 6250, 1 # overflow peak
     # elo, ehi, epb = 5000, 5200, 0.2 # lower overflow peak
 
@@ -192,6 +193,7 @@ def show_wfs(dg):
 
     raw_store = lh5.Store()
     tb_name = 'ORSIS3302DecoderForEnergy/raw'
+    lh5_dir = dg.lh5_dir
     raw_list = lh5_dir + dg.file_keys['raw_path'] + '/' + dg.file_keys['raw_file']
     f_raw = raw_list.values[0] # fixme, only works for one file rn
     data_raw = raw_store.read_object(tb_name, f_raw, start_row=0, n_rows=idx[-1]+1)
@@ -209,7 +211,7 @@ def show_wfs(dg):
     blmax = 10000
     alpha_idx = df_hit[etype].loc[(df_hit['dcr_linoff'] > dlo) & (df_hit['dcr_linoff'] < dhi)
                             & (df_hit['tp0_50'] > tlo) & (df_hit['tp0_50'] < thi) & (df_hit['bl'] > blmin) & (df_hit['bl'] < blmax)
-                            & (df_hit[etype] < ehi)].index[:nwfs]
+                            & (df_hit[etype] < 12000)].index[:nwfs]
 
     raw_store = lh5.Store()
     tb_name = 'ORSIS3302DecoderForEnergy/raw'
