@@ -27,12 +27,16 @@ def main():
 def plot_energy(runs):
     radius_arr_1 = []
     mean_energy_arr_1 = []
+    std_energy_arr_1 = []
     mean_dcr_arr_1 = []
+    std_dcr_arr_1 = []
     count_arr_1 = []
 
     radius_arr_2 = []
     mean_energy_arr_2 = []
+    std_energy_arr_2 = []
     mean_dcr_arr_2 = []
+    std_dcr_arr_2 = []
     count_arr_2 = []
 
 
@@ -86,22 +90,64 @@ def plot_energy(runs):
 
         alpha_energy = np.array(new_dcr_cut['trapEmax'])
         mean_energy = np.mean(alpha_energy)
+        std_energy = np.std(alpha_energy)
+#         std_energy = np.sqrt(len(new_dcr_cut['trapEmax']))
 
         alpha_dcr = np.array(new_dcr_cut['dcr_linoff'])
         mean_dcr = np.mean(alpha_dcr)
+        std_dcr = np.std(alpha_dcr)
+#         std_dcr = np.sqrt((len(new_dcr_cut['dcr_linoff'])))
+        
+        print(f'Energy std: {std_energy} \n DCR std: {std_dcr}')
 
         if radius%5 == 0:
             radius_arr_1.append(radius)
             mean_energy_arr_1.append(mean_energy)
+            std_energy_arr_1.append(std_energy)
             mean_dcr_arr_1.append(mean_dcr)
+            std_dcr_arr_1.append(std_dcr)
             count_arr_1.append(len(alpha_energy))
 
         else:
             radius_arr_2.append(radius)
             mean_energy_arr_2.append(mean_energy)
+            std_energy_arr_2.append(std_energy)
             mean_dcr_arr_2.append(mean_dcr)
+            std_dcr_arr_2.append(std_dcr)
             count_arr_2.append(len(alpha_energy))
+            
+    # make plots with errorbars
 
+    energy_plot = plt.errorbar(radius_arr_1, mean_energy_arr_1, yerr=std_energy_arr_1, marker = '.', ls='none', color = 'red', label='Scan 1')
+    plt.xlabel('Radial position (mm)')
+    plt.ylabel('Mean energy (trapEmax; uncal)')
+#     plt.yscale('log')
+    plt.title('Mean energy of alphas by radial position; normal incidence')
+
+
+    plt.errorbar(radius_arr_2, mean_energy_arr_2, yerr=std_energy_arr_2, marker = '.', ls='none', color = 'blue', label='Scan 2')
+    plt.legend()
+
+    plt.savefig('./plots/normScan/errorbars_energy_deg.png', dpi=200)
+
+    plt.clf()
+
+    dcr_plot = plt.errorbar(radius_arr_1, mean_dcr_arr_1, yerr=std_dcr_arr_1, marker = '.', ls='none', color = 'red', label='Scan 1')
+    plt.xlabel('Radial position (mm)')
+    plt.ylabel('Mean DCR value (arb)')
+    #    plt.yscale('log')
+    plt.title('Mean DCR value by radial position; normal incidence')
+
+
+    plt.errorbar(radius_arr_2, mean_dcr_arr_2, yerr=std_dcr_arr_2, marker = '.', ls='none', color = 'blue', label='Scan 2')
+    plt.legend()
+
+    plt.savefig('./plots/normScan/errorbars_dcr_avg.png', dpi=200)
+    
+    plt.clf()
+    
+    # make plots without errorbars
+    
     energy_plot = plt.plot(radius_arr_1, mean_energy_arr_1, '.r', label='Scan 1')
     plt.xlabel('Radial position (mm)')
     plt.ylabel('Mean energy (trapEmax; uncal)')
@@ -118,7 +164,7 @@ def plot_energy(runs):
 
     dcr_plot = plt.plot(radius_arr_1, mean_dcr_arr_1, '.r', label='Scan 1')
     plt.xlabel('Radial position (mm)')
-    plt.ylabel('Mean energy (trapEmax; uncal)')
+    plt.ylabel('Mean DCR value (arb)')
     #    plt.yscale('log')
     plt.title('Mean DCR value by radial position; normal incidence')
 
