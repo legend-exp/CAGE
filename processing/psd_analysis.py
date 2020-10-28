@@ -63,7 +63,7 @@ def show_raw_spectrum(dg):
     """
     # get file list and load energy data (numpy array)
     # lh5_dir = os.path.expandvars(dg.config['lh5_dir'])
-    lh5_dir = dg.lh5_user_dir
+    lh5_dir = dg.lh5_dir
     dsp_list = lh5_dir + dg.file_keys['dsp_path'] + '/' + dg.file_keys['dsp_file']
     edata = lh5.load_nda(dsp_list, ['trapEmax'], 'ORSIS3302DecoderForEnergy/dsp')
     rt_min = dg.file_keys['runtime'].sum()
