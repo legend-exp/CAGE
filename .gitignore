@@ -7,8 +7,7 @@ controls/project8_authentications.json
 *.pdf
 !motors/manuals/DMC_manual.pdf
 !motors/manuals/cui_amt22_manual.pdf
-!drawings/topview.pdf
-!drawings/sideview.pdf
+!drawings/*.pdf
 *.swp
 *.root
 *.h5
@@ -19,7 +18,7 @@ controls/project8_authentications.json
 *.jpeg
 *.hdf5
 *.csv
-*.ipynb
+sims/post_process/*.ipynb
 *cori*.txt
 # -------------------- github-generated stuff -------------------
 # Byte-compiled / optimized / DLL files

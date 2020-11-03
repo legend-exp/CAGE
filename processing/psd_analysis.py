@@ -7,6 +7,7 @@ import pandas as pd
 import numpy as np
 import tinydb as db
 from tinydb.storages import MemoryStorage
+from pprint import pprint
 import matplotlib.pyplot as plt
 plt.style.use('../clint.mpl')
 from matplotlib.colors import LogNorm
@@ -46,11 +47,12 @@ def main():
 
     # -- run routines --
     # show_raw_spectrum(dg)
-#     show_cal_spectrum(dg)
+    # show_cal_spectrum(dg)
     # show_wfs(dg)
-    data_cleaning(dg) # doesn't work right now, I think due to same error as experienced before fix in line 171 in setup.py, but not entirely sure how to fix yet
+    # data_cleaning(dg) 
     # peak_drift(dg)
     # pole_zero(dg)
+    label_alpha_runs(dg)
 
 
 def show_raw_spectrum(dg):
@@ -211,6 +213,7 @@ def data_cleaning(dg):
     i_plot = 0 # run all plots after this number
 
     # get file list and load hit data
+    lh5_dir = dg.lh5_user_dir if user else dg.lh5_dir
     lh5_dir = os.path.expandvars(dg.config['lh5_dir'])
     hit_list = lh5_dir + dg.file_keys['hit_path'] + '/' + dg.file_keys['hit_file']
     df_hit = lh5.load_dfs(hit_list, ['trapEmax'], 'ORSIS3302DecoderForEnergy/hit')
@@ -371,6 +374,8 @@ def peak_drift(dg):
 
 def pole_zero(dg):
     """
+    NOTE: I think this result might be wrong, for the CAGE amp it should be
+    around 250 usec.  Need to check.
     """
     # load hit data
     lh5_dir = os.path.expandvars(dg.config['lh5_dir'])
@@ -436,6 +441,57 @@ def pole_zero(dg):
 
     tau_avg, tau_std = res.mean(), res.std()
     print(f'average RC decay constant: {tau_avg:.2f} pm {tau_std:.2f}')
+
+
+def label_alpha_runs(dg):
+    """
+    example of filtering the fileDB for alpha runs, adding new information
+    from a text file, and saving it to a new file, alphaDB.
+    """
+    # load fileDB
+    df_fileDB = pd.read_hdf(dg.f_fileDB)
+    
+    # print(df_fileDB.columns)
+    # ['unique_key', 'YYYY', 'mm', 'dd', 'cycle', 'daq_dir', 'daq_file', 'run',
+    #  'runtype', 'detector', 'skip', 'raw_file', 'raw_path', 'dsp_file',
+    #  'dsp_path', 'hit_file', 'hit_path', 'startTime', 'threshold', 'daq_gb',
+    #  'stopTime', 'runtime']
+    
+    view_cols = ['unique_key', 'run', 'cycle', 'runtype', 'detector', 'skip']
+    # print(df_fileDB[view_cols].to_string())
+    
+    # select alpha files only
+    df_alphaDB = df_fileDB.query("runtype == 'alp'")
+    # print(df_alphaDB[view_cols])
+    
+    # load our beam position info -- manually curated list
+    df_beam = pd.read_csv('scan_key.txt')
+    # print(df_beam)
+    
+    # add beam position columns to df_alphaDB (our subset)
+    g = df_alphaDB.groupby(['run'])
+    
+    def add_info(df_run, df_beam):
+        run = df_run.iloc[0]['run']
+        pos_vals = df_beam.loc[df_beam.run == run]
+        if len(pos_vals) == 0:
+            df_run['radius'] = np.nan
+            df_run['angle'] = np.nan
+        else:
+            df_run['radius'] = pos_vals.iloc[0]['radius']
+            df_run['angle'] = pos_vals.iloc[0]['angle']
+        return df_run
+        
+    df_alphaDB = g.apply(add_info, df_beam)
+    
+    view_cols += ['radius','angle']
+    print(df_alphaDB[view_cols].to_string())
+    
+    # two options to proceed here:
+    # 1. move this function to setup.py and have it overwrite the fileDB
+    # 2. just write df_alphaDB to a separate analysis file here
+    
+    df_alphaDB.to_hdf('alphaDB.h5', key='alphaDB')
 
 
 if __name__=="__main__":

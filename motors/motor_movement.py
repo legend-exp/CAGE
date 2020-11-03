@@ -114,6 +114,7 @@ def main():
     if args['status']:
         check_limit_switches(verbose=True)
         print(history_df)
+        # print(history_df.to_string())
 
     if args['read_enc']:
         rpi_pin = int(args['read_enc'][0])
@@ -507,6 +508,7 @@ def beam_pos_move(detector):
         exit()
 
     return source_rot, linear_move
+
 
 def zero_motor(motor_name, angle_check, history_df, verbose, constraints=True):
     """
