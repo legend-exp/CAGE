@@ -130,6 +130,10 @@ def optimize_trap(dg):
     # rc_consts = np.arange(54, 154, 10) # changing this here messes up DCR
     
     # -- create the grid search file the first time -- 
+    # NOTE: this makes a linear grid, and is editable by the arrays above.
+    # jason also proposed a more active gradient-descent style search
+    # like with Brent's method. (https://en.wikipedia.org/wiki/Brent%27s_method)
+    
     if True:
     # if not os.path.exists(f_peak):
         print('Recreating grid search file')
