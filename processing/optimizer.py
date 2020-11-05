@@ -72,6 +72,11 @@ def main():
     # print(f'Found {len(dg.file_keys)} files.')
     
     # -- run routines -- 
+    
+    # TODO : we could split this code into "spectrum" (peak width) optimizations, 
+    # and "waveform" optimizations, where the FOM is a waveform, not a peak.
+    # so like optimize_spec.py and optimize_wfs.py
+    
     optimize_trap(dg)
     show_trap_results()
     
