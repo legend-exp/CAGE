@@ -129,7 +129,8 @@ def optimize_trap(dg):
     # if not os.path.exists(f_peak):
         print('Recreating grid search file')
         
-        # create the grid, save it as an lh5 Table
+        # create the grid file
+        # NOTE: save it as an lh5 Table just as an example of writing/reading one
         lists = [e_rises, e_flats]#, rc_consts]
         prod = list(itertools.product(*lists)) # clint <3 stackoverflow
         df_grid = pd.DataFrame(prod, columns=['rise', 'flat'])#,'rc']) 
