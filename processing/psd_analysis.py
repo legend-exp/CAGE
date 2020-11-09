@@ -46,9 +46,9 @@ def main():
     print(dg.file_keys[view_cols])
 
     # -- run routines --
-    show_raw_spectrum(dg)
+    # show_raw_spectrum(dg)
     # show_cal_spectrum(dg)
-    # show_wfs(dg)
+    show_wfs(dg)
     # data_cleaning(dg)
     # peak_drift(dg)
     # pole_zero(dg)
@@ -158,7 +158,7 @@ def show_wfs(dg):
     # get file list and load hit data
     lh5_dir = dg.lh5_user_dir #if user else dg.lh5_dir
     hit_list = lh5_dir + dg.file_keys['hit_path'] + '/' + dg.file_keys['hit_file']
-    df_hit = lh5.load_dfs(hit_list, ['trapEmax, bl, tp_0, tp_50, dcr_raw'], 'ORSIS3302DecoderForEnergy/hit')
+    df_hit = lh5.load_dfs(hit_list, ['trapEmax', 'bl','AoE', 'dcr_raw', 'tp_0', 'tp_50'], 'ORSIS3302DecoderForEnergy/hit')
     # print(df_hit)
     # print(df_hit.columns)
 
@@ -196,16 +196,16 @@ def show_wfs(dg):
     lh5_dir = dg.lh5_dir
     raw_list = lh5_dir + dg.file_keys['raw_path'] + '/' + dg.file_keys['raw_file']
     f_raw = raw_list.values[0] # fixme, only works for one file rn
-    data_raw = raw_store.read_object(tb_name, f_raw, start_row=0, n_rows=idx[-1]+1)
+    data_raw, nrows = raw_store.read_object(tb_name, f_raw, start_row=0, n_rows=idx[-1]+1)
 
-    bulk_wfs_all = data_raw['waveform']['values'].nda
-    bulk_wfs = wfs_all[idx.values, :]
-    ts = np.arange(0, wfs.shape[1], 1)
+    bulk_wfs_all = (data_raw['waveform']['values']).nda
+    bulk_wfs = bulk_wfs_all[idx.values, :]
+    ts = np.arange(0, bulk_wfs.shape[1]-1, 1)
 
     # select alpha waveforms
     dlo = 25
     dhi = 200
-    tl0 = 100
+    tlo = 100
     thi = 400
     blmin = 8500
     blmax = 10000
@@ -217,27 +217,27 @@ def show_wfs(dg):
     tb_name = 'ORSIS3302DecoderForEnergy/raw'
     raw_list = lh5_dir + dg.file_keys['raw_path'] + '/' + dg.file_keys['raw_file']
     f_raw = raw_list.values[0] # fixme, only works for one file rn
-    data_raw = raw_store.read_object(tb_name, f_raw, start_row=0, n_rows=alpha_idx[-1]+1)
+    data_raw, nrows = raw_store.read_object(tb_name, f_raw, start_row=0, n_rows=alpha_idx[-1]+1)
 
     alpha_wfs_all = data_raw['waveform']['values'].nda
     alpha_wfs = alpha_wfs_all[alpha_idx.values, :]
-    ats = np.arange(0, alpha_wfs.shape[1], 1)
+    ats = np.arange(0, alpha_wfs.shape[1]-1, 1)
 
     # plot wfs
-    for iwf in range(wfs.shape[0]):
-        plt.plot(ts, wfs[iwf,:], lw=1, color = 'blue', label = 'Bulk')
+    for iwf in range(bulk_wfs.shape[0]):
+        plt.plot(ts, bulk_wfs[iwf,:len(bulk_wfs[iwf])-1], lw=1, color = 'blue', label = 'Bulk')
 
     plt.xlabel('time (clock ticks)', ha='right', x=1)
     plt.ylabel('ADC', ha='right', y=1)
 
     # plot wfs
     for aiwf in range(alpha_wfs.shape[0]):
-        plt.plot(ats, alpha_wfs[aiwf,:], lw=1, color = 'red', label = 'Alpha')
+        plt.plot(ats, alpha_wfs[aiwf,:len(alpha_wfs[aiwf])-1], lw=1, color = 'red', label = 'Alpha')
 
     plt.title('Alpha versus bulk events')
     plt.xlabel('time (clock ticks)', ha='right', x=1)
     plt.ylabel('ADC', ha='right', y=1)
-    plt.legend(loc='upper left')
+    # plt.legend(loc='upper left')
     # plt.show()
     plt.savefig('./plots/normScan/waveforms.png', dpi=300)
     # plt.cla()
