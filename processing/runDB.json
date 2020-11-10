@@ -81,9 +81,9 @@
     "76":["954-962", "alp", "elog 253. repeat alpha run at 20 mm, 3 hrs"],
     "77":["963-1050", "alp", "elog 253. long weekend alpha run at 20 mm"],
     "78":["1051-1052", "transit", "elog 254. slowdown tests before warmup"],
-    "80":["1053", "transit", "elog 261. alpha run with preamp tuned faster-- ~100ns pulser rise time; wfs went slow early into run"],
-    "81":["1054-1063", "bkg", "elog 265. background run after bake with preamp tuned faster-- ~100ns pulser rise time"],
-    "82":["1064", "transit", "elog 265. moving source to normal incidence, 10 mm"],
-    "83":["1065-1068", "alp", "elog 265. 2 hour alpha run at 10 mm with preamp tuned faster-- ~100ns pulser rise time"],
+    "79":["1053", "transit", "elog 261. alpha run with preamp tuned faster-- ~100ns pulser rise time; wfs went slow early into run"],
+    "80":["1054-1063", "bkg", "elog 265. background run after bake with preamp tuned faster-- ~100ns pulser rise time"],
+    "81":["1064", "transit", "elog 265. moving source to normal incidence, 10 mm"],
+    "82":["1065-1068", "alp", "elog 265. 2 hour alpha run at 10 mm with preamp tuned faster-- ~100ns pulser rise time"],
     "83":["1069-1072", "alp", "elog 265. 2 hour alpha run at 10 mm with preamp tuned fastest-- ~50ns pulser rise time"]
 }
