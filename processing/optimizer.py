@@ -72,6 +72,11 @@ def main():
     # print(f'Found {len(dg.file_keys)} files.')
     
     # -- run routines -- 
+    
+    # TODO : we could split this code into "spectrum" (peak width) optimizations, 
+    # and "waveform" optimizations, where the FOM is a waveform, not a peak.
+    # so like optimize_spec.py and optimize_wfs.py
+    
     optimize_trap(dg)
     show_trap_results()
     
@@ -125,11 +130,16 @@ def optimize_trap(dg):
     # rc_consts = np.arange(54, 154, 10) # changing this here messes up DCR
     
     # -- create the grid search file the first time -- 
+    # NOTE: this makes a linear grid, and is editable by the arrays above.
+    # jason also proposed a more active gradient-descent style search
+    # like with Brent's method. (https://en.wikipedia.org/wiki/Brent%27s_method)
+    
     if True:
     # if not os.path.exists(f_peak):
         print('Recreating grid search file')
         
-        # create the grid, save it as an lh5 Table
+        # create the grid file
+        # NOTE: save it as an lh5 Table just as an example of writing/reading one
         lists = [e_rises, e_flats]#, rc_consts]
         prod = list(itertools.product(*lists)) # clint <3 stackoverflow
         df_grid = pd.DataFrame(prod, columns=['rise', 'flat'])#,'rc']) 

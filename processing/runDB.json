@@ -3,7 +3,7 @@
     "1":["11-14", "cs137", "elog 84. initial Cs+bkg runs, 2800 V"],
     "2":["15-41", "pul", "elog 85. HV pulser capacitance meas.  Cs source + bkg. 0x15"],
     "3":["42-45", "bkg", "elog 84. bkg runs, 2800 V"],
-    
+
     "4":["46-56", "bkg", "elog 115. jan 2020: initial test runs"],
     "5":["57-90", "bkg", "elog 118"],
     "6":["91-124", "alp", "elog 127. initial alpha run (suspect collimator)"],
@@ -80,5 +80,10 @@
     "75":["953", "transit", "elog 253"],
     "76":["954-962", "alp", "elog 253. repeat alpha run at 20 mm, 3 hrs"],
     "77":["963-1050", "alp", "elog 253. long weekend alpha run at 20 mm"],
-    "78":["1051-1052", "transit", "elog 254. slowdown tests before warmup"]
+    "78":["1051-1052", "transit", "elog 254. slowdown tests before warmup"],
+    "79":["1053", "transit", "elog 261. alpha run with preamp tuned faster-- ~100ns pulser rise time; wfs went slow early into run"],
+    "80":["1054-1063", "bkg", "elog 265. background run after bake with preamp tuned faster-- ~100ns pulser rise time"],
+    "81":["1064", "transit", "elog 265. moving source to normal incidence, 10 mm"],
+    "82":["1065-1068", "alp", "elog 265. 2 hour alpha run at 10 mm with preamp tuned faster-- ~100ns pulser rise time"],
+    "83":["1069-1072", "alp", "elog 265. 2 hour alpha run at 10 mm with preamp tuned fastest-- ~50ns pulser rise time"]
 }
