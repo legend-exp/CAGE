@@ -3,7 +3,7 @@
 
   "mconf":{
     "source": {
-      "rpi_pin":13, "axis":"A", "motor_spd":5000, "constraint":-205,
+      "rpi_pin":13, "axis":"A", "motor_spd":2500, "constraint":-300,
       "enc_slip":100
     },
     "linear": {
@@ -11,7 +11,7 @@
       "enc_slip":200
     },
     "rotary": {
-      "rpi_pin":11, "axis":"D", "motor_spd":300000, "constraint":-330,
+      "rpi_pin":11, "axis":"D", "motor_spd":300000, "constraint":-270,
       "enc_slip":300
     }
   },

@@ -247,7 +247,7 @@ def check_raw_spectrum(dg, config, db_ecal):
         plt.ylabel(f'cts/sec, {xpb}/bin', ha='right', y=1)
 
         if config['batch_mode']:
-            plt.savefig('./plots/cal_spec_test.png')
+            plt.savefig('./plots/energy_cal/cal_spec_test.png')
         else:
             plt.show()
         plt.close()
@@ -268,6 +268,10 @@ def run_peakdet(dg, config, db_ecal):
     # do the analysis
     gb = dg.file_keys.groupby(config['gb_cols'])
     gb_args = [config]
+    run_no = np.array(dg.file_keys['run'])[0]
+    
+    print(f'Running peakdet for run: {run_no}')
+    
     result = gb.apply(peakdet_group, *gb_args)
 
     # write the results
@@ -310,6 +314,8 @@ def peakdet_group(df_group, config):
     print('Found energy data:', [(et, len(ev)) for et, ev in edata.items()])
 
     runtime_min = df_group['runtime'].sum()
+    run_no = np.array(df_group['run'])[0]
+    print(f'In group peakdet for run {run_no}')
     print(f'Runtime (min): {runtime_min:.2f}')
 
     # loop over energy estimators of interest
@@ -390,7 +396,7 @@ def peakdet_group(df_group, config):
             p1.legend(fontsize=10)
 
             if config['batch_mode']:
-                plt.savefig(f'./plots/peakdet_cal_{et}.pdf')
+                plt.savefig(f'./plots/energy_cal/run{run_no}peakdet_cal_{et}.pdf')
             else:
                 plt.show()
 
@@ -523,6 +529,10 @@ def run_peakfit(dg, config, db_ecal):
     # do the analysis
     gb = dg.file_keys.groupby(config['gb_cols'])
     gb_args = [config, db_ecal]
+    run_no = np.array(dg.file_keys['run'])[0]
+    
+    print(f'Running peakfit for run {run_no}')
+    
     result = gb.apply(peakfit_group, *gb_args)
 
     # write the results
@@ -563,6 +573,9 @@ def peakfit_group(df_group, config, db_ecal):
     # but it's kind of hard to see right now how to write the right db queries
 
     gb_run = df_group['run'].unique()
+    run_no = np.array(df_group['run'])[0]
+    print(f'In group peakfit for run {run_no}')
+
     if len(gb_run) > 1:
         print("Multi-run (or other) groupbys aren't supported yet, sorry")
         exit()
@@ -572,6 +585,7 @@ def peakfit_group(df_group, config, db_ecal):
     dsp_list = lh5_dir + df_group['dsp_path'] + '/' + df_group['dsp_file']
     raw_data = lh5.load_nda(dsp_list, config['rawe'], config['input_table'])
     runtime_min = df_group['runtime'].sum()
+    print(f'runtime: {runtime_min} mins')
 
     # loop over energy estimators of interest
     pf_results = {}
@@ -589,7 +603,8 @@ def peakfit_group(df_group, config, db_ecal):
         for ie, epk in enumerate(epeaks):
 
             # adjust the window.  resolution goes as roughly sqrt(energy)
-            window = np.sqrt(epk) * 0.8
+            print(epk)
+            window = np.sqrt(epk) + 0.0105*epk
             xlo, xhi = epk - window/2, epk + window/2
             nbins = int(window) * 5
             xpb = (xhi-xlo)/nbins
@@ -609,6 +624,8 @@ def peakfit_group(df_group, config, db_ecal):
             bot_half = b[np.where((b < b[imax]) & (h <= np.amax(h)/2))][-1]
             fwhm = upr_half - bot_half
             sig0 = fwhm / 2.355
+        
+#     exit()
             
             
 #             # fit to simple gaussian
@@ -664,12 +681,22 @@ def peakfit_group(df_group, config, db_ecal):
             # fwhm_err = p_err[1] * 2.355 * e_peak / e_fit
 
             # collect interesting results for this row
+            # fit_results[ie] = {
+                # 'epk':epk,
+                # 'mu':p_fit[1], 'fwhm':p_fit[2]*2.355, 'sig':p_fit[2],
+                # 'amp':p_fit[0], 'bkg':p_fit[3], 'rchisq':rchisq,
+                # 'mu_raw':p_fit[1] / lin_cal, # <-- this is in terms of raw E
+                # 'mu_unc':p_err[1] / lin_cal
+                # }
+            
+            # collect interesting results for this row
+            # this block for Radford peak shape
             fit_results[ie] = {
                 'epk':epk,
-                'mu':p_fit[1], 'fwhm':p_fit[2]*2.355, 'sig':p_fit[2],
-                'amp':p_fit[0], 'bkg':p_fit[3], 'rchisq':rchisq,
-                'mu_raw':p_fit[1] / lin_cal, # <-- this is in terms of raw E
-                'mu_unc':p_err[1] / lin_cal
+                'mu':p_fit[0], 'fwhm':p_fit[1]*2.355, 'sig':p_fit[1],
+                'amp':p_fit[6], 'bkg':p_fit[5], 'rchisq':rchisq,
+                'mu_raw':p_fit[0] / lin_cal, # <-- this is in terms of raw E
+                'mu_unc':p_err[0] / lin_cal
                 }
             
 #             print('Len Fit params:', len(p_fit))
@@ -689,12 +716,12 @@ def peakfit_group(df_group, config, db_ecal):
                 plt.xlabel('pass-1 energy (kev)', ha='right', x=1)
                 plt.legend(fontsize=12)
                 if config['batch_mode']:
-                    plt.savefig('./plots/fit%d_peakfit.png' %ie)
+                    plt.savefig(f'./plots/energy_cal/run{run_no}_fit{ie}_peakfit.png')
                 else:
                     plt.show()
                 plt.close()
                 
-        exit()
+#         exit()
 
 
 
@@ -752,8 +779,10 @@ def peakfit_group(df_group, config, db_ecal):
             print('epk:', epk, '\n epeaks:', epeaks)
 
             # adjust the window.  resolution goes as roughly sqrt(energy)
-            window = np.sqrt(epk) * 0.5
+            window = np.sqrt(epk) + 0.0105*epk
+            print(f'window: {window}')
             xlo, xhi = epk - window/2, epk + window/2
+#             xlo, xhi = epk - window*20, epk + window*20
             nbins = int(window) * 5
             xpb = (xhi-xlo)/nbins
             ibin_bkg = int(nbins * 0.2)
@@ -768,12 +797,19 @@ def peakfit_group(df_group, config, db_ecal):
             print('cal_data:', cal_data)
             
             print('bins:', bins)
+#             print(pk_data)
+#             exit()
+#             print(hist)
+            print(hist_norm)
 
             # compute expected peak location and width (simple Gaussian)
             bkg0 = np.mean(hist_norm[:ibin_bkg])
-#             print(bkg0)
+            print(f'bkg0: {bkg0}')
+#             exit()
             b, h = bins[1:], hist_norm - bkg0
             imax = np.argmax(h)
+            print(f'h: {h}')
+#             exit()
             upr_half = b[np.where((b > b[imax]) & (h <= np.amax(h)/2))][0]
             bot_half = b[np.where((b < b[imax]) & (h <= np.amax(h)/2))][-1]
             fwhm = upr_half - bot_half
@@ -861,7 +897,8 @@ def peakfit_group(df_group, config, db_ecal):
             p1.legend(fontsize=11)
 
             if config['batch_mode']:
-                plt.savefig('./plots/peakfit.png')
+                print('Saving plot')
+                plt.savefig(f'./plots/energy_cal/run{run_no}_peakfit.png')
             else:
                 plt.show()
 
