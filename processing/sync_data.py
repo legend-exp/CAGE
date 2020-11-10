@@ -22,6 +22,7 @@ def main():
 
 def run_rsync(expDB, test=False):
     """
+    TODO: update w/ globus + cron
     NOTE: this doesn't work yet for wisecg, file permissions
     at the source directory appear to be messed up.  Need to
     talk with Robert Varner to fix.
