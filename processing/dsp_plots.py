@@ -8,6 +8,7 @@ import numpy as np
 import tinydb as db
 from tinydb.storages import MemoryStorage
 import matplotlib.pyplot as plt
+import matplotlib as mpl
 # plt.style.use('../clint.mpl')
 from matplotlib.colors import LogNorm
 
@@ -19,9 +20,11 @@ import pygama.io.lh5 as lh5
 import pygama.analysis.histograms as pgh
 import pygama.analysis.peak_fitting as pgf
 
+mpl.use('Agg')
+
 def main():
-    # runs = [60, 42, 64, 44, 66, 48, 70, 50, 72, 54]
-    runs = [64]
+    runs = [60, 42, 64, 44, 66, 48, 70, 50, 72, 54]
+#     runs = [64]
 
     # plot_energy(runs)
     dcr_AvE(runs)
@@ -102,7 +105,7 @@ def dcr_AvE(runs):
         plt.setp(ax.get_xticklabels(), fontsize=14)
         plt.setp(ax.get_yticklabels(), fontsize=14)
 
-        ax.text(0.95, 0.85, f'r = {radius} mm \ntheta = {angle_det} deg', verticalalignment='bottom',
+        ax.text(0.95, 0.83, f'r = {radius} mm \ntheta = {angle_det} deg', verticalalignment='bottom',
                     horizontalalignment='right', transform=ax.transAxes, color='green', fontsize=14, bbox={'facecolor': 'white', 'alpha': 0.5, 'pad': 10})
 
         # plt.legend()
@@ -110,6 +113,7 @@ def dcr_AvE(runs):
         plt.tight_layout()
         plt.savefig(f'./plots/normScan/cal_normScan/{runtype}_energy_run{run}.png', dpi=200)
         plt.clf()
+
 
         # AoE vs E---------------------------------
         fig, ax = plt.subplots()
@@ -136,7 +140,7 @@ def dcr_AvE(runs):
         plt.setp(ax.get_yticklabels(), fontsize=14)
 
 
-        ax.text(0.95, 0.85, f'r = {radius} mm \ntheta = {angle_det} deg', verticalalignment='bottom',
+        ax.text(0.95, 0.83, f'r = {radius} mm \ntheta = {angle_det} deg', verticalalignment='bottom',
                     horizontalalignment='right', transform=ax.transAxes, color='green', fontsize=14, bbox={'facecolor': 'white', 'alpha': 0.5, 'pad': 10})
 
         # plt.legend()
@@ -173,7 +177,7 @@ def dcr_AvE(runs):
 
         # plt.legend()
 
-        ax.text(0.95, 0.85, f'r = {radius} mm \ntheta = {angle_det} deg', verticalalignment='bottom',
+        ax.text(0.95, 0.83, f'r = {radius} mm \ntheta = {angle_det} deg', verticalalignment='bottom',
                     horizontalalignment='right', transform=ax.transAxes, color='green', fontsize=14, bbox={'facecolor': 'white', 'alpha': 0.5, 'pad': 10})
 
         plt.title(f'\n{runtype} run {run}, {rt_min:.2f} mins', fontsize=12)
@@ -207,7 +211,7 @@ def dcr_AvE(runs):
         plt.setp(ax.get_yticklabels(), fontsize=14)
 
         # plt.legend()
-        ax.text(0.95, 0.85, f'r = {radius} mm \ntheta = {angle_det} deg', verticalalignment='bottom',
+        ax.text(0.95, 0.83, f'r = {radius} mm \ntheta = {angle_det} deg', verticalalignment='bottom',
                     horizontalalignment='right', transform=ax.transAxes, color='green', fontsize=14, bbox={'facecolor': 'white', 'alpha': 0.5, 'pad': 10})
 
         plt.title(f'\n{runtype} run {run}, {rt_min:.2f} mins', fontsize=12)
@@ -219,6 +223,8 @@ def dcr_AvE(runs):
         # DCR vs tp_50___________
 
         fig, ax = plt.subplots()
+        fig.suptitle(f'DCR vs 50% rise time', horizontalalignment='center', fontsize=16)
+        
         dlo, dhi, dpb = -100, 200, 0.6
         tlo, thi, tpb = 0, 700, 10
 
@@ -237,8 +243,8 @@ def dcr_AvE(runs):
         plt.setp(ax.get_yticklabels(), fontsize=14)
 
         # plt.legend()
-        ax.text(0.95, 0.85, f'r = {radius} mm \ntheta = {angle_det} deg', verticalalignment='bottom',
-                    horizontalalignment='right', transform=ax.transAxes, color='green', fontsize=14, bbox={'facecolor': 'white', 'alpha': 0.5, 'pad': 10})
+        ax.text(0.95, 0.83, f'r = {radius} mm \ntheta = {angle_det} deg', verticalalignment='bottom',
+                    horizontalalignment='right', transform=ax.transAxes, color='green', fontsize=14, bbox={'facecolor': 'white', 'alpha': 0.95, 'pad': 10})
 
         plt.title(f'\n{runtype} run {run}, {rt_min:.2f} mins', fontsize=12)
         plt.tight_layout()
@@ -263,7 +269,7 @@ def dcr_AvE(runs):
         plt.setp(ax.get_xticklabels(), fontsize=14)
         plt.setp(ax.get_yticklabels(), fontsize=14)
 
-        ax.text(0.95, 0.85, f'r = {radius} mm \ntheta = {angle_det} deg', verticalalignment='bottom',
+        ax.text(0.95, 0.83, f'r = {radius} mm \ntheta = {angle_det} deg', verticalalignment='bottom',
                     horizontalalignment='right', transform=ax.transAxes, color='green', fontsize=14, bbox={'facecolor': 'white', 'alpha': 0.5, 'pad': 10})
 
         # plt.legend()
@@ -298,7 +304,7 @@ def dcr_AvE(runs):
         plt.setp(ax.get_xticklabels(), fontsize=14)
         plt.setp(ax.get_yticklabels(), fontsize=14)
 
-        ax.text(0.95, 0.85, f'r = {radius} mm \ntheta = {angle_det} deg', verticalalignment='bottom',
+        ax.text(0.95, 0.83, f'r = {radius} mm \ntheta = {angle_det} deg', verticalalignment='bottom',
                     horizontalalignment='right', transform=ax.transAxes, color='green', fontsize=14, bbox={'facecolor': 'white', 'alpha': 0.5, 'pad': 10})
 
         # plt.legend()
@@ -331,7 +337,7 @@ def dcr_AvE(runs):
         plt.setp(ax.get_xticklabels(), fontsize=14)
         plt.setp(ax.get_yticklabels(), fontsize=14)
 
-        ax.text(0.95, 0.85, f'r = {radius} mm \ntheta = {angle_det} deg', verticalalignment='bottom',
+        ax.text(0.95, 0.83, f'r = {radius} mm \ntheta = {angle_det} deg', verticalalignment='bottom',
                     horizontalalignment='right', transform=ax.transAxes, color='green', fontsize=14, bbox={'facecolor': 'white', 'alpha': 0.5, 'pad': 10})
 
         # plt.legend()
@@ -368,7 +374,7 @@ def dcr_AvE(runs):
 
         # plt.legend()
 
-        ax.text(0.95, 0.85, f'r = {radius} mm \ntheta = {angle_det} deg', verticalalignment='bottom',
+        ax.text(0.95, 0.83, f'r = {radius} mm \ntheta = {angle_det} deg', verticalalignment='bottom',
                     horizontalalignment='right', transform=ax.transAxes, color='green', fontsize=14, bbox={'facecolor': 'white', 'alpha': 0.5, 'pad': 10})
 
         plt.title(f'\n{runtype} run {run}, {rt_min:.2f} mins', fontsize=12)
@@ -386,7 +392,7 @@ def dcr_AvE(runs):
         nbx = int((ahi-alo)/apb)
         nby = int((dhi-dlo)/dpb)
 
-        fig.suptitle(f'A/E vs DCR after cut: r = {radius} mm; theta = {angle_det} deg', horizontalalignment='center', fontsize=16)
+        fig.suptitle(f'A/E vs DCR after cut', horizontalalignment='center', fontsize=16)
 
         h = plt.hist2d(new_dcr_cut['AoE'], new_dcr_cut['dcr_linoff'], bins=[nbx,nby],
                     range=[[alo, ahi], [dlo, dhi]], cmap='viridis', norm=LogNorm())
@@ -399,7 +405,7 @@ def dcr_AvE(runs):
         plt.setp(ax.get_xticklabels(), fontsize=12)
         plt.setp(ax.get_yticklabels(), fontsize=14)
         # plt.legend()
-        ax.text(0.95, 0.85, f'r = {radius} mm \ntheta = {angle_det} deg', verticalalignment='bottom',
+        ax.text(0.95, 0.83, f'r = {radius} mm \ntheta = {angle_det} deg', verticalalignment='bottom',
                     horizontalalignment='right', transform=ax.transAxes, color='green', fontsize=14, bbox={'facecolor': 'white', 'alpha': 0.5, 'pad': 10})
 
         plt.title(f'\n{runtype} run {run}, {rt_min:.2f} mins', fontsize=12)
@@ -411,6 +417,8 @@ def dcr_AvE(runs):
         # DCR vs tp_50___________
 
         fig, ax = plt.subplots()
+        fig.suptitle(f'DCR vs 50% rise time after cut', horizontalalignment='center', fontsize=16)
+        
         dlo, dhi, dpb = -100, 200, 0.6
         tlo, thi, tpb = 0, 700, 10
 
@@ -429,7 +437,7 @@ def dcr_AvE(runs):
         plt.setp(ax.get_yticklabels(), fontsize=14)
 
         # plt.legend()
-        ax.text(0.95, 0.85, f'r = {radius} mm \n theta = {angle_det} deg', verticalalignment='bottom',
+        ax.text(0.95, 0.83, f'r = {radius} mm \n theta = {angle_det} deg', verticalalignment='bottom',
                     horizontalalignment='right', transform=ax.transAxes, color='green', fontsize=14, bbox={'facecolor': 'white', 'alpha': 0.5, 'pad': 10})
 
         plt.title(f'\n{runtype} run {run}, {rt_min:.2f} mins', fontsize=12)
@@ -441,7 +449,7 @@ def dcr_AvE(runs):
         # 1D AoE_________
 
         fig, ax = plt.subplots()
-        fig.suptitle(f'Energy', horizontalalignment='center', fontsize=16)
+        fig.suptitle(f'A/E after cut', horizontalalignment='center', fontsize=16)
 
         nbx = int((ahi-alo)/apb)
 
@@ -455,7 +463,7 @@ def dcr_AvE(runs):
         plt.setp(ax.get_xticklabels(), fontsize=14)
         plt.setp(ax.get_yticklabels(), fontsize=14)
 
-        ax.text(0.95, 0.85, f'r = {radius} mm \ntheta = {angle_det} deg', verticalalignment='bottom',
+        ax.text(0.95, 0.83, f'r = {radius} mm \ntheta = {angle_det} deg', verticalalignment='bottom',
                     horizontalalignment='right', transform=ax.transAxes, color='green', fontsize=14, bbox={'facecolor': 'white', 'alpha': 0.5, 'pad': 10})
 
         # plt.legend()
@@ -538,7 +546,7 @@ def timepoints(runs):
         plt.setp(ax.get_yticklabels(), fontsize=14)
 
         # plt.legend()
-        ax.text(0.95, 0.85, f'r = {radius} mm \ntheta = {angle_det} deg', verticalalignment='bottom',
+        ax.text(0.95, 0.83, f'r = {radius} mm \ntheta = {angle_det} deg', verticalalignment='bottom',
                     horizontalalignment='right', transform=ax.transAxes, color='green', fontsize=14, bbox={'facecolor': 'white', 'alpha': 0.5, 'pad': 10})
 
         plt.title(f'\n{runtype} run {run}, {rt_min:.2f} mins', fontsize=12)
