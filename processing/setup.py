@@ -76,7 +76,7 @@ def show_fileDB(dg):
     if 'runtime' in dg.file_keys.columns:
         dbg_cols += ['runtime']
 
-    print(dg.file_keys[dbg_cols])
+    print(dg.file_keys[dbg_cols].to_string())
     print(dg.file_keys.columns)
 
 
@@ -100,7 +100,7 @@ def init(dg):
     for col in ['run', 'cycle']:
         dg.file_keys[col] = pd.to_numeric(dg.file_keys[col])
 
-    print(dg.file_keys[['run', 'cycle', 'daq_file', 'runtype', 'skip']].to_string())
+    print(dg.file_keys[['run', 'cycle', 'daq_dir', 'daq_file', 'runtype', 'skip']].to_string())
 
     print('Ready to save.  This will overwrite any existing fileDB.')
     ans = input('Continue? (y/n) ')
