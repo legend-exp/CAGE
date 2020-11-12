@@ -26,8 +26,8 @@ def main():
     runs = [60, 42, 64, 44, 66, 48, 70, 50, 72, 54]
 #     runs = [64]
 
-    plot_energy(runs)
-    # dcr_AvE(runs)
+#     plot_energy(runs)
+    dcr_AvE(runs)
 
 def dcr_AvE(runs):
 
@@ -113,11 +113,14 @@ def dcr_AvE(runs):
         plt.tight_layout()
         plt.savefig(f'./plots/normScan/cal_normScan/{runtype}_energy_run{run}.png', dpi=200)
         plt.clf()
+        plt.close()
 
 
         # AoE vs E---------------------------------
         fig, ax = plt.subplots()
         alo, ahi, apb = 0.0, 0.09, 0.0001
+        if run>=60:
+            alo, ahi, apb = 0.005, 0.0905, 0.0001
         elo, ehi, epb = 0, 6000, 10
         # elo, ehi, epb = 0, 3000, 10
         # elo, ehi, epb = 0, 6000, 10
@@ -150,6 +153,7 @@ def dcr_AvE(runs):
         # plt.show()
 
         plt.clf()
+        plt.close()
 
         # DCR vs E___________
 
@@ -185,15 +189,16 @@ def dcr_AvE(runs):
         plt.savefig(f'./plots/normScan/cal_normScan/{runtype}_dcr_run{run}.png', dpi=200)
         # plt.show()
         plt.clf()
+        plt.close()
 
         # DCR vs A/E___________
 
         fig, ax = plt.subplots()
         dlo, dhi, dpb = -100, 300, 0.6
-        elo, ehi, epb = 0, 6000, 10
-        # elo, ehi, epb = 0, 3000, 10
-        # elo, ehi, epb = 0, 6000, 10
-
+        alo, ahi, apb = 0.0, 0.09, 0.0001
+        if run>=60:
+            alo, ahi, apb = 0.005, 0.0905, 0.0001
+ 
         nbx = int((ahi-alo)/apb)
         nby = int((dhi-dlo)/dpb)
 
@@ -219,6 +224,7 @@ def dcr_AvE(runs):
         plt.savefig(f'./plots/normScan/cal_normScan/{runtype}_AoE_vs_dcr_run{run}.png', dpi=200)
         # plt.show()
         plt.clf()
+        plt.close()
 
         # DCR vs tp_50___________
 
@@ -251,12 +257,16 @@ def dcr_AvE(runs):
         plt.savefig(f'./plots/normScan/cal_normScan/{runtype}_dcr_vs_tp0_50_run{run}.png', dpi=200)
         # plt.show()
         plt.clf()
+        plt.close()
 
         # 1D AoE_________
 
         fig, ax = plt.subplots()
         fig.suptitle(f'A/E', horizontalalignment='center', fontsize=16)
 
+        alo, ahi, apb = 0.0, 0.09, 0.0001
+        if run>=60:
+            alo, ahi, apb = 0.005, 0.0905, 0.0001
         nbx = int((ahi-alo)/apb)
 
         aoe_hist, bins = np.histogram(df_cut['AoE'], bins=nbx,
@@ -277,6 +287,7 @@ def dcr_AvE(runs):
         plt.tight_layout()
         plt.savefig(f'./plots/normScan/cal_normScan/{runtype}_1d_aoe_run{run}.png', dpi=200)
         plt.clf()
+        plt.close()
 
         #-------------------------------------
         # Plots after alpha cuts
@@ -312,10 +323,13 @@ def dcr_AvE(runs):
         plt.tight_layout()
         plt.savefig(f'./plots/normScan/cal_normScan/{runtype}_cut_energy_run{run}.png', dpi=200)
         plt.clf()
+        plt.close()
 
         # AoE vs E---------------------------------
         fig, ax = plt.subplots()
         alo, ahi, apb = 0.0, 0.09, 0.0001
+        if run>=60:
+            alo, ahi, apb = 0.005, 0.0905, 0.0001
         elo, ehi, epb = 0, 6000, 10
         # elo, ehi, epb = 0, 3000, 10
         # elo, ehi, epb = 0, 6000, 10
@@ -347,6 +361,7 @@ def dcr_AvE(runs):
         # plt.show()
 
         plt.clf()
+        plt.close()
 
         # DCR vs E___________
 
@@ -382,12 +397,15 @@ def dcr_AvE(runs):
         plt.savefig(f'./plots/normScan/cal_normScan/{runtype}_cut_dcr_run{run}.png', dpi=200)
         # plt.show()
         plt.clf()
+        plt.close()
 
         # DCR vs A/E___________
 
         fig, ax = plt.subplots()
         dlo, dhi, dpb = -100, 300, 0.6
         alo, ahi, apb = 0.0, 0.09, 0.0001
+        if run>=60:
+            alo, ahi, apb = 0.005, 0.0905, 0.0001
 
         nbx = int((ahi-alo)/apb)
         nby = int((dhi-dlo)/dpb)
@@ -413,6 +431,7 @@ def dcr_AvE(runs):
         plt.savefig(f'./plots/normScan/cal_normScan/{runtype}_cut_AoE_vs_dcr_run{run}.png', dpi=200)
         # plt.show()
         plt.clf()
+        plt.close()
 
         # DCR vs tp_50___________
 
@@ -445,12 +464,15 @@ def dcr_AvE(runs):
         plt.savefig(f'./plots/normScan/cal_normScan/{runtype}_cut_dcr_vs_tp0_50_run{run}.png', dpi=200)
         # plt.show()
         plt.clf()
+        plt.close()
 
         # 1D AoE_________
 
         fig, ax = plt.subplots()
         fig.suptitle(f'A/E after cut', horizontalalignment='center', fontsize=16)
-
+        alo, ahi, apb = 0.0, 0.09, 0.0001
+        if run>=60:
+            alo, ahi, apb = 0.005, 0.0905, 0.0001
         nbx = int((ahi-alo)/apb)
 
         aoe_hist, bins = np.histogram(new_dcr_cut['AoE'], bins=nbx,
@@ -471,6 +493,7 @@ def dcr_AvE(runs):
         plt.tight_layout()
         plt.savefig(f'./plots/normScan/cal_normScan/{runtype}_cut__1d_aoe_run{run}.png', dpi=200)
         plt.clf()
+        plt.close()
 
 def timepoints(runs):
 
@@ -663,6 +686,7 @@ def plot_energy(runs):
 
     plt.errorbar(radius_arr_2, mean_energy_arr_2, yerr=std_energy_arr_2, marker = '.', ls='none', color = 'blue', label='Scan 2')
     plt.legend()
+    plt.tight_layout()
 
     plt.savefig('./plots/normScan/cal_normScan/errorbars_energy_deg.png', dpi=200)
 
@@ -682,6 +706,7 @@ def plot_energy(runs):
 
     plt.errorbar(radius_arr_2, mean_dcr_arr_2, yerr=std_dcr_arr_2, marker = '.', ls='none', color = 'blue', label='Scan 2')
     plt.legend()
+    plt.tight_layout()
 
     plt.savefig('./plots/normScan/cal_normScan/errorbars_dcr_avg.png', dpi=200)
 
@@ -703,6 +728,7 @@ def plot_energy(runs):
 
     plt.plot(radius_arr_2, mean_energy_arr_2, '.b', label='Scan 2')
     plt.legend()
+    plt.tight_layout()
 
     plt.savefig('./plots/normScan/cal_normScan/energy_deg.png', dpi=200)
 
@@ -721,6 +747,7 @@ def plot_energy(runs):
 
     plt.plot(radius_arr_2, mean_dcr_arr_2, '.b', label='Scan 2')
     plt.legend()
+    plt.tight_layout()
 
     plt.savefig('./plots/normScan/cal_normScan/dcr_avg.png', dpi=200)
 
