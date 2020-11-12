@@ -85,5 +85,6 @@
     "80":["1054-1063", "bkg", "elog 265. background run after bake with preamp tuned faster-- ~100ns pulser rise time"],
     "81":["1064", "transit", "elog 265. moving source to normal incidence, 10 mm"],
     "82":["1065-1068", "alp", "elog 265. 2 hour alpha run at 10 mm with preamp tuned faster-- ~100ns pulser rise time"],
-    "83":["1069-1072", "alp", "elog 265. 2 hour alpha run at 10 mm with preamp tuned fastest-- ~50ns pulser rise time"]
+    "83":["1069-1072", "alp", "elog 265. 2 hour alpha run at 10 mm with preamp tuned fastest-- ~50ns pulser rise time"],
+    "84":["1073-1084", "alp", "elog 265. 5 hr alpha run, same position"]
 }
