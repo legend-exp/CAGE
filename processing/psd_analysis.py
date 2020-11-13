@@ -17,6 +17,9 @@ import pygama.io.lh5 as lh5
 import pygama.analysis.histograms as pgh
 import pygama.analysis.peak_fitting as pgf
 
+import matplotlib as mpl
+mpl.use('Agg')
+
 def main():
     doc="""
     analysis of Aug 2020 OPPI+CAGE commissioning runs (138-141)
@@ -48,11 +51,11 @@ def main():
     # -- run routines --
     # show_raw_spectrum(dg)
     # show_cal_spectrum(dg)
-    # show_wfs(dg)
+    show_wfs(dg)
     # data_cleaning(dg)
     # peak_drift(dg)
     # pole_zero(dg)
-    label_alpha_runs(dg)
+    # label_alpha_runs(dg)
 
 
 def show_raw_spectrum(dg):
@@ -158,12 +161,13 @@ def show_wfs(dg):
     # get file list and load hit data
     lh5_dir = dg.lh5_user_dir #if user else dg.lh5_dir
     hit_list = lh5_dir + dg.file_keys['hit_path'] + '/' + dg.file_keys['hit_file']
-    df_hit = lh5.load_dfs(hit_list, ['trapEmax', 'bl','AoE', 'dcr_raw', 'tp_0', 'tp_50'], 'ORSIS3302DecoderForEnergy/hit')
+    df_hit = lh5.load_dfs(hit_list, ['trapEmax', 'trapEmax_cal', 'bl','AoE', 'dcr_raw', 'tp_0', 'tp_50'], 'ORSIS3302DecoderForEnergy/hit')
     # print(df_hit)
     # print(df_hit.columns)
 
     # settings
-    etype = 'trapEmax'
+    # etype = 'trapEmax'
+    etype = 'trapEmax_cal'
     nwfs = 20
 
     #creat new DCR
@@ -176,8 +180,9 @@ def show_wfs(dg):
 
     # elo, ehi, epb = 0, 100, 0.2 # low-e region
     # elo, ehi, epb = 0, 20, 0.2 # noise region
-    # elo, ehi, epb = 1458, 1468, 1 # good physics events
-    elo, ehi, epb = 7100, 7200, 1 # good physics events, uncal
+    elo, ehi, epb = 351, 355, 1 # 351 peak, cal
+    # elo, ehi, epb = 1452, 1468, 1 # good physics events
+#     elo, ehi, epb = 7100, 7200, 1 # good physics events, uncal
     # elo, ehi, epb = 6175, 6250, 1 # overflow peak
     # elo, ehi, epb = 5000, 5200, 0.2 # lower overflow peak
 
@@ -213,6 +218,7 @@ def show_wfs(dg):
                             & (df_hit['tp0_50'] > tlo) & (df_hit['tp0_50'] < thi) & (df_hit['bl'] > blmin) & (df_hit['bl'] < blmax)
                             & (df_hit[etype] < 12000)].index[:nwfs]
 
+
     raw_store = lh5.Store()
     tb_name = 'ORSIS3302DecoderForEnergy/raw'
     raw_list = lh5_dir + dg.file_keys['raw_path'] + '/' + dg.file_keys['raw_file']
@@ -230,16 +236,19 @@ def show_wfs(dg):
     plt.xlabel('time (clock ticks)', ha='right', x=1)
     plt.ylabel('ADC', ha='right', y=1)
 
-    # plot wfs
-    for aiwf in range(alpha_wfs.shape[0]):
-        plt.plot(ats, alpha_wfs[aiwf,:len(alpha_wfs[aiwf])-1], lw=1, color = 'red', label = 'Alpha')
+#     # plot alpha wfs
+#     for aiwf in range(alpha_wfs.shape[0]):
+#         plt.plot(ats, alpha_wfs[aiwf,:len(alpha_wfs[aiwf])-1], lw=1, color = 'red', label = 'Alpha')
 
-    plt.title('Alpha versus bulk events')
+#     plt.title('Alpha versus bulk events')
+    plt.title('right 351 Wfs run 82')
     plt.xlabel('time (clock ticks)', ha='right', x=1)
     plt.ylabel('ADC', ha='right', y=1)
+    plt.xlim(3500, 4500)
+    plt.ylim(9100, 10300)
     # plt.legend(loc='upper left')
     # plt.show()
-    plt.savefig('./plots/normScan/waveforms.png', dpi=300)
+    plt.savefig('./plots/normScan/zoom_350_right_waveforms_run82.png', dpi=300)
     # plt.cla()
 
 
