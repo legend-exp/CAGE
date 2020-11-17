@@ -63,6 +63,7 @@ def main():
     arg('--run_all', action=st, help='run all passes, write to db')
 
     # options
+    arg('-u', '--lh5_user', action=st, help='user lh5 mode')
     arg('-w', '--write_db', action=st, help='write results to ecalDB file')
     arg('-s', '--show_db', action=st, help='show ecalDB results file')
     arg('-p', '--show_plot', action=st, help='show debug plot')
@@ -144,13 +145,13 @@ def main():
 
     # -- main calibration routines --
     if args.show_db: show_ecaldb(config)
-    if args.peakdet: run_peakdet(dg, config, db_ecal)
-    if args.peakfit: run_peakfit(dg, config, db_ecal)
+    if args.peakdet: run_peakdet(dg, config, db_ecal, args.lh5_user)
+    if args.peakfit: run_peakfit(dg, config, db_ecal, args.lh5_user)
 
     if args.run_all:
         config['write_db'] = True
-        run_peakdet(dg, config, db_ecal)
-        run_peakfit(dg, config, db_ecal)
+        run_peakdet(dg, config, db_ecal, args.lh5_user)
+        run_peakfit(dg, config, db_ecal, args.lh5_user)
 
 
 def init_ecaldb(config):
@@ -253,7 +254,7 @@ def check_raw_spectrum(dg, config, db_ecal):
         plt.close()
 
 
-def run_peakdet(dg, config, db_ecal):
+def run_peakdet(dg, config, db_ecal, user=False):
     """
     $ ./energy_cal.py -q 'query' -p1 [-p : show plot]
     Run "first guess" calibration of an arbitrary energy estimator.
@@ -272,7 +273,7 @@ def run_peakdet(dg, config, db_ecal):
     
     print(f'Running peakdet for run: {run_no}')
     
-    result = gb.apply(peakdet_group, *gb_args)
+    result = gb.apply(peakdet_group, *gb_args, user)
 
     # write the results
     if config['write_db']:
@@ -300,14 +301,16 @@ def run_peakdet(dg, config, db_ecal):
         pmd.write_pretty(db_ecal.storage.read(), config['ecaldb'])
 
 
-def peakdet_group(df_group, config):
+def peakdet_group(df_group, config, user=False):
     """
     Access all files in this group, load energy histograms, and find the
     "first guess" linear calibration constant.
     Return the value, and a bool indicating success.
     """
     # get file list and load energy data
-    lh5_dir = os.path.expandvars(config['lh5_dir'])
+    dg = DataGroup('cage.json', load=True)
+    lh5_dir = dg.lh5_user_dir if user else dg.lh5_dir
+    # lh5_dir = os.path.expandvars(config['lh5_dir'])
     dsp_list = lh5_dir + df_group['dsp_path'] + '/' + df_group['dsp_file']
 
     edata = lh5.load_nda(dsp_list, config['rawe'], config['input_table'])
@@ -316,6 +319,7 @@ def peakdet_group(df_group, config):
     runtime_min = df_group['runtime'].sum()
     run_no = np.array(df_group['run'])[0]
     print(f'In group peakdet for run {run_no}')
+    print(f'dsp_list: {dsp_list} ')
     print(f'Runtime (min): {runtime_min:.2f}')
 
     # loop over energy estimators of interest
@@ -521,7 +525,7 @@ def match_peaks(maxes, exp_pks, tst_pks, mode='first', ene_tol=10):
         print(f"Pass-1 cal for {etype}: {ds_cal:.5e} pm {ds_std:.5e}")
 
 
-def run_peakfit(dg, config, db_ecal):
+def run_peakfit(dg, config, db_ecal, user=False):
     """
     """
     print('\nRunning peakfit ...')
@@ -533,7 +537,7 @@ def run_peakfit(dg, config, db_ecal):
     
     print(f'Running peakfit for run {run_no}')
     
-    result = gb.apply(peakfit_group, *gb_args)
+    result = gb.apply(peakfit_group, *gb_args, user)
 
     # write the results
     if config['write_db']:
@@ -561,7 +565,7 @@ def run_peakfit(dg, config, db_ecal):
         pmd.write_pretty(db_ecal.storage.read(), config['ecaldb'])
 
 
-def peakfit_group(df_group, config, db_ecal):
+def peakfit_group(df_group, config, db_ecal, user=False):
     """
     """
     # get list of peaks to look for
@@ -580,11 +584,14 @@ def peakfit_group(df_group, config, db_ecal):
         print("Multi-run (or other) groupbys aren't supported yet, sorry")
         exit()
 
-    # load data
-    lh5_dir = os.path.expandvars(config['lh5_dir'])
+    # get file list and load energy data
+    dg = DataGroup('cage.json', load=True)
+    lh5_dir = dg.lh5_user_dir if user else dg.lh5_dir
+    # lh5_dir = os.path.expandvars(config['lh5_dir'])  
     dsp_list = lh5_dir + df_group['dsp_path'] + '/' + df_group['dsp_file']
     raw_data = lh5.load_nda(dsp_list, config['rawe'], config['input_table'])
     runtime_min = df_group['runtime'].sum()
+    print(f'dsp_list: {dsp_list} ')
     print(f'runtime: {runtime_min} mins')
 
     # loop over energy estimators of interest

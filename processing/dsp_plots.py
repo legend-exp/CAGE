@@ -8,6 +8,7 @@ import numpy as np
 import tinydb as db
 from tinydb.storages import MemoryStorage
 import matplotlib.pyplot as plt
+import matplotlib as mpl
 # plt.style.use('../clint.mpl')
 from matplotlib.colors import LogNorm
 
@@ -19,11 +20,13 @@ import pygama.io.lh5 as lh5
 import pygama.analysis.histograms as pgh
 import pygama.analysis.peak_fitting as pgf
 
-def main():
-    # runs = [60, 42, 64, 44, 66, 48, 70, 50, 72, 54]
-    runs = [64]
+mpl.use('Agg')
 
-    # plot_energy(runs)
+def main():
+    runs = [60, 42, 64, 44, 66, 48, 70, 50, 72, 54]
+#     runs = [64]
+
+#     plot_energy(runs)
     dcr_AvE(runs)
 
 def dcr_AvE(runs):
@@ -84,7 +87,7 @@ def dcr_AvE(runs):
 
         fig, ax = plt.subplots()
         fig.suptitle(f'Energy', horizontalalignment='center', fontsize=16)
-        elo, ehi, epb = 0, 8000, 10
+        elo, ehi, epb = 0, 6000, 10
         # elo, ehi, epb = 0, 3000, 10
         # elo, ehi, epb = 0, 6000, 10
 
@@ -98,22 +101,26 @@ def dcr_AvE(runs):
         plt.semilogy(bins[1:], energy_rt, ds='steps', c='b', lw=1) #, label=f'{etype}'
 
         ax.set_xlabel('Energy (keV)', fontsize=16)
-        ax.set_ylabel('counts/sec)', fontsize=16)
+        ax.set_ylabel('counts/sec', fontsize=16)
         plt.setp(ax.get_xticklabels(), fontsize=14)
         plt.setp(ax.get_yticklabels(), fontsize=14)
 
-        ax.text(0.95, 0.85, f'r = {radius} mm; theta = {angle_det} deg', verticalalignment='bottom',
-                    horizontalalignment='right', transform=ax.transAxes, color='green', fontsize=14)
+        ax.text(0.95, 0.83, f'r = {radius} mm \ntheta = {angle_det} deg', verticalalignment='bottom',
+                    horizontalalignment='right', transform=ax.transAxes, color='green', fontsize=14, bbox={'facecolor': 'white', 'alpha': 0.5, 'pad': 10})
 
         # plt.legend()
         plt.title(f'\n{runtype} run {run}, {rt_min:.2f} mins', fontsize=12)
         plt.tight_layout()
         plt.savefig(f'./plots/normScan/cal_normScan/{runtype}_energy_run{run}.png', dpi=200)
         plt.clf()
+        plt.close()
+
 
         # AoE vs E---------------------------------
         fig, ax = plt.subplots()
         alo, ahi, apb = 0.0, 0.09, 0.0001
+        if run>=60:
+            alo, ahi, apb = 0.005, 0.0905, 0.0001
         elo, ehi, epb = 0, 6000, 10
         # elo, ehi, epb = 0, 3000, 10
         # elo, ehi, epb = 0, 6000, 10
@@ -134,11 +141,10 @@ def dcr_AvE(runs):
         ax.set_ylabel('A/E (arb)', fontsize=16)
         plt.setp(ax.get_xticklabels(), fontsize=14)
         plt.setp(ax.get_yticklabels(), fontsize=14)
-        plt.xlabel('Energy (keV)', ha='right', x=1)
-        plt.ylabel('A/E (arb)', ha='right', y=1)
 
-        ax.text(0.95, 0.85, f'r = {radius} mm; theta = {angle_det} deg', verticalalignment='bottom',
-                    horizontalalignment='right', transform=ax.transAxes, color='green', fontsize=14)
+
+        ax.text(0.95, 0.83, f'r = {radius} mm \ntheta = {angle_det} deg', verticalalignment='bottom',
+                    horizontalalignment='right', transform=ax.transAxes, color='green', fontsize=14, bbox={'facecolor': 'white', 'alpha': 0.5, 'pad': 10})
 
         # plt.legend()
         plt.title(f'\n{runtype} run {run}, {rt_min:.2f} mins', fontsize=12)
@@ -147,6 +153,7 @@ def dcr_AvE(runs):
         # plt.show()
 
         plt.clf()
+        plt.close()
 
         # DCR vs E___________
 
@@ -171,26 +178,26 @@ def dcr_AvE(runs):
         ax.set_ylabel('DCR (arb)', fontsize=16)
         plt.setp(ax.get_xticklabels(), fontsize=14)
         plt.setp(ax.get_yticklabels(), fontsize=14)
-        plt.xlabel('Energy (keV)', ha='right', x=1)
-        plt.ylabel('A/E (arb)', ha='right', y=1)
+
         # plt.legend()
 
-        ax.text(0.95, 0.85, f'r = {radius} mm; theta = {angle_det} deg', verticalalignment='bottom',
-                    horizontalalignment='right', transform=ax.transAxes, color='green', fontsize=14)
+        ax.text(0.95, 0.83, f'r = {radius} mm \ntheta = {angle_det} deg', verticalalignment='bottom',
+                    horizontalalignment='right', transform=ax.transAxes, color='green', fontsize=14, bbox={'facecolor': 'white', 'alpha': 0.5, 'pad': 10})
 
         plt.title(f'\n{runtype} run {run}, {rt_min:.2f} mins', fontsize=12)
         plt.tight_layout()
         plt.savefig(f'./plots/normScan/cal_normScan/{runtype}_dcr_run{run}.png', dpi=200)
         # plt.show()
         plt.clf()
+        plt.close()
 
         # DCR vs A/E___________
 
         fig, ax = plt.subplots()
         dlo, dhi, dpb = -100, 300, 0.6
-        elo, ehi, epb = 0, 6000, 10
-        # elo, ehi, epb = 0, 3000, 10
-        # elo, ehi, epb = 0, 6000, 10
+        alo, ahi, apb = 0.0, 0.09, 0.0001
+        if run>=60:
+            alo, ahi, apb = 0.005, 0.0905, 0.0001
 
         nbx = int((ahi-alo)/apb)
         nby = int((dhi-dlo)/dpb)
@@ -203,27 +210,63 @@ def dcr_AvE(runs):
         cb = plt.colorbar()
         cb.set_label("counts", ha = 'right', va='center', rotation=270, fontsize=14)
         cb.ax.tick_params(labelsize=12)
-        ax.set_xlabel('Energy (keV)', fontsize=16)
+        ax.set_xlabel('A/E (arb)', fontsize=16)
         ax.set_ylabel('DCR (arb)', fontsize=16)
-        plt.setp(ax.get_xticklabels(), fontsize=14)
+        plt.setp(ax.get_xticklabels(), fontsize=12)
         plt.setp(ax.get_yticklabels(), fontsize=14)
-        plt.xlabel('Energy (keV)', ha='right', x=1)
-        plt.ylabel('A/E (arb)', ha='right', y=1)
+
         # plt.legend()
-        ax.text(0.95, 0.85, f'r = {radius} mm; theta = {angle_det} deg', verticalalignment='bottom',
-                    horizontalalignment='right', transform=ax.transAxes, color='green', fontsize=14)
+        ax.text(0.95, 0.83, f'r = {radius} mm \ntheta = {angle_det} deg', verticalalignment='bottom',
+                    horizontalalignment='right', transform=ax.transAxes, color='green', fontsize=14, bbox={'facecolor': 'white', 'alpha': 0.5, 'pad': 10})
 
         plt.title(f'\n{runtype} run {run}, {rt_min:.2f} mins', fontsize=12)
         plt.tight_layout()
         plt.savefig(f'./plots/normScan/cal_normScan/{runtype}_AoE_vs_dcr_run{run}.png', dpi=200)
         # plt.show()
         plt.clf()
+        plt.close()
+
+        # DCR vs tp_50___________
+
+        fig, ax = plt.subplots()
+        fig.suptitle(f'DCR vs 50% rise time', horizontalalignment='center', fontsize=16)
+
+        dlo, dhi, dpb = -100, 200, 0.6
+        tlo, thi, tpb = 0, 700, 10
+
+        nbx = int((dhi-dlo)/dpb)
+        nby = int((thi-tlo)/tpb)
+
+        alpha_dcr_hist = plt.hist2d(df_cut['dcr_linoff'], df_cut['tp0_50'], bins=[nbx,nby],
+                range=[[dlo, dhi], [tlo, thi]], cmap='viridis', norm=LogNorm())
+
+        cb = plt.colorbar()
+        cb.set_label("counts", ha = 'right', va='center', rotation=270, fontsize=14)
+        cb.ax.tick_params(labelsize=12)
+        ax.set_xlabel('DCR (arb)', fontsize=16)
+        ax.set_ylabel('tp 0-50 (ns)', fontsize=16)
+        plt.setp(ax.get_xticklabels(), fontsize=14)
+        plt.setp(ax.get_yticklabels(), fontsize=14)
+
+        # plt.legend()
+        ax.text(0.95, 0.83, f'r = {radius} mm \ntheta = {angle_det} deg', verticalalignment='bottom',
+                    horizontalalignment='right', transform=ax.transAxes, color='green', fontsize=14, bbox={'facecolor': 'white', 'alpha': 0.95, 'pad': 10})
+
+        plt.title(f'\n{runtype} run {run}, {rt_min:.2f} mins', fontsize=12)
+        plt.tight_layout()
+        plt.savefig(f'./plots/normScan/cal_normScan/{runtype}_dcr_vs_tp0_50_run{run}.png', dpi=200)
+        # plt.show()
+        plt.clf()
+        plt.close()
 
         # 1D AoE_________
 
         fig, ax = plt.subplots()
         fig.suptitle(f'A/E', horizontalalignment='center', fontsize=16)
 
+        alo, ahi, apb = 0.0, 0.09, 0.0001
+        if run>=60:
+            alo, ahi, apb = 0.005, 0.0905, 0.0001
         nbx = int((ahi-alo)/apb)
 
         aoe_hist, bins = np.histogram(df_cut['AoE'], bins=nbx,
@@ -232,18 +275,19 @@ def dcr_AvE(runs):
         plt.semilogy(bins[1:], aoe_hist, ds='steps', c='b', lw=1) #, label=f'{etype}'
 
         ax.set_xlabel('A/E (arb)', fontsize=16)
-        ax.set_ylabel('counts)', fontsize=16)
+        ax.set_ylabel('counts', fontsize=16)
         plt.setp(ax.get_xticklabels(), fontsize=14)
         plt.setp(ax.get_yticklabels(), fontsize=14)
 
-        ax.text(0.95, 0.85, f'r = {radius} mm; theta = {angle_det} deg', verticalalignment='bottom',
-                    horizontalalignment='right', transform=ax.transAxes, color='green', fontsize=14)
+        ax.text(0.95, 0.83, f'r = {radius} mm \ntheta = {angle_det} deg', verticalalignment='bottom',
+                    horizontalalignment='right', transform=ax.transAxes, color='green', fontsize=14, bbox={'facecolor': 'white', 'alpha': 0.5, 'pad': 10})
 
         # plt.legend()
         plt.title(f'\n{runtype} run {run}, {rt_min:.2f} mins', fontsize=12)
         plt.tight_layout()
         plt.savefig(f'./plots/normScan/cal_normScan/{runtype}_1d_aoe_run{run}.png', dpi=200)
         plt.clf()
+        plt.close()
 
         #-------------------------------------
         # Plots after alpha cuts
@@ -253,7 +297,7 @@ def dcr_AvE(runs):
 
         fig, ax = plt.subplots()
         fig.suptitle(f'Energy after cut', horizontalalignment='center', fontsize=16)
-        elo, ehi, epb = 0, 8000, 10
+        elo, ehi, epb = 0, 6000, 10
         # elo, ehi, epb = 0, 3000, 10
         # elo, ehi, epb = 0, 6000, 10
 
@@ -267,22 +311,25 @@ def dcr_AvE(runs):
         plt.semilogy(bins[1:], energy_rt, ds='steps', c='b', lw=1) #, label=f'{etype}'
 
         ax.set_xlabel('Energy (keV)', fontsize=16)
-        ax.set_ylabel('counts/sec)', fontsize=16)
+        ax.set_ylabel('counts/sec', fontsize=16)
         plt.setp(ax.get_xticklabels(), fontsize=14)
         plt.setp(ax.get_yticklabels(), fontsize=14)
 
-        ax.text(0.95, 0.85, f'r = {radius} mm; theta = {angle_det} deg', verticalalignment='bottom',
-                    horizontalalignment='right', transform=ax.transAxes, color='green', fontsize=14)
+        ax.text(0.95, 0.83, f'r = {radius} mm \ntheta = {angle_det} deg', verticalalignment='bottom',
+                    horizontalalignment='right', transform=ax.transAxes, color='green', fontsize=14, bbox={'facecolor': 'white', 'alpha': 0.5, 'pad': 10})
 
         # plt.legend()
         plt.title(f'\n{runtype} run {run}, {rt_min:.2f} mins', fontsize=12)
         plt.tight_layout()
         plt.savefig(f'./plots/normScan/cal_normScan/{runtype}_cut_energy_run{run}.png', dpi=200)
         plt.clf()
+        plt.close()
 
         # AoE vs E---------------------------------
         fig, ax = plt.subplots()
         alo, ahi, apb = 0.0, 0.09, 0.0001
+        if run>=60:
+            alo, ahi, apb = 0.005, 0.0905, 0.0001
         elo, ehi, epb = 0, 6000, 10
         # elo, ehi, epb = 0, 3000, 10
         # elo, ehi, epb = 0, 6000, 10
@@ -303,11 +350,9 @@ def dcr_AvE(runs):
         ax.set_ylabel('A/E (arb)', fontsize=16)
         plt.setp(ax.get_xticklabels(), fontsize=14)
         plt.setp(ax.get_yticklabels(), fontsize=14)
-        plt.xlabel('Energy (keV)', ha='right', x=1)
-        plt.ylabel('A/E (arb)', ha='right', y=1)
 
-        ax.text(0.95, 0.85, f'r = {radius} mm; theta = {angle_det} deg', verticalalignment='bottom',
-                    horizontalalignment='right', transform=ax.transAxes, color='green', fontsize=14)
+        ax.text(0.95, 0.83, f'r = {radius} mm \ntheta = {angle_det} deg', verticalalignment='bottom',
+                    horizontalalignment='right', transform=ax.transAxes, color='green', fontsize=14, bbox={'facecolor': 'white', 'alpha': 0.5, 'pad': 10})
 
         # plt.legend()
         plt.title(f'\n{runtype} run {run}, {rt_min:.2f} mins', fontsize=12)
@@ -316,6 +361,7 @@ def dcr_AvE(runs):
         # plt.show()
 
         plt.clf()
+        plt.close()
 
         # DCR vs E___________
 
@@ -340,29 +386,31 @@ def dcr_AvE(runs):
         ax.set_ylabel('DCR (arb)', fontsize=16)
         plt.setp(ax.get_xticklabels(), fontsize=14)
         plt.setp(ax.get_yticklabels(), fontsize=14)
-        plt.xlabel('Energy (keV)', ha='right', x=1)
-        plt.ylabel('A/E (arb)', ha='right', y=1)
+
         # plt.legend()
 
-        ax.text(0.95, 0.85, f'r = {radius} mm; theta = {angle_det} deg', verticalalignment='bottom',
-                    horizontalalignment='right', transform=ax.transAxes, color='green', fontsize=14)
+        ax.text(0.95, 0.83, f'r = {radius} mm \ntheta = {angle_det} deg', verticalalignment='bottom',
+                    horizontalalignment='right', transform=ax.transAxes, color='green', fontsize=14, bbox={'facecolor': 'white', 'alpha': 0.5, 'pad': 10})
 
         plt.title(f'\n{runtype} run {run}, {rt_min:.2f} mins', fontsize=12)
         plt.tight_layout()
         plt.savefig(f'./plots/normScan/cal_normScan/{runtype}_cut_dcr_run{run}.png', dpi=200)
         # plt.show()
         plt.clf()
+        plt.close()
 
         # DCR vs A/E___________
 
         fig, ax = plt.subplots()
         dlo, dhi, dpb = -100, 300, 0.6
         alo, ahi, apb = 0.0, 0.09, 0.0001
+        if run>=60:
+            alo, ahi, apb = 0.005, 0.0905, 0.0001
 
         nbx = int((ahi-alo)/apb)
         nby = int((dhi-dlo)/dpb)
 
-        fig.suptitle(f'A/E vs DCR after cut: r = {radius} mm; theta = {angle_det} deg', horizontalalignment='center', fontsize=16)
+        fig.suptitle(f'A/E vs DCR after cut', horizontalalignment='center', fontsize=16)
 
         h = plt.hist2d(new_dcr_cut['AoE'], new_dcr_cut['dcr_linoff'], bins=[nbx,nby],
                     range=[[alo, ahi], [dlo, dhi]], cmap='viridis', norm=LogNorm())
@@ -370,27 +418,61 @@ def dcr_AvE(runs):
         cb = plt.colorbar()
         cb.set_label("counts", ha = 'right', va='center', rotation=270, fontsize=14)
         cb.ax.tick_params(labelsize=12)
-        ax.set_xlabel('Energy (keV)', fontsize=16)
+        ax.set_xlabel('A/E (arb)', fontsize=16)
         ax.set_ylabel('DCR (arb)', fontsize=16)
-        plt.setp(ax.get_xticklabels(), fontsize=14)
+        plt.setp(ax.get_xticklabels(), fontsize=12)
         plt.setp(ax.get_yticklabels(), fontsize=14)
-        plt.xlabel('Energy (keV)', ha='right', x=1)
-        plt.ylabel('A/E (arb)', ha='right', y=1)
         # plt.legend()
-        ax.text(0.95, 0.85, f'r = {radius} mm; theta = {angle_det} deg', verticalalignment='bottom',
-                    horizontalalignment='right', transform=ax.transAxes, color='green', fontsize=14)
+        ax.text(0.95, 0.83, f'r = {radius} mm \ntheta = {angle_det} deg', verticalalignment='bottom',
+                    horizontalalignment='right', transform=ax.transAxes, color='green', fontsize=14, bbox={'facecolor': 'white', 'alpha': 0.5, 'pad': 10})
 
         plt.title(f'\n{runtype} run {run}, {rt_min:.2f} mins', fontsize=12)
         plt.tight_layout()
         plt.savefig(f'./plots/normScan/cal_normScan/{runtype}_cut_AoE_vs_dcr_run{run}.png', dpi=200)
         # plt.show()
         plt.clf()
+        plt.close()
+
+        # DCR vs tp_50___________
+
+        fig, ax = plt.subplots()
+        fig.suptitle(f'DCR vs 50% rise time after cut', horizontalalignment='center', fontsize=16)
+
+        dlo, dhi, dpb = -100, 200, 0.6
+        tlo, thi, tpb = 0, 700, 10
+
+        nbx = int((dhi-dlo)/dpb)
+        nby = int((thi-tlo)/tpb)
+
+        alpha_dcr_hist = plt.hist2d(new_dcr_cut['dcr_linoff'], new_dcr_cut['tp0_50'], bins=[nbx,nby],
+                range=[[dlo, dhi], [tlo, thi]], cmap='viridis', norm=LogNorm())
+
+        cb = plt.colorbar()
+        cb.set_label("counts", ha = 'right', va='center', rotation=270, fontsize=14)
+        cb.ax.tick_params(labelsize=12)
+        ax.set_xlabel('DCR (arb)', fontsize=16)
+        ax.set_ylabel('tp 0-50 (ns)', fontsize=16)
+        plt.setp(ax.get_xticklabels(), fontsize=14)
+        plt.setp(ax.get_yticklabels(), fontsize=14)
+
+        # plt.legend()
+        ax.text(0.95, 0.83, f'r = {radius} mm \n theta = {angle_det} deg', verticalalignment='bottom',
+                    horizontalalignment='right', transform=ax.transAxes, color='green', fontsize=14, bbox={'facecolor': 'white', 'alpha': 0.5, 'pad': 10})
+
+        plt.title(f'\n{runtype} run {run}, {rt_min:.2f} mins', fontsize=12)
+        plt.tight_layout()
+        plt.savefig(f'./plots/normScan/cal_normScan/{runtype}_cut_dcr_vs_tp0_50_run{run}.png', dpi=200)
+        # plt.show()
+        plt.clf()
+        plt.close()
 
         # 1D AoE_________
 
         fig, ax = plt.subplots()
-        fig.suptitle(f'Energy', horizontalalignment='center', fontsize=16)
-
+        fig.suptitle(f'A/E after cut', horizontalalignment='center', fontsize=16)
+        alo, ahi, apb = 0.0, 0.09, 0.0001
+        if run>=60:
+            alo, ahi, apb = 0.005, 0.0905, 0.0001
         nbx = int((ahi-alo)/apb)
 
         aoe_hist, bins = np.histogram(new_dcr_cut['AoE'], bins=nbx,
@@ -399,20 +481,20 @@ def dcr_AvE(runs):
         plt.semilogy(bins[1:], aoe_hist, ds='steps', c='b', lw=1) #, label=f'{etype}'
 
         ax.set_xlabel('A/E (arb)', fontsize=16)
-        ax.set_ylabel('counts)', fontsize=16)
+        ax.set_ylabel('counts', fontsize=16)
         plt.setp(ax.get_xticklabels(), fontsize=14)
         plt.setp(ax.get_yticklabels(), fontsize=14)
 
-        ax.text(0.95, 0.85, f'r = {radius} mm; theta = {angle_det} deg', verticalalignment='bottom',
-                    horizontalalignment='right', transform=ax.transAxes, color='green', fontsize=14)
+        ax.text(0.95, 0.83, f'r = {radius} mm \ntheta = {angle_det} deg', verticalalignment='bottom',
+                    horizontalalignment='right', transform=ax.transAxes, color='green', fontsize=14, bbox={'facecolor': 'white', 'alpha': 0.5, 'pad': 10})
 
         # plt.legend()
         plt.title(f'\n{runtype} run {run}, {rt_min:.2f} mins', fontsize=12)
         plt.tight_layout()
-        plt.savefig(f'./plots/normScan/cal_normScan/{runtype}cut__1d_aoe_run{run}.png', dpi=200)
+        plt.savefig(f'./plots/normScan/cal_normScan/{runtype}_cut__1d_aoe_run{run}.png', dpi=200)
         plt.clf()
-
-
+        plt.close()
+        
 def plot_energy(runs):
     radius_arr_1 = []
     mean_energy_arr_1 = []
@@ -506,64 +588,88 @@ def plot_energy(runs):
             count_arr_2.append(len(alpha_energy))
 
     # make plots with errorbars
+    fig, ax = plt.subplots()
 
     energy_plot = plt.errorbar(radius_arr_1, mean_energy_arr_1, yerr=std_energy_arr_1, marker = '.', ls='none', color = 'red', label='Scan 1')
-    plt.xlabel('Radial position (mm)')
-    plt.ylabel('Mean energy (keV)')
+    ax.set_xlabel('Radial position (mm)', fontsize=16)
+    ax.set_ylabel('Mean energy (keV)', fontsize=16)
+    plt.setp(ax.get_xticklabels(), fontsize=14)
+    plt.setp(ax.get_yticklabels(), fontsize=14)
+
+
 #     plt.yscale('log')
-    plt.title('Mean energy of alphas by radial position; normal incidence')
+    plt.title('Mean energy of alphas by radial position \nnormal incidence', fontsize=16)
 
 
     plt.errorbar(radius_arr_2, mean_energy_arr_2, yerr=std_energy_arr_2, marker = '.', ls='none', color = 'blue', label='Scan 2')
     plt.legend()
+    plt.tight_layout()
 
     plt.savefig('./plots/normScan/cal_normScan/errorbars_energy_deg.png', dpi=200)
 
     plt.clf()
+    plt.close()
 
+    fig, ax = plt.subplots()
     dcr_plot = plt.errorbar(radius_arr_1, mean_dcr_arr_1, yerr=std_dcr_arr_1, marker = '.', ls='none', color = 'red', label='Scan 1')
-    plt.xlabel('Radial position (mm)')
-    plt.ylabel('Mean DCR value (arb)')
+    ax.set_xlabel('Radial position (mm)', fontsize=16)
+    ax.set_ylabel('Mean DCR value (arb)', fontsize=16)
+    plt.setp(ax.get_xticklabels(), fontsize=14)
+    plt.setp(ax.get_yticklabels(), fontsize=14)
+
     #    plt.yscale('log')
-    plt.title('Mean DCR value by radial position; normal incidence')
+    plt.title('Mean DCR value by radial position \nnormal incidence', fontsize=16)
 
 
     plt.errorbar(radius_arr_2, mean_dcr_arr_2, yerr=std_dcr_arr_2, marker = '.', ls='none', color = 'blue', label='Scan 2')
     plt.legend()
+    plt.tight_layout()
 
     plt.savefig('./plots/normScan/cal_normScan/errorbars_dcr_avg.png', dpi=200)
 
     plt.clf()
+    plt.close()
 
     # make plots without errorbars
-
+    fig, ax = plt.subplots()
     energy_plot = plt.plot(radius_arr_1, mean_energy_arr_1, '.r', label='Scan 1')
-    plt.xlabel('Radial position (mm)')
-    plt.ylabel('Mean energy (trapEmax; uncal)')
+    ax.set_xlabel('Radial position (mm)', fontsize=16)
+    ax.set_ylabel('Mean energy (keV)', fontsize=16)
+    plt.setp(ax.get_xticklabels(), fontsize=14)
+    plt.setp(ax.get_yticklabels(), fontsize=14)
+
+
 #     plt.yscale('log')
-    plt.title('Mean energy of alphas by radial position; normal incidence')
+    plt.title('Mean energy of alphas by radial position \nnormal incidence', fontsize=16)
 
 
     plt.plot(radius_arr_2, mean_energy_arr_2, '.b', label='Scan 2')
     plt.legend()
+    plt.tight_layout()
 
     plt.savefig('./plots/normScan/cal_normScan/energy_deg.png', dpi=200)
 
     plt.clf()
+    plt.close()
 
+    fig, ax = plt.subplots()
     dcr_plot = plt.plot(radius_arr_1, mean_dcr_arr_1, '.r', label='Scan 1')
-    plt.xlabel('Radial position (mm)')
-    plt.ylabel('Mean DCR value (arb)')
-    #    plt.yscale('log')
-    plt.title('Mean DCR value by radial position; normal incidence')
+    ax.set_xlabel('Radial position (mm)', fontsize=16)
+    ax.set_ylabel('Mean DCR value (arb)', fontsize=16)
+    plt.setp(ax.get_xticklabels(), fontsize=14)
+    plt.setp(ax.get_yticklabels(), fontsize=14)
 
+    #    plt.yscale('log')
+    plt.title('Mean DCR value by radial position \nnormal incidence', fontsize=16)
 
     plt.plot(radius_arr_2, mean_dcr_arr_2, '.b', label='Scan 2')
     plt.legend()
+    plt.tight_layout()
 
     plt.savefig('./plots/normScan/cal_normScan/dcr_avg.png', dpi=200)
 
     # plt.clf()
+    plt.close()
 
 #     rate_plot = plt.plot(radius_arr, count_arr, '.r')
 #     plt.xlabel('Radial position (mm)')
