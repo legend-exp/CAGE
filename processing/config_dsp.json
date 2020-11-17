@@ -19,7 +19,7 @@
     "wf_blsub":{
       "function": "subtract",
       "module": "numpy",
-      "args": ["waveform", "bl", "wf_blsub"],
+      "args": ["waveform", 9279, "wf_blsub"],
       "prereqs": ["waveform", "bl"],
       "unit": "ADC"
     },

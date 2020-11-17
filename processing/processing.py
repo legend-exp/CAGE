@@ -177,7 +177,11 @@ def d2h(dg, overwrite=False, nwfs=None, vrb=False, user=False):
     for i, row in dg.file_keys.iterrows():
         lh5_dir = dg.lh5_user_dir if user else dg.lh5_dir
 
-        f_dsp = f"{dg.lh5_dir}/{row['dsp_path']}/{row['dsp_file']}"
+        # if you want to use a dsp file from the main $CAGE_LH5 directory
+        # f_dsp = f"{dg.lh5_dir}/{row['dsp_path']}/{row['dsp_file']}"
+        
+        #if you want to use a dsp file from $CAGE_LH5_USER directory
+        f_dsp = f"{lh5_dir}/{row['dsp_path']}/{row['dsp_file']}"
         f_hit = f"{lh5_dir}/{row['hit_path']}/{row['hit_file']}"
 
         if not overwrite and os.path.exists(f_hit):
