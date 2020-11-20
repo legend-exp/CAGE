@@ -18,13 +18,14 @@ def main():
 
     # calculate_CollClearances()
 
-    # positionCalc(y_final=25., theta_det=50., icpc=False)
-    maxRotation(min_clearance_toLMFE=5.0, icpc=False)
-    # checkRotation(theta_det=45., min_clearance_toLMFE=5.0)
+    positionCalc(y_final=2.5, theta_det=45., icpc=False)
+    # maxRotation(min_clearance_toLMFE=5.0, icpc=False)
+    # checkRotation(theta_det=60., min_clearance_toLMFE=5.0)
     # thetaCalc(y_final=28., icpc=False)
 
 def positionCalc(y_final, theta_det, icpc=True):
-    theta_rot = 90.-theta_det #rotation angle of the collimator with respect to the horizontal. Should be the real-life rotation angle of the source motor
+    theta_rot = 90.-theta_det #rotation angle of the collimator with respect to the horizontal. Used in calculations, where 0 deg theta_rot is normal incidence on the detector surface
+    theta_rot_motor = theta_rot - 180. #rotation angle of the collimator with respect to the horizontal. Should be the real-life rotation angle of the source motor, where -180 deg is normal incidence on the detector surface
     pi = math.pi
     deg_to_rad = pi/180.
 
@@ -84,9 +85,9 @@ def positionCalc(y_final, theta_det, icpc=True):
 
     print('Position of the source ("sourceRotationVolume") in the mother GDML file, should be placed at: \n<position name= "source_center" x="0.0" y="%.3f" z="0.0" unit="mm"/> \n<rotation name="source%.0f" x="-%.2f" unit="deg"/> \n' %(axis_yPos, theta_rot, theta_rot))
 
-    print('In the lab, to correspond to theta_det= %.1f deg, at radius= %.1f mm: \nsource motor should be rotated to %.1f deg \nsource should be translated to %.3f mm from center' %(theta_det, y_final, theta_rot, axis_yPos))
+    print('In the lab, to correspond to theta_det= %.1f deg, at radius= %.1f mm: \nsource motor should be rotated to %.1f deg \nsource should be translated to %.3f mm from center' %(theta_det, y_final, theta_rot_motor, axis_yPos))
 
-    return theta_rot, axis_yPos
+    return theta_rot_motor, axis_yPos
 
 
 def thetaCalc(y_final, icpc=True):
@@ -160,15 +161,23 @@ def maxRotation(min_clearance_toLMFE=5.0, icpc=False):
 
     return(theta_rot_max, theta_det_min)
 
-def checkRotation(theta_det, min_clearance_toLMFE=5.0):
+def checkRotation(theta_det, min_clearance_toLMFE=5.0, icpc=False):
     # First check that the source can be rotated to this angle while still maintaining desired LMFE clearance
     # Check maximum rotation angle of the collimator in order to leave "min_clearance_toLMFE" mm clearance between the collimator and the LMFE, with the collimator rotation axis "rotAxis_height" mm above the detector surface, and the LMFE "height_det_to_LMFE" mm above the detector surface.
 
     rad_to_deg = 180./math.pi
     deg_to_rad = math.pi/180.
     theta_rot = (90 - theta_det)
-    rotAxis_height = 22.5 # height in mm from top of detector to rotation axis, which is (0, 0, 0) in the mother geometry of the simulation
-    height_det_to_LMFE = 7.0 # height in mm between hieghest point of LMFE and detector surface
+
+    if icpc==True:
+        rotAxis_height = 22.5 # height in mm from top of detector to rotation axis, which is (0, 0, 0) in the mother geometry of the simulation
+        height_det_to_LMFE = 7.0 # height in mm between hieghest point of LMFE and detector surface
+        print('Calculating maximum ratoation angle for ICPC')
+    else:
+        rotAxis_height = 22.0 # height in mm from top of detector to rotation axis, which is (0, 0, 0) in the mother geometry of the simulation
+        height_det_to_LMFE = 6.0 # height in mm between hieghest point of LMFE and detector surface
+        print('Calculating maximum rotation angle for OPPI')
+
     height_LMFE_to_ax = rotAxis_height - height_det_to_LMFE # height in mm between top of LMFE and rotation axis
     #min_clearance_toLMFE = 5. # minimum height in mm to maintain of collimator above LMFE
 

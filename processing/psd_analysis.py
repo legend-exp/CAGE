@@ -5,6 +5,7 @@ import h5py
 import argparse
 import pandas as pd
 import numpy as np
+from pprint import pprint
 import tinydb as db
 from tinydb.storages import MemoryStorage
 
@@ -12,13 +13,13 @@ import matplotlib
 matplotlib.use('Agg') # when running on cori
 import matplotlib.pyplot as plt
 plt.style.use('../clint.mpl')
-
 from matplotlib.colors import LogNorm
 
 from pygama import DataGroup
 import pygama.io.lh5 as lh5
 import pygama.analysis.histograms as pgh
 import pygama.analysis.peak_fitting as pgf
+
 
 def main():
     doc="""
@@ -56,6 +57,7 @@ def main():
     # data_cleaning(dg)
     # peak_drift(dg)
     # pole_zero(dg)
+    # label_alpha_runs(dg)
     power_spectrum(dg)
 
 
@@ -66,7 +68,8 @@ def show_raw_spectrum(dg):
     - TODO: fit each expected peak and get resolution vs energy
     """
     # get file list and load energy data (numpy array)
-    lh5_dir = os.path.expandvars(dg.config['lh5_dir'])
+    # lh5_dir = os.path.expandvars(dg.config['lh5_dir'])
+    lh5_dir = dg.lh5_dir
     dsp_list = lh5_dir + dg.file_keys['dsp_path'] + '/' + dg.file_keys['dsp_file']
     edata = lh5.load_nda(dsp_list, ['trapEmax'], 'ORSIS3302DecoderForEnergy/dsp')
     rt_min = dg.file_keys['runtime'].sum()
@@ -76,7 +79,7 @@ def show_raw_spectrum(dg):
     print('Found energy data:', [(et, len(ev)) for et, ev in edata.items()])
     print(f'Runtime (min): {rt_min:.2f}')
 
-    elo, ehi, epb, etype = 0, 25000, 10, 'trapEmax'
+    elo, ehi, epb, etype = 6000, 8000, 10, 'trapEmax'
 
     ene_uncal = edata[etype]
     hist, bins, _ = pgh.get_hist(ene_uncal, range=(elo, ehi), dx=epb)
@@ -93,7 +96,8 @@ def show_raw_spectrum(dg):
     plt.ylabel('cts / sec', ha='right', y=1)
     plt.legend()
     plt.tight_layout()
-    plt.show()
+    # plt.show()
+    plt.savefig('./plots/normScan/e_zoom.png', dpi = 200)
 
 
 def show_cal_spectrum(dg):
@@ -158,18 +162,30 @@ def show_wfs(dg):
     use the hit file to select events
     """
     # get file list and load hit data
-    lh5_dir = os.path.expandvars(dg.config['lh5_dir'])
+    lh5_dir = dg.lh5_user_dir #if user else dg.lh5_dir
     hit_list = lh5_dir + dg.file_keys['hit_path'] + '/' + dg.file_keys['hit_file']
-    df_hit = lh5.load_dfs(hit_list, ['trapEmax'], 'ORSIS3302DecoderForEnergy/hit')
-    print(df_hit)
-    print(df_hit.columns)
+    df_hit = lh5.load_dfs(hit_list, ['trapEmax', 'trapEmax_cal', 'bl','AoE', 'dcr_raw', 'tp_0', 'tp_50'], 'ORSIS3302DecoderForEnergy/hit')
+    # print(df_hit)
+    # print(df_hit.columns)
 
     # settings
+    # etype = 'trapEmax'
     etype = 'trapEmax_cal'
     nwfs = 20
+
+    #creat new DCR
+    const = 0.0555
+    df_hit['dcr_linoff'] = df_hit['dcr_raw'] + const*df_hit['trapEmax']
+
+    #create 0-50
+    df_hit['tp0_50'] = df_hit['tp_50']- df_hit['tp_0']
+
+
     # elo, ehi, epb = 0, 100, 0.2 # low-e region
-    elo, ehi, epb = 0, 20, 0.2 # noise region
-    # elo, ehi, epb = 1458, 1468, 1 # good physics events
+    # elo, ehi, epb = 0, 20, 0.2 # noise region
+    elo, ehi, epb = 351, 355, 1 # 351 peak, cal
+    # elo, ehi, epb = 1452, 1468, 1 # good physics events
+#     elo, ehi, epb = 7100, 7200, 1 # good physics events, uncal
     # elo, ehi, epb = 6175, 6250, 1 # overflow peak
     # elo, ehi, epb = 5000, 5200, 0.2 # lower overflow peak
 
@@ -179,27 +195,63 @@ def show_wfs(dg):
     # plt.show()
     # exit()
 
-    # select waveforms
+    # select bulk waveforms
     idx = df_hit[etype].loc[(df_hit[etype] >= elo) &
                             (df_hit[etype] <= ehi)].index[:nwfs]
+
+    raw_store = lh5.Store()
+    tb_name = 'ORSIS3302DecoderForEnergy/raw'
+    lh5_dir = dg.lh5_dir
+    raw_list = lh5_dir + dg.file_keys['raw_path'] + '/' + dg.file_keys['raw_file']
+    f_raw = raw_list.values[0] # fixme, only works for one file rn
+    data_raw, nrows = raw_store.read_object(tb_name, f_raw, start_row=0, n_rows=idx[-1]+1)
+
+    bulk_wfs_all = (data_raw['waveform']['values']).nda
+    bulk_wfs = bulk_wfs_all[idx.values, :]
+    ts = np.arange(0, bulk_wfs.shape[1]-1, 1)
+
+    # select alpha waveforms
+    dlo = 25
+    dhi = 200
+    tlo = 100
+    thi = 400
+    blmin = 8500
+    blmax = 10000
+    alpha_idx = df_hit[etype].loc[(df_hit['dcr_linoff'] > dlo) & (df_hit['dcr_linoff'] < dhi)
+                            & (df_hit['tp0_50'] > tlo) & (df_hit['tp0_50'] < thi) & (df_hit['bl'] > blmin) & (df_hit['bl'] < blmax)
+                            & (df_hit[etype] < 12000)].index[:nwfs]
+
+
     raw_store = lh5.Store()
     tb_name = 'ORSIS3302DecoderForEnergy/raw'
     raw_list = lh5_dir + dg.file_keys['raw_path'] + '/' + dg.file_keys['raw_file']
     f_raw = raw_list.values[0] # fixme, only works for one file rn
-    data_raw = raw_store.read_object(tb_name, f_raw, start_row=0, n_rows=idx[-1]+1)
+    data_raw, nrows = raw_store.read_object(tb_name, f_raw, start_row=0, n_rows=alpha_idx[-1]+1)
 
-    wfs_all = data_raw['waveform']['values'].nda
-    wfs = wfs_all[idx.values, :]
-    ts = np.arange(0, wfs.shape[1], 1)
+    alpha_wfs_all = data_raw['waveform']['values'].nda
+    alpha_wfs = alpha_wfs_all[alpha_idx.values, :]
+    ats = np.arange(0, alpha_wfs.shape[1]-1, 1)
 
     # plot wfs
-    for iwf in range(wfs.shape[0]):
-        plt.plot(ts, wfs[iwf,:], lw=1)
+    for iwf in range(bulk_wfs.shape[0]):
+        plt.plot(ts, bulk_wfs[iwf,:len(bulk_wfs[iwf])-1], lw=1, color = 'blue', label = 'Bulk')
 
     plt.xlabel('time (clock ticks)', ha='right', x=1)
     plt.ylabel('ADC', ha='right', y=1)
-    plt.show()
-    # plt.savefig('./plots/noise_wfs.png', dpi=300)
+
+#     # plot alpha wfs
+#     for aiwf in range(alpha_wfs.shape[0]):
+#         plt.plot(ats, alpha_wfs[aiwf,:len(alpha_wfs[aiwf])-1], lw=1, color = 'red', label = 'Alpha')
+
+#     plt.title('Alpha versus bulk events')
+    plt.title('right 351 Wfs run 82')
+    plt.xlabel('time (clock ticks)', ha='right', x=1)
+    plt.ylabel('ADC', ha='right', y=1)
+    plt.xlim(3500, 4500)
+    plt.ylim(9100, 10300)
+    # plt.legend(loc='upper left')
+    # plt.show()
+    plt.savefig('./plots/normScan/zoom_350_right_waveforms_run82.png', dpi=300)
     # plt.cla()
 
 
@@ -378,8 +430,8 @@ def peak_drift(dg):
 
 def pole_zero(dg):
     """
-    NOTE: this function gave me the wrong answer -- 60 usec instead of 240 
-    for cage?  not sure what happened.
+    NOTE: I think this result might be wrong, for the CAGE amp it should be
+    around 250 usec.  Need to check.
     """
     # load hit data
     lh5_dir = os.path.expandvars(dg.config['lh5_dir'])
@@ -445,6 +497,57 @@ def pole_zero(dg):
 
     tau_avg, tau_std = res.mean(), res.std()
     print(f'average RC decay constant: {tau_avg:.2f} pm {tau_std:.2f}')
+    
+    
+def label_alpha_runs(dg):
+    """
+    example of filtering the fileDB for alpha runs, adding new information
+    from a text file, and saving it to a new file, alphaDB.
+    """
+    # load fileDB
+    df_fileDB = pd.read_hdf(dg.f_fileDB)
+
+    # print(df_fileDB.columns)
+    # ['unique_key', 'YYYY', 'mm', 'dd', 'cycle', 'daq_dir', 'daq_file', 'run',
+    #  'runtype', 'detector', 'skip', 'raw_file', 'raw_path', 'dsp_file',
+    #  'dsp_path', 'hit_file', 'hit_path', 'startTime', 'threshold', 'daq_gb',
+    #  'stopTime', 'runtime']
+
+    view_cols = ['unique_key', 'run', 'cycle', 'runtype', 'detector', 'skip']
+    # print(df_fileDB[view_cols].to_string())
+
+    # select alpha files only
+    df_alphaDB = df_fileDB.query("runtype == 'alp'")
+    # print(df_alphaDB[view_cols])
+
+    # load our beam position info -- manually curated list
+    df_beam = pd.read_csv('scan_key.txt')
+    # print(df_beam)
+
+    # add beam position columns to df_alphaDB (our subset)
+    g = df_alphaDB.groupby(['run'])
+
+    def add_info(df_run, df_beam):
+        run = df_run.iloc[0]['run']
+        pos_vals = df_beam.loc[df_beam.run == run]
+        if len(pos_vals) == 0:
+            df_run['radius'] = np.nan
+            df_run['angle'] = np.nan
+        else:
+            df_run['radius'] = pos_vals.iloc[0]['radius']
+            df_run['angle'] = pos_vals.iloc[0]['angle']
+        return df_run
+
+    df_alphaDB = g.apply(add_info, df_beam)
+
+    view_cols += ['radius','angle']
+    print(df_alphaDB[view_cols].to_string())
+
+    # two options to proceed here:
+    # 1. move this function to setup.py and have it overwrite the fileDB
+    # 2. just write df_alphaDB to a separate analysis file here
+
+    df_alphaDB.to_hdf('alphaDB.h5', key='alphaDB')
 
 
 def power_spectrum(dg):
@@ -500,7 +603,7 @@ def power_spectrum(dg):
     plt.ylabel('PSD (ADC^2 / Hz)', ha='right', y=1)
     plt.legend(loc=1)
     plt.savefig('./plots/psd_runs.pdf')
-    
+
 
 if __name__=="__main__":
     main()

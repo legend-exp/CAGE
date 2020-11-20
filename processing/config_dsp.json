@@ -29,12 +29,12 @@
       "args": ["wf_blsub", "db.pz.tau", "wf_pz"],
       "prereqs": ["wf_blsub"],
       "unit": "ADC",
-      "defaults": { "db.pz.tau":"260*us" }
+      "defaults": { "db.pz.tau":"150*us" }
     },
     "wf_trap": {
       "function": "trap_norm",
       "module": "pygama.dsp.processors",
-      "args": ["wf_pz", "8*us", "2*us", "wf_trap"],
+      "args": ["wf_pz", "8*us", "3*us", "wf_trap"],
       "prereqs": ["wf_pz"],
       "unit": "ADC"
     },
@@ -88,7 +88,7 @@
     "trapEftp": {
       "function": "fixed_time_pickoff",
       "module": "pygama.dsp.processors",
-      "args": ["wf_trap", "tp_0+(8*us+1*us)", "trapEftp"],
+      "args": ["wf_trap", "tp_0+(8*us+2*us)", "trapEftp"],
       "unit": "ADC",
       "prereqs": ["wf_trap", "tp_0"]
     },

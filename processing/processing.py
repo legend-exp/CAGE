@@ -177,7 +177,11 @@ def d2h(dg, overwrite=False, nwfs=None, vrb=False, user=False):
     for i, row in dg.file_keys.iterrows():
         lh5_dir = dg.lh5_user_dir if user else dg.lh5_dir
 
-        f_dsp = f"{dg.lh5_dir}/{row['dsp_path']}/{row['dsp_file']}"
+        # if you want to use a dsp file from the main $CAGE_LH5 directory
+        # f_dsp = f"{dg.lh5_dir}/{row['dsp_path']}/{row['dsp_file']}"
+        
+        #if you want to use a dsp file from $CAGE_LH5_USER directory
+        f_dsp = f"{lh5_dir}/{row['dsp_path']}/{row['dsp_file']}"
         f_hit = f"{lh5_dir}/{row['hit_path']}/{row['hit_file']}"
 
         if not overwrite and os.path.exists(f_hit):
@@ -190,8 +194,8 @@ def d2h(dg, overwrite=False, nwfs=None, vrb=False, user=False):
             continue
 
         t_start = row['startTime']
-#         dsp_to_hit_cage(f_dsp, f_hit, dg, n_max=nwfs, verbose=vrb, t_start=t_start)
-        uncal_dsp_to_hit_cage(f_dsp, f_hit, dg, n_max=nwfs, verbose=vrb, t_start=t_start)
+        dsp_to_hit_cage(f_dsp, f_hit, dg, n_max=nwfs, verbose=vrb, t_start=t_start)
+#         uncal_dsp_to_hit_cage(f_dsp, f_hit, dg, n_max=nwfs, verbose=vrb, t_start=t_start)
 
 
 def dsp_to_hit_cage(f_dsp, f_hit, dg, n_max=None, verbose=False, t_start=None):
@@ -228,6 +232,8 @@ def dsp_to_hit_cage(f_dsp, f_hit, dg, n_max=None, verbose=False, t_start=None):
         df_cal = pd.DataFrame(tb)
         df_cal['run'] = df_cal['run'].astype(int)
         df_run = df_cal.loc[df_cal.run==run]
+#         print(df_run.iloc[['cal0','cal1','cal2']])
+#         exit()
         cal_pars = df_run.iloc[0][['cal0','cal1','cal2']]
         pol = np.poly1d(cal_pars) # handy numpy polynomial object
         df_hit[f'{etype}_cal'] = pol(df_hit[f'{etype}'])

@@ -11,9 +11,16 @@
     },
     "trapEmax" : {
       "raw_range":[0, 10000, 5],
-      "peakdet_thresh": 0.02,
-      "lowe_cut": 170
+      "peakdet_thresh": 0.025,
+      "lowe_cut": 500
+    },
+      
+    "trapEftp" : {
+      "raw_range":[0, 10000, 5],
+      "peakdet_thresh": 0.025,
+      "lowe_cut": 500
     }
+      
   },
 
   "pks":{
