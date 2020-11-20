@@ -51,11 +51,11 @@ def main():
     # -- run routines --
     # show_raw_spectrum(dg)
     # show_cal_spectrum(dg)
-    show_wfs(dg)
+    # show_wfs(dg)
     # data_cleaning(dg)
     # peak_drift(dg)
     # pole_zero(dg)
-    # label_alpha_runs(dg)
+    label_alpha_runs(dg)
 
 
 def show_raw_spectrum(dg):
