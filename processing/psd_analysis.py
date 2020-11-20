@@ -46,7 +46,7 @@ def main():
         dg.file_keys.query(que, inplace=True)
     else:
         dg.file_keys = dg.file_keys[-1:]
-    
+
     view_cols = ['runtype', 'run', 'cycle', 'startTime', 'runtime', 'threshold']
     print(dg.file_keys[view_cols])
 
@@ -497,8 +497,8 @@ def pole_zero(dg):
 
     tau_avg, tau_std = res.mean(), res.std()
     print(f'average RC decay constant: {tau_avg:.2f} pm {tau_std:.2f}')
-    
-    
+
+
 def label_alpha_runs(dg):
     """
     example of filtering the fileDB for alpha runs, adding new information
@@ -556,49 +556,49 @@ def power_spectrum(dg):
     note.  typical cycle files have ~120,000 wfs.
     """
     import scipy.signal as signal
-    
+
     view_cols = ['runtype', 'run', 'cycle', 'startTime', 'runtime', 'threshold']
-    
+
     sto = lh5.Store()
     lh5_dir = os.path.expandvars(dg.config['lh5_dir'])
-    
+
     # n_wfs = np.inf # np.inf to select all
     n_wfs = int(1e3)
     clk = 100e6 # Hz
     nseg = 3500 # num baseline samples (cage wfs are usually length 8192)
-    
+
     runs = dg.file_keys['run'].unique()
     # cmap = plt.cm.get_cmap('jet', len(runs))
     # iplt = 0
-    
+
     def psd_run(df_run):
-        
+
         run = int(df_run.iloc[0]['run'])
         # print(df_run[view_cols])
-        
+
         tb_name = 'ORSIS3302DecoderForEnergy/raw'
         raw_list = lh5_dir + df_run['raw_path'] + '/' + df_run['raw_file']
-        
+
         # for now, just grab wfs from the first cycle file.
         # that should be PLENTY for a power spectrum plot
         f_raw = raw_list.values[0]
         data_raw, n_rows = sto.read_object(tb_name, f_raw, start_row=0, n_rows=n_wfs)
         wfs_all = data_raw['waveform']['values'].nda
-        
+
         # wfs = wfs_all[idx.values, :] # can slice them by np array
         wfs = wfs_all[:, 0:nseg] # baseline only (8192 samples in cage)
         print(wfs.shape)
-        
+
         f, p = signal.welch(wfs, clk, nperseg=nseg)
         ptot = np.sum(p, axis=0)
         y = ptot / wfs.shape[0]
         plt.semilogy(f, y, '-', lw=2, label=f'run {run}')
         # iplt += 1
-        
+
         # exit()
-        
+
     dg.file_keys.groupby(['run']).apply(psd_run)#, iplt)
-    
+
     plt.xlabel('Frequency (Hz)', ha='right', x=0.9)
     plt.ylabel('PSD (ADC^2 / Hz)', ha='right', y=1)
     plt.legend(loc=1)
