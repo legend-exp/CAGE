@@ -249,7 +249,7 @@ def scan_orca_headers(dg, overwrite=False, batch_mode=False):
         if not os.path.exists(f_daq) and not df_row.skip:
             print(f"Error, file doesn't exist:\n  {f_daq}")
             exit()
-        if df_row['skip']==True:
+        elif df_row['skip']==True:
             print(f"Skipping cycle: {df_row['cycle']}")
             return pd.Series({'startTime':np.nan, 'threshold':np.nan, 
                               'daq_gb':daq_gb})
@@ -336,7 +336,9 @@ def get_runtimes(dg, overwrite=False, batch_mode=False):
 
         if not os.path.exists(f_dsp) and not df_row.skip:
             print(f"Error, file doesn't exist:\n  {f_dsp}")
-            exit()
+            print(f"Warning, proceeding anyway -- this can mess up your fileDB")
+            # exit() # careful!
+            return pd.Series({'stopTime':0, 'runtime':0})
         elif df_row.skip:
             print(f'Skipping cycle file:\n  {f_dsp}')
             return pd.Series({'stopTime':0, 'runtime':0})
