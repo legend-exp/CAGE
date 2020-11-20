@@ -310,7 +310,7 @@ def peakdet_group(df_group, config, user=False):
     # get file list and load energy data
     dg = DataGroup('cage.json', load=True)
     lh5_dir = dg.lh5_user_dir if user else dg.lh5_dir
-    # lh5_dir = os.path.expandvars(config['lh5_dir'])
+#     lh5_dir = os.path.expandvars(config['lh5_dir'])
     dsp_list = lh5_dir + df_group['dsp_path'] + '/' + df_group['dsp_file']
 
     edata = lh5.load_nda(dsp_list, config['rawe'], config['input_table'])
