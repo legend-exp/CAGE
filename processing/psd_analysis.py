@@ -5,9 +5,12 @@ import h5py
 import argparse
 import pandas as pd
 import numpy as np
+from pprint import pprint
 import tinydb as db
 from tinydb.storages import MemoryStorage
-from pprint import pprint
+
+import matplotlib
+matplotlib.use('Agg') # when running on cori
 import matplotlib.pyplot as plt
 plt.style.use('../clint.mpl')
 from matplotlib.colors import LogNorm
@@ -17,8 +20,6 @@ import pygama.io.lh5 as lh5
 import pygama.analysis.histograms as pgh
 import pygama.analysis.peak_fitting as pgf
 
-import matplotlib as mpl
-mpl.use('Agg')
 
 def main():
     doc="""
@@ -45,6 +46,7 @@ def main():
         dg.file_keys.query(que, inplace=True)
     else:
         dg.file_keys = dg.file_keys[-1:]
+
     view_cols = ['runtype', 'run', 'cycle', 'startTime', 'runtime', 'threshold']
     print(dg.file_keys[view_cols])
 
@@ -55,7 +57,8 @@ def main():
     # data_cleaning(dg)
     # peak_drift(dg)
     # pole_zero(dg)
-    label_alpha_runs(dg)
+    # label_alpha_runs(dg)
+    power_spectrum(dg)
 
 
 def show_raw_spectrum(dg):
@@ -150,7 +153,7 @@ def show_cal_spectrum(dg):
     plt.legend(loc=1, fontsize=12)
     plt.tight_layout()
     plt.savefig('./plots/CalSpectrum.png')
-#     plt.show()
+    # plt.show()
 
 
 def show_wfs(dg):
@@ -545,6 +548,61 @@ def label_alpha_runs(dg):
     # 2. just write df_alphaDB to a separate analysis file here
 
     df_alphaDB.to_hdf('alphaDB.h5', key='alphaDB')
+
+
+def power_spectrum(dg):
+    """
+    plot power spectral density for groups of runs.
+    note.  typical cycle files have ~120,000 wfs.
+    """
+    import scipy.signal as signal
+
+    view_cols = ['runtype', 'run', 'cycle', 'startTime', 'runtime', 'threshold']
+
+    sto = lh5.Store()
+    lh5_dir = os.path.expandvars(dg.config['lh5_dir'])
+
+    # n_wfs = np.inf # np.inf to select all
+    n_wfs = int(1e3)
+    clk = 100e6 # Hz
+    nseg = 3500 # num baseline samples (cage wfs are usually length 8192)
+
+    runs = dg.file_keys['run'].unique()
+    # cmap = plt.cm.get_cmap('jet', len(runs))
+    # iplt = 0
+
+    def psd_run(df_run):
+
+        run = int(df_run.iloc[0]['run'])
+        # print(df_run[view_cols])
+
+        tb_name = 'ORSIS3302DecoderForEnergy/raw'
+        raw_list = lh5_dir + df_run['raw_path'] + '/' + df_run['raw_file']
+
+        # for now, just grab wfs from the first cycle file.
+        # that should be PLENTY for a power spectrum plot
+        f_raw = raw_list.values[0]
+        data_raw, n_rows = sto.read_object(tb_name, f_raw, start_row=0, n_rows=n_wfs)
+        wfs_all = data_raw['waveform']['values'].nda
+
+        # wfs = wfs_all[idx.values, :] # can slice them by np array
+        wfs = wfs_all[:, 0:nseg] # baseline only (8192 samples in cage)
+        print(wfs.shape)
+
+        f, p = signal.welch(wfs, clk, nperseg=nseg)
+        ptot = np.sum(p, axis=0)
+        y = ptot / wfs.shape[0]
+        plt.semilogy(f, y, '-', lw=2, label=f'run {run}')
+        # iplt += 1
+
+        # exit()
+
+    dg.file_keys.groupby(['run']).apply(psd_run)#, iplt)
+
+    plt.xlabel('Frequency (Hz)', ha='right', x=0.9)
+    plt.ylabel('PSD (ADC^2 / Hz)', ha='right', y=1)
+    plt.legend(loc=1)
+    plt.savefig('./plots/psd_runs.pdf')
 
 
 if __name__=="__main__":
