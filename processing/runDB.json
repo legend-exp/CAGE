@@ -87,6 +87,7 @@
     "82":["1065-1068", "alp", "elog 265. 2 hour alpha run at 10 mm with preamp tuned faster-- ~100ns pulser rise time"],
     "83":["1069-1072", "alp", "elog 265. 2 hour alpha run at 10 mm with preamp tuned fastest-- ~50ns pulser rise time"],
     "84":["1073-1084", "alp", "elog 265. 5 hr alpha runat 10 mm with preamp tuned fastest-- ~50ns pulser rise time"],
-    "85":["1085-1115", "bkg", "elog 267, 268. Long background run (~15 hour) with preamp tuned to be fastest without ringing. ~75ns pulser rise time"],
-    "86":["1116-1118", "ba133", "elog 270.  Ba runs, looking for double peaking"]
+    "85":["1085-1115", "alp", "elog 267, 268. Long background run (~15 hour) with preamp tuned to be fastest without ringing. ~75ns pulser rise time"],
+    "86":["1116-1118", "ba133", "elog 270.  Ba runs, looking for double peaking"],
+    "87":["1119-1141", "bkg", "elog 271.  overnight bkg runs, amp strapped to box, less microphonics"]
 }
