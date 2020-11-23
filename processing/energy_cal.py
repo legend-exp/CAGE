@@ -76,6 +76,7 @@ def main():
         help="specify raw energy parameters: --epar 'asd sdf dfg' ")
     arg('--group', nargs=1, type=str,
         help="select alternate groupby: --group 'YYYY run' ")
+    arg('-ba', '--barium', action=st, help='use special ecal config for Ba calibrations')
 
     args = par.parse_args()
 
@@ -97,8 +98,12 @@ def main():
 
     # merge main and ecal config JSON as dicts
     config = dg.config
-    with open(config['ecal_config']) as f:
-        config = {**dg.config, **json.load(f)}
+    if args.barium:
+        with open(config['ba_ecal_config']) as f:
+            config = {**dg.config, **json.load(f)}
+    else:
+        with open(config['ecal_config']) as f:
+            config = {**dg.config, **json.load(f)}
 
     # initialize JSON output file.  only run this once
     if args.init_db:
