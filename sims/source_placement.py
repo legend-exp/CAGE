@@ -18,7 +18,7 @@ def main():
 
     # calculate_CollClearances()
 
-    positionCalc(y_final=2.5, theta_det=45., icpc=False)
+    positionCalc(y_final=18., theta_det=45., icpc=False)
     # maxRotation(min_clearance_toLMFE=5.0, icpc=False)
     # checkRotation(theta_det=60., min_clearance_toLMFE=5.0)
     # thetaCalc(y_final=28., icpc=False)
@@ -78,6 +78,15 @@ def positionCalc(y_final, theta_det, icpc=True):
     rotUnitVec_y = math.cos(theta_rot*deg_to_rad) # determines the y-coordinate of the rotation vector (/gps/pos/rot2) for rotating the source activity in the g4simple run macro
     rotUnitVec_z = math.sin(theta_rot*deg_to_rad) # determines the z-coordinate of the rotation vector (/gps/pos/rot2) for rotating the source activity in the g4simple run macro
 
+    if axis_yPos < 0.:
+        rotary_motor_theta = -180.
+        theta_rot_motor = -1*(180.+theta_rot)
+        axis_yPos *= -1
+
+    else:
+        rotary_motor_theta = 0.
+
+
     print('For theta_det= %.1f deg, radius= %.1f mm:' %(theta_det, y_final))
     print('Source activity in the run macro should be rotated to and centered according to: \n/gps/pos/rot1 1 0 0 \n/gps/pos/rot2 0 %.5f %.5f' %(rotUnitVec_y, rotUnitVec_z))
     print('/gps/pos/centre 0.0 %.3f %.3f mm \n' %( source_yPos, source_zPos))
@@ -85,7 +94,8 @@ def positionCalc(y_final, theta_det, icpc=True):
 
     print('Position of the source ("sourceRotationVolume") in the mother GDML file, should be placed at: \n<position name= "source_center" x="0.0" y="%.3f" z="0.0" unit="mm"/> \n<rotation name="source%.0f" x="-%.2f" unit="deg"/> \n' %(axis_yPos, theta_rot, theta_rot))
 
-    print('In the lab, to correspond to theta_det= %.1f deg, at radius= %.1f mm: \nsource motor should be rotated to %.1f deg \nsource should be translated to %.3f mm from center' %(theta_det, y_final, theta_rot_motor, axis_yPos))
+    # print('In the lab, to correspond to theta_det= %.1f deg, at radius= %.1f mm: \nsource motor should be rotated to %.1f deg \nsource should be translated to %.3f mm from center' %(theta_det, y_final, theta_rot_motor, axis_yPos))
+    print(f'In the lab, to correspond to theta_det= {theta_det:.1f} deg, at radius= {y_final:.1f} mm: \nrotary motor should be rotated to {rotary_motor_theta:.1f} deg \nsource should be translated to {axis_yPos:.3f} mm from center \nsource motor should be rotated to {theta_rot_motor:.1f} deg ')
 
     return theta_rot_motor, axis_yPos
 
