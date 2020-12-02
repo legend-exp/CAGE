@@ -98,5 +98,7 @@
     "93":["1147", "alp", "elog 273. 30 min run at 7 mm, normal incidence"],
     "94":["1148", "transit", "elog 273. Moving motors"],
     "95":["1149", "alp", "elog 273. 30 min run at 8 mm, normal incidence"],
-    "96":["1150", "transit", "elog 273. Parking motors for the night."]
+    "96":["1150", "transit", "elog 273. Parking motors for the night."],
+    "97":["1151", "bkg", "elog 287.  30 min bkg run after amp upgrades"],
+    "98":["1152-1153", "ba133", "elog 287. 5 min Ba run to look for double peaking"]
 }
