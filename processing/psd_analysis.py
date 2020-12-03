@@ -57,8 +57,8 @@ def main():
     # data_cleaning(dg)
     # peak_drift(dg)
     # pole_zero(dg)
-    label_alpha_runs(dg)
-    # power_spectrum(dg)
+    # label_alpha_runs(dg)
+    power_spectrum(dg)
 
 
 def show_raw_spectrum(dg):

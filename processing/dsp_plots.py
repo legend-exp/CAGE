@@ -23,13 +23,13 @@ import pygama.analysis.peak_fitting as pgf
 mpl.use('Agg')
 
 def main():
-    runs = [60, 42, 64, 44, 66, 48, 70, 50, 72, 54]
-#     runs = [64]
+#     runs = [60, 42, 64, 44, 66, 48, 70, 50, 72, 54]
+    runs = [87]
 
 #     plot_energy(runs)
-    dcr_AvE(runs)
+    dcr_AvE(runs, cut=False)
 
-def dcr_AvE(runs):
+def dcr_AvE(runs, cut=True):
 
     for run in runs:
         # get run files
@@ -69,6 +69,9 @@ def dcr_AvE(runs):
 
         #creat new DCR
         const = 0.0555
+        
+        if run>86:
+            const = -0.0225
         df_cut['dcr_linoff'] = df_cut['dcr_raw'] + const*df_cut['trapEmax']
 
         #create 0-50
@@ -288,10 +291,16 @@ def dcr_AvE(runs):
         plt.savefig(f'./plots/normScan/cal_normScan/{runtype}_1d_aoe_run{run}.png', dpi=200)
         plt.clf()
         plt.close()
+        
 
         #-------------------------------------
         # Plots after alpha cuts
         #--------------------
+        
+        if cut==False:
+            exit()
+        else:
+            continue
 
         # Make calibrated energy spectrum_________
 
