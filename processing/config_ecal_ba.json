@@ -28,7 +28,7 @@
   },
   "extras":[238.6, 351.9],
   "expected_peaks":[1460.8],
-  "test_peaks":[276.4, 302.9, 356.0, 383.9],
+  "test_peaks":[ 276.4, 302.9, 356.0, 383.9],
 
   "rawe_default" : ["trapEmax"],
   "cal_range" : [0, 3000, 5],
