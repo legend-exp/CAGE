@@ -104,5 +104,6 @@
     "99":["1154-1155", "ba133", "elog 287. 5 min Ba run, next day"],
     "100":["1156", "bkg", "elog 287, 30min bkg run to look for baseline instability"],
     "101":["1157", "ba133", "elog 287. 5 min Ba run, extra DB connectors unplugged"],
-    "102":["1158", "bkg", "elog 287.  30min bkg run w/ DB connectors unplugged"]
+    "102":["1158", "bkg", "elog 287.  30min bkg run w/ DB connectors unplugged"],
+    "103":["1159-1160", "ba133", "elog 289.  Ba run after pole zero optimization"]
 }
