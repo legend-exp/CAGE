@@ -642,36 +642,33 @@ def peakfit_group(df_group, config, db_ecal, user=False):
             fwhm = upr_half - bot_half
             sig0 = fwhm / 2.355
 
-#     exit()
-
-
-#             # fit to simple gaussian
-#             amp0 = np.amax(h) * fwhm
-#             p_init = [amp0, bins[imax], sig0, bkg0] # a, mu, sigma, bkg
-#             p_fit, p_cov = pgf.fit_hist(pgf.gauss_bkg, hist_norm, bins,
-#                                         var=hist_var, guess=p_init)
-#             fit_func = pgf.gauss_bkg
-
-#             p_err = np.sqrt(np.diag(p_cov))
-
-#             # goodness of fit
-#             chisq = []
-#             for i, h in enumerate(hist_norm):
-#                 model = fit_func(b[i], *p_fit)
-#                 diff = (model - h)**2 / model
-#                 chisq.append(abs(diff))
-#             rchisq = sum(np.array(chisq) / len(hist_norm))
-#             # fwhm_err = p_err[1] * 2.355 * e_peak / e_fit
-
-#             # collect interesting results for this row
-#             fit_results[ie] = {
-#                 'epk':epk,
-#                 'mu':p_fit[1], 'fwhm':p_fit[2]*2.355, 'sig':p_fit[2],
-#                 'amp':p_fit[0], 'bkg':p_fit[3], 'rchisq':rchisq,
-#                 'mu_raw':p_fit[1] / lin_cal, # <-- this is in terms of raw E
-#                 'mu_unc':p_err[1] / lin_cal
-#                 }
-#             print(fit_results[ie])
+            # # fit to simple gaussian
+            # amp0 = np.amax(h) * fwhm
+            # p_init = [amp0, bins[imax], sig0, bkg0] # a, mu, sigma, bkg
+            # p_fit, p_cov = pgf.fit_hist(pgf.gauss_bkg, hist_norm, bins,
+            #                             var=hist_var, guess=p_init)
+            # fit_func = pgf.gauss_bkg
+            #
+            # p_err = np.sqrt(np.diag(p_cov))
+            #
+            # # goodness of fit
+            # chisq = []
+            # for i, h in enumerate(hist_norm):
+            #     model = fit_func(b[i], *p_fit)
+            #     diff = (model - h)**2 / model
+            #     chisq.append(abs(diff))
+            # rchisq = sum(np.array(chisq) / len(hist_norm))
+            # # fwhm_err = p_err[1] * 2.355 * e_peak / e_fit
+            #
+            # # collect interesting results for this row
+            # fit_results[ie] = {
+            #     'epk':epk,
+            #     'mu':p_fit[1], 'fwhm':p_fit[2]*2.355, 'sig':p_fit[2],
+            #     'amp':p_fit[0], 'bkg':p_fit[3], 'rchisq':rchisq,
+            #     'mu_raw':p_fit[1] / lin_cal, # <-- this is in terms of raw E
+            #     'mu_unc':p_err[1] / lin_cal
+            #     }
+            # print(fit_results[ie])
 
 
             # fit to radford peak: mu, sigma, hstep, htail, tau, bg0, amp
@@ -716,10 +713,8 @@ def peakfit_group(df_group, config, db_ecal, user=False):
                 'mu_unc':p_err[0] / lin_cal
                 }
 
-#             print('Len Fit params:', len(p_fit))
+            # print('Len Fit params:', len(p_fit))
             print('Fit results: ', fit_results[ie])
-
-
 
             # diagnostic plot, don't delete
             if config['show_plot']:
@@ -737,10 +732,6 @@ def peakfit_group(df_group, config, db_ecal, user=False):
                 else:
                     plt.show()
                 plt.close()
-
-#         exit()
-
-
 
         # ----------------------------------------------------------------------
         # compute energy calibration by matrix inversion (thanks Tim and Jason!)

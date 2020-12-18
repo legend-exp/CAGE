@@ -110,5 +110,7 @@
     "105":["1162", "ba133", "elog 292.  Ba run after 2 hrs.  bad gain shift"],
     "106":["1163", "ba133", "elog 292.  Ba run again, no gain shift."],
     "107":["1164-1171", "bkg", "elog 294.  Bkg runs for stability study"],
-    "108":["1172-1182", "pul", "elog 294.  transfer function measurement"]
+    "108":["1172-1182", "pul", "elog 294.  transfer function measurement"],
+    "109":["1183", "transit", "elog 295. transition to linear at 10 mm"],
+    "110":["1184-1190", "alp", "elog 295.  alpha scan at r=10, norm inc."]
 }
