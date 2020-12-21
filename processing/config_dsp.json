@@ -29,7 +29,7 @@
       "args": ["wf_blsub", "db.pz.tau", "wf_pz"],
       "prereqs": ["wf_blsub"],
       "unit": "ADC",
-      "defaults": { "db.pz.tau":"150*us" }
+      "defaults": { "db.pz.tau":"50*us" }
     },
     "wf_trap": {
       "function": "trap_norm",
