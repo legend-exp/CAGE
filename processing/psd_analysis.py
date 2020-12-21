@@ -10,7 +10,7 @@ import tinydb as db
 from tinydb.storages import MemoryStorage
 
 import matplotlib
-matplotlib.use('Agg') # when running on cori
+# matplotlib.use('Agg') # when running on cori
 import matplotlib.pyplot as plt
 plt.style.use('../clint.mpl')
 from matplotlib.colors import LogNorm
@@ -55,10 +55,10 @@ def main():
     # show_cal_spectrum(dg)
     # show_wfs(dg)
     # data_cleaning(dg)
-    # peak_drift(dg)
+    peak_drift(dg)
     # pole_zero(dg)
     # label_alpha_runs(dg)
-    power_spectrum(dg)
+    # power_spectrum(dg)
 
 
 def show_raw_spectrum(dg):
@@ -394,21 +394,31 @@ def peak_drift(dg):
     """
     show any drift of the 1460 peak (5 minute bins)
     """
+    cols = ['trapEmax', 'ts_glo']
+
+
     lh5_dir = os.path.expandvars(dg.config['lh5_dir'])
     hit_list = lh5_dir + dg.file_keys['hit_path'] + '/' + dg.file_keys['hit_file']
-    df_hit = lh5.load_dfs(hit_list, ['trapEmax'], 'ORSIS3302DecoderForEnergy/hit')
+    df_hit = lh5.load_dfs(hit_list, cols, 'ORSIS3302DecoderForEnergy/hit')
     df_hit.reset_index(inplace=True)
     rt_min = dg.file_keys['runtime'].sum()
     print(f'runtime: {rt_min:.2f} min')
 
     # settings
-    elo, ehi, epb, etype = 1450, 1470, 1, 'trapEmax_cal'
-    df_hit = df_hit.query(f'trapEmax_cal > {elo} and trapEmax_cal < {ehi}').copy()
+    # use uncalibrated energy
+    elo, ehi, epb, etype = 3400, 3800, 1, 'trapEmax'
+    df_hit = df_hit.query(f'trapEmax > {elo} and trapEmax < {ehi}').copy()
+
+    # use calibrated energy (hit file)
+    # elo, ehi, epb, etype = 1450, 1470, 1, 'trapEmax_cal'
+    # df_hit = df_hit.query(f'trapEmax_cal > {elo} and trapEmax_cal < {ehi}').copy()
 
     # # diagnostic plot
-    # hE, xE, vE = pgh.get_hist(df_hit[etype], range=(elo, ehi), dx=epb)
-    # plt.plot(xE[1:], hE, c='b', ds='steps')
+    hE, xE, vE = pgh.get_hist(df_hit[etype], range=(elo, ehi), dx=epb)
+    plt.plot(xE[1:], hE, c='b', ds='steps', lw=1)
     # plt.show()
+    plt.savefig('./plots/oppi_1460_hist.pdf')
+    plt.cla()
 
     t0 = df_hit['ts_glo'].values[0]
     df_hit['ts_adj'] = (df_hit['ts_glo'] - t0) / 60 # minutes after 0
@@ -418,11 +428,11 @@ def peak_drift(dg):
     nbx = int((thi-tlo)/tpb)
     nby = int((ehi-elo)/epb)
 
-    h = plt.hist2d(df_hit['ts_adj'], df_hit['trapEmax_cal'], bins=[nbx,nby],
+    h = plt.hist2d(df_hit['ts_adj'], df_hit['trapEmax'], bins=[nbx,nby],
                    range=[[tlo, thi], [elo, ehi]], cmap='jet')
 
     plt.xlabel(f'Time ({tpb:.1f} min/bin)', ha='right', x=1)
-    plt.ylabel('trapEmax_cal', ha='right', y=1)
+    plt.ylabel('trapEmax', ha='right', y=1)
     plt.tight_layout()
     # plt.show()
     plt.savefig('./plots/oppi_1460_drift.png', dpi=300)

@@ -127,7 +127,7 @@ def main():
     config['show_plot'] = True if args.show_plot else False
     config['write_db'] = True if args.write_db else False
     config['pol_order'] = args.order if args.order else 2
-    config['mp_tol'] = 10 # raw peaks must be within keV
+    config['mp_tol'] = 100 # raw peaks must be within keV
     config = {**config, **db_ecal.table('_file_info').all()[0]}
 
     if args.show_config:
@@ -248,7 +248,7 @@ def check_raw_spectrum(dg, config, db_ecal):
 
         print(f'\nRaw E: {etype}, {len(data)} cts, runtime: {runtime_min:.2f} min')
 
-        plt.plot(bins, hist_rt, ds='steps', c='b', lw=1, label=etype)
+        plt.semilogy(bins, hist_rt, ds='steps', c='b', lw=1, label=etype)
         plt.xlabel(etype, ha='right', x=1)
         plt.ylabel(f'cts/sec, {xpb}/bin', ha='right', y=1)
 
@@ -275,9 +275,9 @@ def run_peakdet(dg, config, db_ecal, user=False):
     gb = dg.file_keys.groupby(config['gb_cols'])
     gb_args = [config]
     run_no = np.array(dg.file_keys['run'])[0]
-    
+
     print(f'Running peakdet for run: {run_no}')
-    
+
     result = gb.apply(peakdet_group, *gb_args, user)
 
     # write the results
@@ -315,7 +315,7 @@ def peakdet_group(df_group, config, user=False):
     # get file list and load energy data
     dg = DataGroup('cage.json', load=True)
     lh5_dir = dg.lh5_user_dir if user else dg.lh5_dir
-#     lh5_dir = os.path.expandvars(config['lh5_dir'])
+    # lh5_dir = os.path.expandvars(config['lh5_dir'])
     dsp_list = lh5_dir + df_group['dsp_path'] + '/' + df_group['dsp_file']
 
     edata = lh5.load_nda(dsp_list, config['rawe'], config['input_table'])
@@ -371,14 +371,15 @@ def peakdet_group(df_group, config, user=False):
             imaxes = np.asarray(imaxes)
 
             # energy, uncalibrated
-            p0.plot(bins[imaxes], hist_norm[imaxes], '.m')
-            p0.plot(bins[idx], hist_norm[idx], ds='steps', c='b', lw=1, label=et)
+            p0.semilogy(bins[imaxes], hist_norm[imaxes], '.m')
+            p0.semilogy(bins[idx], hist_norm[idx], ds='steps', c='b', lw=1, label=et)
             p0.set_ylabel(f'cts/s, {xpb}/bin', ha='right', y=1)
             p0.set_xlabel(et, ha='right', x=1)
 
             # energy, with rough calibration
             bins_cal = bins[1:] * lin_cal
             p1.plot(bins_cal, hist_norm, ds='steps', c='b', lw=1,
+            # p1.semilogy(bins_cal, hist_norm, ds='steps', c='b', lw=1,
                     label=f'E = {lin_cal:.3f}*{et}')
 
             # compute best-guess location of all peaks, assuming rough calibration
@@ -386,19 +387,22 @@ def peakdet_group(df_group, config, user=False):
             all_pks = np.concatenate((exp_pks, tst_pks))
             raw_guesses = []
             for pk in all_pks:
+
                 imatch = np.isclose(cal_maxes, pk, atol=config['mp_tol'])
                 if imatch.any():
-                    # print(pk, cal_maxes[imatch], maxes[:,0][imatch])
+                    print(pk, cal_maxes[imatch], maxes[:,0][imatch])
                     raw_guesses.append([pk, maxes[:,0][imatch][0]])
-            rg = np.asarray(raw_guesses)
-            rg = rg[rg[:,0].argsort()] # sort by energy
 
-            cmap = plt.cm.get_cmap('jet', len(rg))
-            for i, epk in enumerate(rg):
-                idx_nearest = (np.abs(bins_cal - epk[0])).argmin()
-                cts_nearest = hist_norm[idx_nearest]
-                p1.plot(epk[0], cts_nearest, '.r', c=cmap(i),
-                        label=f'{epk[0]:.1f} keV')
+            if len(raw_guesses) != 0:
+                rg = np.asarray(raw_guesses)
+                rg = rg[rg[:,0].argsort()] # sort by energy
+                cmap = plt.cm.get_cmap('jet', len(rg))
+                for i, epk in enumerate(rg):
+                    idx_nearest = (np.abs(bins_cal - epk[0])).argmin()
+                    cts_nearest = hist_norm[idx_nearest]
+                    p1.plot(epk[0], cts_nearest, '.r', c=cmap(i),
+                            label=f'{epk[0]:.1f} keV')
+                print('raw pk locations:', rg)
 
             p1.set_xlabel(f'{et}, pass-1 cal', ha='right', x=1)
             p1.set_ylabel(f'cts/s, {xpb} kev/bin', ha='right', y=1)
@@ -425,7 +429,7 @@ def match_peaks(maxes, exp_pks, tst_pks, mode='first', ene_tol=10):
 
         # set expected and test peak
         exp_pk, tst_pk = exp_pks[0], tst_pks[0]
-        # print(f'Pinning {exp_pk} looking for {tst_pk}, tolerance: {ene_tol} keV')
+        print(f'Pinning {exp_pk} looking for {tst_pk}, tolerance: {ene_tol} keV')
 
         # loop over raw peaks, apply a linear cal, and see if there
         # is a raw peak near the test location, within an energy tolerance
@@ -436,6 +440,7 @@ def match_peaks(maxes, exp_pks, tst_pks, mode='first', ene_tol=10):
             imatch = np.isclose(cal_maxes, tst_pk, atol=ene_tol)
             if imatch.any():
                 lin_cals.append(lin_cal)
+        lin_cals = sorted(lin_cals)
 
         if len(lin_cals) == 0:
             print('Found no matches!')
@@ -539,9 +544,9 @@ def run_peakfit(dg, config, db_ecal, user=False):
     gb = dg.file_keys.groupby(config['gb_cols'])
     gb_args = [config, db_ecal]
     run_no = np.array(dg.file_keys['run'])[0]
-    
+
     print(f'Running peakfit for run {run_no}')
-    
+
     result = gb.apply(peakfit_group, *gb_args, user)
 
     # write the results
@@ -592,7 +597,7 @@ def peakfit_group(df_group, config, db_ecal, user=False):
     # get file list and load energy data
     dg = DataGroup('cage.json', load=True)
     lh5_dir = dg.lh5_user_dir if user else dg.lh5_dir
-    # lh5_dir = os.path.expandvars(config['lh5_dir'])  
+    # lh5_dir = os.path.expandvars(config['lh5_dir'])
     dsp_list = lh5_dir + df_group['dsp_path'] + '/' + df_group['dsp_file']
     raw_data = lh5.load_nda(dsp_list, config['rawe'], config['input_table'])
     runtime_min = df_group['runtime'].sum()
@@ -636,39 +641,36 @@ def peakfit_group(df_group, config, db_ecal, user=False):
             bot_half = b[np.where((b < b[imax]) & (h <= np.amax(h)/2))][-1]
             fwhm = upr_half - bot_half
             sig0 = fwhm / 2.355
-        
-#     exit()
-            
-            
-#             # fit to simple gaussian
-#             amp0 = np.amax(h) * fwhm
-#             p_init = [amp0, bins[imax], sig0, bkg0] # a, mu, sigma, bkg
-#             p_fit, p_cov = pgf.fit_hist(pgf.gauss_bkg, hist_norm, bins,
-#                                         var=hist_var, guess=p_init)
-#             fit_func = pgf.gauss_bkg
-            
-#             p_err = np.sqrt(np.diag(p_cov))
-            
-#             # goodness of fit
-#             chisq = []
-#             for i, h in enumerate(hist_norm):
-#                 model = fit_func(b[i], *p_fit)
-#                 diff = (model - h)**2 / model
-#                 chisq.append(abs(diff))
-#             rchisq = sum(np.array(chisq) / len(hist_norm))
-#             # fwhm_err = p_err[1] * 2.355 * e_peak / e_fit
 
-#             # collect interesting results for this row
-#             fit_results[ie] = {
-#                 'epk':epk,
-#                 'mu':p_fit[1], 'fwhm':p_fit[2]*2.355, 'sig':p_fit[2],
-#                 'amp':p_fit[0], 'bkg':p_fit[3], 'rchisq':rchisq,
-#                 'mu_raw':p_fit[1] / lin_cal, # <-- this is in terms of raw E
-#                 'mu_unc':p_err[1] / lin_cal
-#                 }
-#             print(fit_results[ie])
+            # # fit to simple gaussian
+            # amp0 = np.amax(h) * fwhm
+            # p_init = [amp0, bins[imax], sig0, bkg0] # a, mu, sigma, bkg
+            # p_fit, p_cov = pgf.fit_hist(pgf.gauss_bkg, hist_norm, bins,
+            #                             var=hist_var, guess=p_init)
+            # fit_func = pgf.gauss_bkg
+            #
+            # p_err = np.sqrt(np.diag(p_cov))
+            #
+            # # goodness of fit
+            # chisq = []
+            # for i, h in enumerate(hist_norm):
+            #     model = fit_func(b[i], *p_fit)
+            #     diff = (model - h)**2 / model
+            #     chisq.append(abs(diff))
+            # rchisq = sum(np.array(chisq) / len(hist_norm))
+            # # fwhm_err = p_err[1] * 2.355 * e_peak / e_fit
+            #
+            # # collect interesting results for this row
+            # fit_results[ie] = {
+            #     'epk':epk,
+            #     'mu':p_fit[1], 'fwhm':p_fit[2]*2.355, 'sig':p_fit[2],
+            #     'amp':p_fit[0], 'bkg':p_fit[3], 'rchisq':rchisq,
+            #     'mu_raw':p_fit[1] / lin_cal, # <-- this is in terms of raw E
+            #     'mu_unc':p_err[1] / lin_cal
+            #     }
+            # print(fit_results[ie])
 
-        
+
             # fit to radford peak: mu, sigma, hstep, htail, tau, bg0, amp
             amp0 = np.amax(h) * fwhm
             hstep = 0.001 # fraction that the step contributes
@@ -677,12 +679,12 @@ def peakfit_group(df_group, config, db_ecal, user=False):
             p_init = [bins[imax], sig0, hstep, htail, tau, bkg0, amp0]
             p_fit, p_cov = pgf.fit_hist(pgf.radford_peak, hist_norm, bins, var=hist_var, guess=p_init)
             fit_func = pgf.radford_peak
-            
+
             #just for debugging
             print('Len Fit params:', len(p_fit))
-            
+
             p_err = np.sqrt(np.diag(p_cov))
-            
+
             # goodness of fit
             chisq = []
             for i, h in enumerate(hist_norm):
@@ -700,7 +702,7 @@ def peakfit_group(df_group, config, db_ecal, user=False):
                 # 'mu_raw':p_fit[1] / lin_cal, # <-- this is in terms of raw E
                 # 'mu_unc':p_err[1] / lin_cal
                 # }
-            
+
             # collect interesting results for this row
             # this block for Radford peak shape
             fit_results[ie] = {
@@ -710,11 +712,9 @@ def peakfit_group(df_group, config, db_ecal, user=False):
                 'mu_raw':p_fit[0] / lin_cal, # <-- this is in terms of raw E
                 'mu_unc':p_err[0] / lin_cal
                 }
-            
-#             print('Len Fit params:', len(p_fit))
+
+            # print('Len Fit params:', len(p_fit))
             print('Fit results: ', fit_results[ie])
-            
-            
 
             # diagnostic plot, don't delete
             if config['show_plot']:
@@ -732,10 +732,6 @@ def peakfit_group(df_group, config, db_ecal, user=False):
                 else:
                     plt.show()
                 plt.close()
-                
-#         exit()
-
-
 
         # ----------------------------------------------------------------------
         # compute energy calibration by matrix inversion (thanks Tim and Jason!)
@@ -805,9 +801,9 @@ def peakfit_group(df_group, config, db_ecal, user=False):
             hist, bins, _ = pgh.get_hist(pk_data, range=(xlo, xhi), dx=xpb)
             hist_norm = np.divide(hist, runtime_min * 60)
             hist_var = np.array([np.sqrt(h / (runtime_min * 60)) for h in hist])
-            
+
             print('cal_data:', cal_data)
-            
+
             print('bins:', bins)
 #             print(pk_data)
 #             exit()
@@ -831,7 +827,7 @@ def peakfit_group(df_group, config, db_ecal, user=False):
             p_fit, p_cov = pgf.fit_hist(pgf.gauss_bkg, hist_norm, bins,
                                         var=hist_var, guess=p_init)
             p_err = np.sqrt(np.diag(p_cov))
-            
+
             print('p_err: ', p_err)
 
             # save results

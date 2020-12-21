@@ -151,6 +151,7 @@
   Several relevant commands are given below, and must be run in the directory containing the file `docker-compose.yaml`.
 
   * `docker-compose down` Bring down an active or misbehaving system
+    * NOTE: when this is run, you will need to restart logging processes on RPi's too (`supervisorctl reload`)
   * `docker-compose ps`, or `docker ps` List containers, status, and the port forward structure
   * `docker-compose up -d`  Restart the container system in the background.
   * `docker-compose exec [container_name] <cmd>` Execute a bash command in a specific container.
