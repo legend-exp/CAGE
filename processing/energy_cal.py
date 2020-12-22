@@ -36,16 +36,12 @@ with warnings.catch_warnings():
 
 
 def main():
-    doc="""
-    === pygama: energy_cal.py ====================================================
-
+    doc=""" === pygama: energy_cal.py ==========================================
     energy calibration app
-
     - Initial guesses are determined by running 'check_raw_spectrum'
     - Uses a DataGroup to organize files and processing.
     - Metadata is handled in JSON format with 'legend-metadata' conventions.
-
-    === T. Mathew, C. Wiseman (UW) =============================================
+    === T. Mathew, C. Wiseman (UW), G. Othman (UNC) ============================
     """
     rthf = argparse.RawTextHelpFormatter
     par = argparse.ArgumentParser(description=doc, formatter_class=rthf)
@@ -76,7 +72,9 @@ def main():
         help="specify raw energy parameters: --epar 'asd sdf dfg' ")
     arg('--group', nargs=1, type=str,
         help="select alternate groupby: --group 'YYYY run' ")
-    arg('-ba', '--barium', action=st, help='use special ecal config for Ba calibrations')
+    
+    # select gamma lines 
+    arg('-ba', '--barium', action=st, help='use Ba133 ecal config')
 
     args = par.parse_args()
 
@@ -161,7 +159,9 @@ def main():
 
 def init_ecaldb(config):
     """
-    one-time set up of primary database file
+    $ ./energy_cal.py --init_db
+    one-time set up of primary database file.
+    You probably DON'T want to run this, it will wipe ecalDB.json
     """
     ans = input('(Re)create main ecal JSON file?  Are you really sure? (y/n) ')
     if ans.lower() != 'y':
@@ -315,7 +315,7 @@ def peakdet_group(df_group, config, user=False):
     # get file list and load energy data
     dg = DataGroup('cage.json', load=True)
     lh5_dir = dg.lh5_user_dir if user else dg.lh5_dir
-#     lh5_dir = os.path.expandvars(config['lh5_dir'])
+    # lh5_dir = os.path.expandvars(config['lh5_dir'])
     dsp_list = lh5_dir + df_group['dsp_path'] + '/' + df_group['dsp_file']
 
     edata = lh5.load_nda(dsp_list, config['rawe'], config['input_table'])
@@ -532,6 +532,7 @@ def match_peaks(maxes, exp_pks, tst_pks, mode='first', ene_tol=10):
 
 def run_peakfit(dg, config, db_ecal, user=False):
     """
+    $ ./energy_cal.py -q 'query' -p2 [-b -p --ba]
     """
     print('\nRunning peakfit ...')
 
@@ -637,38 +638,34 @@ def peakfit_group(df_group, config, db_ecal, user=False):
             fwhm = upr_half - bot_half
             sig0 = fwhm / 2.355
         
-#     exit()
+            # # fit to gaussian
+            # amp0 = np.amax(h) * fwhm
+            # p_init = [amp0, bins[imax], sig0, bkg0] # a, mu, sigma, bkg
+            # p_fit, p_cov = pgf.fit_hist(pgf.gauss_bkg, hist_norm, bins,
+            #                             var=hist_var, guess=p_init)
+            # fit_func = pgf.gauss_bkg
+            # 
+            # p_err = np.sqrt(np.diag(p_cov))
+            # 
+            # # goodness of fit
+            # chisq = []
+            # for i, h in enumerate(hist_norm):
+            #     model = fit_func(b[i], *p_fit)
+            #     diff = (model - h)**2 / model
+            #     chisq.append(abs(diff))
+            # rchisq = sum(np.array(chisq) / len(hist_norm))
+            # # fwhm_err = p_err[1] * 2.355 * e_peak / e_fit
+            # 
+            # # collect interesting results for this row
+            # fit_results[ie] = {
+            #     'epk':epk,
+            #     'mu':p_fit[1], 'fwhm':p_fit[2]*2.355, 'sig':p_fit[2],
+            #     'amp':p_fit[0], 'bkg':p_fit[3], 'rchisq':rchisq,
+            #     'mu_raw':p_fit[1] / lin_cal, # <-- this is in terms of raw E
+            #     'mu_unc':p_err[1] / lin_cal
+            #     }
+            # print(fit_results[ie])
             
-            
-#             # fit to simple gaussian
-#             amp0 = np.amax(h) * fwhm
-#             p_init = [amp0, bins[imax], sig0, bkg0] # a, mu, sigma, bkg
-#             p_fit, p_cov = pgf.fit_hist(pgf.gauss_bkg, hist_norm, bins,
-#                                         var=hist_var, guess=p_init)
-#             fit_func = pgf.gauss_bkg
-            
-#             p_err = np.sqrt(np.diag(p_cov))
-            
-#             # goodness of fit
-#             chisq = []
-#             for i, h in enumerate(hist_norm):
-#                 model = fit_func(b[i], *p_fit)
-#                 diff = (model - h)**2 / model
-#                 chisq.append(abs(diff))
-#             rchisq = sum(np.array(chisq) / len(hist_norm))
-#             # fwhm_err = p_err[1] * 2.355 * e_peak / e_fit
-
-#             # collect interesting results for this row
-#             fit_results[ie] = {
-#                 'epk':epk,
-#                 'mu':p_fit[1], 'fwhm':p_fit[2]*2.355, 'sig':p_fit[2],
-#                 'amp':p_fit[0], 'bkg':p_fit[3], 'rchisq':rchisq,
-#                 'mu_raw':p_fit[1] / lin_cal, # <-- this is in terms of raw E
-#                 'mu_unc':p_err[1] / lin_cal
-#                 }
-#             print(fit_results[ie])
-
-        
             # fit to radford peak: mu, sigma, hstep, htail, tau, bg0, amp
             amp0 = np.amax(h) * fwhm
             hstep = 0.001 # fraction that the step contributes
@@ -677,10 +674,6 @@ def peakfit_group(df_group, config, db_ecal, user=False):
             p_init = [bins[imax], sig0, hstep, htail, tau, bkg0, amp0]
             p_fit, p_cov = pgf.fit_hist(pgf.radford_peak, hist_norm, bins, var=hist_var, guess=p_init)
             fit_func = pgf.radford_peak
-            
-            #just for debugging
-            print('Len Fit params:', len(p_fit))
-            
             p_err = np.sqrt(np.diag(p_cov))
             
             # goodness of fit
@@ -693,16 +686,17 @@ def peakfit_group(df_group, config, db_ecal, user=False):
             # fwhm_err = p_err[1] * 2.355 * e_peak / e_fit
 
             # collect interesting results for this row
-            # fit_results[ie] = {
-                # 'epk':epk,
-                # 'mu':p_fit[1], 'fwhm':p_fit[2]*2.355, 'sig':p_fit[2],
-                # 'amp':p_fit[0], 'bkg':p_fit[3], 'rchisq':rchisq,
-                # 'mu_raw':p_fit[1] / lin_cal, # <-- this is in terms of raw E
-                # 'mu_unc':p_err[1] / lin_cal
-                # }
             
-            # collect interesting results for this row
-            # this block for Radford peak shape
+            # gaussian peak
+            # fit_results[ie] = {
+            #     'epk':epk,
+            #     'mu':p_fit[1], 'fwhm':p_fit[2]*2.355, 'sig':p_fit[2],
+            #     'amp':p_fit[0], 'bkg':p_fit[3], 'rchisq':rchisq,
+            #     'mu_raw':p_fit[1] / lin_cal, # <-- this is in terms of raw E
+            #     'mu_unc':p_err[1] / lin_cal
+            #     }
+
+            # radford peak
             fit_results[ie] = {
                 'epk':epk,
                 'mu':p_fit[0], 'fwhm':p_fit[1]*2.355, 'sig':p_fit[1],
@@ -710,12 +704,8 @@ def peakfit_group(df_group, config, db_ecal, user=False):
                 'mu_raw':p_fit[0] / lin_cal, # <-- this is in terms of raw E
                 'mu_unc':p_err[0] / lin_cal
                 }
-            
-#             print('Len Fit params:', len(p_fit))
             print('Fit results: ', fit_results[ie])
             
-            
-
             # diagnostic plot, don't delete
             if config['show_plot']:
                 plt.axvline(bins[ibin_bkg], c='m', label='bkg region')
