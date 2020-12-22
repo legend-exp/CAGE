@@ -92,7 +92,7 @@ def main():
     print(f"Current campaign: {campaign_number} : cp_label")
     print(f'Move history is saved in: {f_history}')
 
-    # ==========================================================================
+    # =====================================================================
     connect_to_controller(verbose) # check Newmark and RPi by default
 
     if not constraints:
@@ -194,6 +194,7 @@ def connect_to_controller(verbose=True):
     else:
         print("CAGE RPi isn't active on the network!  Beware ...")
 
+
 def lift_interlock():
     """
     Access the RPi-side routine, "read_encoders.py" via SSH.
@@ -208,14 +209,15 @@ def lift_interlock():
     with shell:
         result = shell.run(["python3", "/home/pi/cage/motors/lift_interlock.py"])
 
-    result = float(result.output.decode("utf-8"))
-    print('lift interlock status:', result)
+    result = int(result.output.decode("utf-8"))
 
     if result != 1:
         print("WARNING: Rack and Pinion is not lifted to safe distance")
         print("Lift rack and pinion and place motor movement block so that pressure pad is engaged")
         print("Then retry your command")
         exit()
+    else:
+        print(f'Lift interlock : {result}, motor movements are allowed.')
 
 
 def check_limit_switches(verbose=True):

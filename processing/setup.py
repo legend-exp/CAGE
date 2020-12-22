@@ -86,12 +86,14 @@ def init(dg):
     Run first scan of the fileDB over the DAQ directory ($CAGE_DAQ)
     """
     print('Initializing fileDB...')
-    
+
     # scan over DAQ directory, then organize by cycle (ORCA run number)
     dg.scan_daq_dir()
     dg.file_keys.sort_values(['cycle'], inplace=True)
     dg.file_keys.reset_index(drop=True, inplace=True)
     dg.file_keys = dg.file_keys.apply(get_cyc_info, args=[dg], axis=1)
+    # print(dg.file_keys)
+    # exit()
 
     # compute lh5 column names (uses $CAGE_LH5, don't use $CAGE_LH5_USER here)
     dg.get_lh5_cols()
@@ -117,7 +119,7 @@ def update(dg, batch_mode=False):
     TODO: look for nan's to identify cycles not covered in runDB
     """
     print('Updating fileDB ...')
-    
+
     dbg_cols = ['unique_key', 'run', 'cycle', 'daq_file']
 
     # load existing file keys
@@ -195,11 +197,11 @@ def get_cyc_info(row, dg):
         row['detector'] = 'icpc_v1'
     elif 137 <= cyc <= 9999:
         row['detector'] = 'oppi_v2'
-        
+
     # apply file selection
     skips = dg.runSelectionDB['daq_junk_cycles']
     row['skip'] = cyc in skips
-    
+
     return row
 
 
@@ -210,7 +212,7 @@ def scan_orca_headers(dg, overwrite=False, batch_mode=False):
     for the fileDB.
     """
     print('Scanning ORCA headers ...')
-    
+
     # load existing fileDB
     dg.load_df()
 
@@ -251,7 +253,7 @@ def scan_orca_headers(dg, overwrite=False, batch_mode=False):
             exit()
         elif df_row['skip']==True:
             print(f"Skipping cycle: {df_row['cycle']}")
-            return pd.Series({'startTime':np.nan, 'threshold':np.nan, 
+            return pd.Series({'startTime':np.nan, 'threshold':np.nan,
                               'daq_gb':daq_gb})
         else:
             _,_, header_dict = parse_header(f_daq)
@@ -288,16 +290,16 @@ def scan_orca_headers(dg, overwrite=False, batch_mode=False):
 def get_runtimes(dg, overwrite=False, batch_mode=False):
     """
     $ ./setup.py --rt
-    
+
     Compute runtime (# minutes in run) and stopTime (unix timestamp) using
     the timestamps in the DSP file.
-    
-    NOTE: Could change this to use the raw file timestamps instead of dsp file, 
+
+    NOTE: Could change this to use the raw file timestamps instead of dsp file,
           but that still makes this function dependent on a processing step.
     NOTE: CAGE uses struck channel 2 (0-indexed)
     """
     print('Scanning DSP files for runtimes ...')
-    
+
     # load existing fileDB
     dg.load_df()
 
@@ -349,16 +351,16 @@ def get_runtimes(dg, overwrite=False, batch_mode=False):
         clock = 100e6 # 100 MHz
         UINT_MAX = 4294967295 # (0xffffffff)
         t_max = UINT_MAX / clock
-        
-            
+
+
         # ts = data['timestamp'].nda.astype(np.int64) # must be signed for np.diff
         ts = data['timestamp'].nda / clock # converts to float
-            
+
         tdiff = np.diff(ts)
         tdiff = np.insert(tdiff, 0 , 0)
         iwrap = np.where(tdiff < 0)
         iloop = np.append(iwrap[0], len(ts))
-            
+
         ts_new, t_roll = [], 0
         for i, idx in enumerate(iloop):
             ilo = 0 if i==0 else iwrap[0][i-1]
@@ -367,13 +369,13 @@ def get_runtimes(dg, overwrite=False, batch_mode=False):
             t_last = ts[ilo-1]
             t_diff = t_max - t_last
             ts_new.append(ts_block + t_roll)
-            t_roll += t_last + t_diff  
+            t_roll += t_last + t_diff
         ts_corr = np.concatenate(ts_new)
-            
+
         # calculate runtime and unix stopTime
         rt = ts_corr[-1] / 60 # minutes
         st = int(np.ceil(df_row['startTime'] + rt * 60))
-        
+
         return pd.Series({'stopTime':st, 'runtime':rt})
 
     df_tmp = df_keys.progress_apply(get_runtime, axis=1)

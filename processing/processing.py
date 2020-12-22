@@ -50,11 +50,12 @@ def main():
     else:
         dg.file_keys = dg.file_keys[-1:]
 
-    view_cols = ['run','cycle','daq_file','runtype','startTime']#,'threshold',
-                 # 'stopTime','runtime']
-    print(dg.file_keys[view_cols].to_string())
+    # if you need a different view, i suggest modifying setup.py::show_fileDB
+    view_cols = ['run','cycle','daq_file','runtype']
+    # print(dg.file_keys[view_cols].to_string())
+    print(dg.file_keys[view_cols])
     print('Files:', len(dg.file_keys))
-#     exit()
+    # exit()
 
     # -- set options --
     nwfs = args.nwfs[0] if args.nwfs is not None else np.inf
@@ -77,11 +78,11 @@ def main():
 
 def d2r(dg, overwrite=False, nwfs=None, vrb=False, user=False):
     """
+    $ ./processing.py -q 'run==[something]' --d2r
     run daq_to_raw on the current DataGroup
     """
     # print(dg.file_keys)
     # print(dg.file_keys.columns)
-    
 
     subs = dg.subsystems # can be blank: ['']
     # subs = ['geds'] # TODO: ignore other datastreams
@@ -101,7 +102,7 @@ def d2r(dg, overwrite=False, nwfs=None, vrb=False, user=False):
         if not overwrite and os.path.exists(f_raw):
             print('file exists, overwrite not set, skipping f_raw:\n   ', f_raw)
             continue
-        
+
         cyc = row['cycle']
         if row.skip:
             print(f'Cycle {cyc} has been marked junk, will not process.')
@@ -114,6 +115,7 @@ def d2r(dg, overwrite=False, nwfs=None, vrb=False, user=False):
 
 def r2d(dg, overwrite=False, nwfs=None, vrb=False, user=False):
     """
+    $ ./processing.py -q 'run==[something]' --r2d
     """
     # print(dg.file_keys)
     # print(dg.file_keys.columns)
@@ -135,12 +137,12 @@ def r2d(dg, overwrite=False, nwfs=None, vrb=False, user=False):
         if not overwrite and os.path.exists(f_dsp):
             print('file exists, overwrite not set, skipping f_dsp:\n   ', f_dsp)
             continue
-        
+
         cyc = row['cycle']
         if row.skip:
             print(f'Cycle {cyc} has been marked junk, will not process.')
             continue
-        
+
         print(f'Processing cycle {cyc}')
         raw_to_dsp(f_raw, f_dsp, dsp_config, n_max=nwfs, verbose=vrb,
                    overwrite=overwrite)
@@ -148,6 +150,7 @@ def r2d(dg, overwrite=False, nwfs=None, vrb=False, user=False):
 
 def r2d_file(f_raw, f_dsp, overwrite=True, nwfs=None, vrb=False):
     """
+    $ ./processing.py -q 'run==[something]' --r2d_file
     single-file mode, for testing
     """
     print('raw_to_dsp, single-file mode.')
@@ -167,6 +170,7 @@ def r2d_file(f_raw, f_dsp, overwrite=True, nwfs=None, vrb=False):
 
 def d2h(dg, overwrite=False, nwfs=None, vrb=False, user=False):
     """
+    $ ./processing.py -q 'run==[something]' --d2h
     """
     # merge main and ecal config JSON as dicts
     config = dg.config
@@ -175,19 +179,17 @@ def d2h(dg, overwrite=False, nwfs=None, vrb=False, user=False):
     dg.config = config
 
     for i, row in dg.file_keys.iterrows():
-        lh5_dir = dg.lh5_user_dir if user else dg.lh5_dir
 
-        # if you want to use a dsp file from the main $CAGE_LH5 directory
-        f_dsp = f"{dg.lh5_dir}/{row['dsp_path']}/{row['dsp_file']}"
-        
-        #if you want to use a dsp file from $CAGE_LH5_USER directory
-        # f_dsp = f"{lh5_dir}/{row['dsp_path']}/{row['dsp_file']}"
+        # can use a dsp file from $CAGE_LH5_USER directory
+        # TODO: might need to handle more use cases here (official dsp --> user hit)
+        lh5_dir = dg.lh5_user_dir if user else dg.lh5_dir
+        f_dsp = f"{lh5_dir}/{row['dsp_path']}/{row['dsp_file']}"
         f_hit = f"{lh5_dir}/{row['hit_path']}/{row['hit_file']}"
 
         if not overwrite and os.path.exists(f_hit):
             print('file exists, overwrite not set, skipping f_hit:\n   ', f_dsp)
             continue
-        
+
         cyc = row['cycle']
         if row.skip:
             print(f'Cycle {cyc} has been marked junk, will not process.')
@@ -195,7 +197,6 @@ def d2h(dg, overwrite=False, nwfs=None, vrb=False, user=False):
 
         t_start = row['startTime']
         dsp_to_hit_cage(f_dsp, f_hit, dg, n_max=nwfs, verbose=vrb, t_start=t_start)
-#         uncal_dsp_to_hit_cage(f_dsp, f_hit, dg, n_max=nwfs, verbose=vrb, t_start=t_start)
 
 
 def dsp_to_hit_cage(f_dsp, f_hit, dg, n_max=None, verbose=False, t_start=None):
@@ -206,152 +207,81 @@ def dsp_to_hit_cage(f_dsp, f_hit, dg, n_max=None, verbose=False, t_start=None):
     - timestamp correction
     for a more general dsp_to_hit, maybe each function could be given in terms
     of an 'apply' on a dsp dataframe ...
-    
-    TODO: create entry config['rawe'] with list of energy pars to calibrate, as 
+
+    TODO: create entry config['rawe'] with list of energy pars to calibrate, as
     in energy_cal.py
     """
+    apply_ecal = False # user changes these here for now
+    apply_tscorr = True
+
     rawe = ['trapEmax']
-    
+
     # create initial 'hit' DataFrame from dsp data
     hit_store = lh5.Store()
     data, n_rows = hit_store.read_object(dg.config['input_table'], f_dsp)
     df_hit = data.get_dataframe()
-    
-    # 1. get energy calibration for this run from peakfit 
-    cal_db = db.TinyDB(storage=MemoryStorage)
-    with open(dg.config['ecaldb']) as f:
-        raw_db = json.load(f)
-        cal_db.storage.write(raw_db)
-    runs = dg.file_keys.run.unique()
-    if len(runs) > 1:
-        print("sorry, I can't do combined runs yet")
-        exit()
-    run = runs[0]
-    for etype in rawe:
-        tb = cal_db.table(f'peakfit_{etype}').all()
-        df_cal = pd.DataFrame(tb)
-        df_cal['run'] = df_cal['run'].astype(int)
-        df_run = df_cal.loc[df_cal.run==run]
-#         print(df_run.iloc[['cal0','cal1','cal2']])
-#         exit()
-        cal_pars = df_run.iloc[0][['cal0','cal1','cal2']]
-        pol = np.poly1d(cal_pars) # handy numpy polynomial object
-        df_hit[f'{etype}_cal'] = pol(df_hit[f'{etype}'])
+
+    # 1. get energy calibration for this run from peakfit
+    if apply_ecal:
+        cal_db = db.TinyDB(storage=MemoryStorage)
+        with open(dg.config['ecaldb']) as f:
+            raw_db = json.load(f)
+            cal_db.storage.write(raw_db)
+        runs = dg.file_keys.run.unique()
+        if len(runs) > 1:
+            print("sorry, I can't do combined runs yet")
+            exit()
+        run = runs[0]
+        for etype in rawe:
+            tb = cal_db.table(f'peakfit_{etype}').all()
+            df_cal = pd.DataFrame(tb)
+            df_cal['run'] = df_cal['run'].astype(int)
+            df_run = df_cal.loc[df_cal.run==run]
+            # print(df_run.iloc[['cal0','cal1','cal2']])
+            # exit()
+            cal_pars = df_run.iloc[0][['cal0','cal1','cal2']]
+            pol = np.poly1d(cal_pars) # handy numpy polynomial object
+            df_hit[f'{etype}_cal'] = pol(df_hit[f'{etype}'])
 
     # 2. compute timestamp rollover correction (specific to struck 3302)
-    clock = 100e6 # 100 MHz
-    UINT_MAX = 4294967295 # (0xffffffff)
-    t_max = UINT_MAX / clock
-    ts = df_hit['timestamp'].values / clock
-    tdiff = np.diff(ts)
-    tdiff = np.insert(tdiff, 0 , 0)
-    iwrap = np.where(tdiff < 0)
-    iloop = np.append(iwrap[0], len(ts))
-    ts_new, t_roll = [], 0
-    for i, idx in enumerate(iloop):
-        ilo = 0 if i==0 else iwrap[0][i-1]
-        ihi = idx
-        ts_block = ts[ilo:ihi]
-        t_last = ts[ilo-1]
-        t_diff = t_max - t_last
-        ts_new.append(ts_block + t_roll)
-        t_roll += t_last + t_diff
-    df_hit['ts_sec'] = np.concatenate(ts_new)
-    
+    if apply_tscorr:
+        clock = 100e6 # 100 MHz
+        UINT_MAX = 4294967295 # (0xffffffff)
+        t_max = UINT_MAX / clock
+        ts = df_hit['timestamp'].values / clock
+        tdiff = np.diff(ts)
+        tdiff = np.insert(tdiff, 0 , 0)
+        iwrap = np.where(tdiff < 0)
+        iloop = np.append(iwrap[0], len(ts))
+        ts_new, t_roll = [], 0
+        for i, idx in enumerate(iloop):
+            ilo = 0 if i==0 else iwrap[0][i-1]
+            ihi = idx
+            ts_block = ts[ilo:ihi]
+            t_last = ts[ilo-1]
+            t_diff = t_max - t_last
+            ts_new.append(ts_block + t_roll)
+            t_roll += t_last + t_diff
+        df_hit['ts_sec'] = np.concatenate(ts_new)
+
     # 3. compute global timestamp
     if t_start is not None:
-        df_hit['ts_glo'] = df_hit['ts_sec'] + t_start 
-    
+        df_hit['ts_glo'] = df_hit['ts_sec'] + t_start
+
     # write to LH5 file
     if os.path.exists(f_hit):
         os.remove(f_hit)
     sto = lh5.Store()
     tb_name = dg.config['input_table'].replace('dsp', 'hit')
     tb_lh5 = lh5.Table(size=len(df_hit))
-    
+
     for col in df_hit.columns:
         tb_lh5.add_field(col, lh5.Array(df_hit[col].values, attrs={'units':''}))
         print(col)
-    
+
     print(f'Writing table: {tb_name} in file:\n   {f_hit}')
     sto.write_object(tb_lh5, tb_name, f_hit)
-    
 
-def uncal_dsp_to_hit_cage(f_dsp, f_hit, dg, n_max=None, verbose=False, t_start=None):
-    """
-    non-general placeholder for creating a pygama 'hit' file.  uses pandas.
-    for every file, apply:
-    - energy calibration (peakfit results)
-    - timestamp correction
-    for a more general dsp_to_hit, maybe each function could be given in terms
-    of an 'apply' on a dsp dataframe ...
-    
-    TODO: create entry config['rawe'] with list of energy pars to calibrate, as 
-    in energy_cal.py
-    """
-    rawe = ['trapEmax']
-    
-    # create initial 'hit' DataFrame from dsp data
-    hit_store = lh5.Store()
-    data, n_rows = hit_store.read_object(dg.config['input_table'], f_dsp)
-    df_hit = data.get_dataframe()
-    
-#     # 1. get energy calibration for this run from peakfit 
-#     cal_db = db.TinyDB(storage=MemoryStorage)
-#     with open(dg.config['ecaldb']) as f:
-#         raw_db = json.load(f)
-#         cal_db.storage.write(raw_db)
-#     runs = dg.file_keys.run.unique()
-#     if len(runs) > 1:
-#         print("sorry, I can't do combined runs yet")
-#         exit()
-#     run = runs[0]
-#     for etype in rawe:
-#         tb = cal_db.table(f'peakfit_{etype}').all()
-#         df_cal = pd.DataFrame(tb)
-#         df_cal['run'] = df_cal['run'].astype(int)
-#         df_run = df_cal.loc[df_cal.run==run]
-#         cal_pars = df_run.iloc[0][['cal0','cal1','cal2']]
-#         pol = np.poly1d(cal_pars) # handy numpy polynomial object
-#         df_hit[f'{etype}_cal'] = pol(df_hit[f'{etype}'])
-
-    # 2. compute timestamp rollover correction (specific to struck 3302)
-    clock = 100e6 # 100 MHz
-    UINT_MAX = 4294967295 # (0xffffffff)
-    t_max = UINT_MAX / clock
-    ts = df_hit['timestamp'].values / clock
-    tdiff = np.diff(ts)
-    tdiff = np.insert(tdiff, 0 , 0)
-    iwrap = np.where(tdiff < 0)
-    iloop = np.append(iwrap[0], len(ts))
-    ts_new, t_roll = [], 0
-    for i, idx in enumerate(iloop):
-        ilo = 0 if i==0 else iwrap[0][i-1]
-        ihi = idx
-        ts_block = ts[ilo:ihi]
-        t_last = ts[ilo-1]
-        t_diff = t_max - t_last
-        ts_new.append(ts_block + t_roll)
-        t_roll += t_last + t_diff
-    df_hit['ts_sec'] = np.concatenate(ts_new)
-    
-    # 3. compute global timestamp
-    if t_start is not None:
-        df_hit['ts_glo'] = df_hit['ts_sec'] + t_start 
-    
-    # write to LH5 file
-    if os.path.exists(f_hit):
-        os.remove(f_hit)
-    sto = lh5.Store()
-    tb_name = dg.config['input_table'].replace('dsp', 'hit')
-    tb_lh5 = lh5.Table(size=len(df_hit))
-    
-    for col in df_hit.columns:
-        tb_lh5.add_field(col, lh5.Array(df_hit[col].values, attrs={'units':''}))
-        print(col)
-    
-    print(f'Writing table: {tb_name} in file:\n   {f_hit}')
-    sto.write_object(tb_lh5, tb_name, f_hit)
 
 if __name__=="__main__":
     main()

@@ -1,8 +1,8 @@
 {
   "outputs": [
-    "channel", "timestamp", 
+    "channel", "timestamp",
     "bl", "bl_sig",
-    "energy", "trapEftp", "trapEmax", "triE",  
+    "energy", "trapEftp", "trapEmax", "triE",
     "tp_max", "tp_0", "tp_10", "tp_50", "tp_80", "tp_90",
     "A_10", "AoE",
     "dcr_raw", "dcr_max", "dcr_ftp",
@@ -29,7 +29,7 @@
       "args": ["wf_blsub", "db.pz.tau", "wf_pz"],
       "prereqs": ["wf_blsub"],
       "unit": "ADC",
-      "defaults": { "db.pz.tau":"150*us" }
+      "defaults": { "db.pz.tau":"50*us" }
     },
     "wf_trap": {
       "function": "trap_norm",
@@ -46,7 +46,7 @@
       "unit": "ADC",
       "prereqs": ["wf_trap"]
     },
-    
+
     "wf_triangle": {
       "function": "trap_norm",
       "module": "pygama.dsp.processors",
@@ -62,7 +62,7 @@
       "unit": "ADC",
       "prereqs": ["wf_triangle"]
     },
-    
+
     "wf_atrap": {
       "function": "asymTrapFilter",
       "module": "pygama.dsp.processors",
@@ -92,7 +92,7 @@
       "unit": "ADC",
       "prereqs": ["wf_trap", "tp_0"]
     },
-     
+
     "tp_10": {
       "function": "time_point_frac",
       "module": "pygama.dsp.processors",
@@ -121,7 +121,7 @@
       "unit": "ns",
       "prereqs": ["wf_blsub", "tp_max"]
     },
-    
+
     "curr": {
       "function": "avg_current",
       "module": "pygama.dsp.processors",
@@ -144,7 +144,7 @@
       "unit": "1/sample",
       "prereqs": ["A_10", "trapEmax"]
     },
-  
+
     "dcr_raw": {
       "function": "trap_pickoff",
       "module": "pygama.dsp.processors",
@@ -166,7 +166,7 @@
       "unit": "ADC",
       "prereqs": ["dcr_raw", "trapEmax"]
     },
-    
+
     "curr_psd": {
       "function": "psd",
       "module": "pygama.dsp.processors",
