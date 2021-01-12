@@ -34,7 +34,7 @@
     "wf_trap": {
       "function": "trap_norm",
       "module": "pygama.dsp.processors",
-      "args": ["wf_pz", "8*us", "3*us", "wf_trap"],
+      "args": ["wf_pz", "6*us", "4*us", "wf_trap"],
       "prereqs": ["wf_pz"],
       "unit": "ADC"
     },
@@ -88,7 +88,7 @@
     "trapEftp": {
       "function": "fixed_time_pickoff",
       "module": "pygama.dsp.processors",
-      "args": ["wf_trap", "tp_0+(8*us+2*us)", "trapEftp"],
+      "args": ["wf_trap", "tp_0+(6*us+3.5*us)", "trapEftp"],
       "unit": "ADC",
       "prereqs": ["wf_trap", "tp_0"]
     },

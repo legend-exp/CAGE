@@ -55,9 +55,9 @@ def main():
     # show_cal_spectrum(dg)
     # show_wfs(dg)
     # data_cleaning(dg)
-    peak_drift(dg)
+    # peak_drift(dg)
     # pole_zero(dg)
-    # label_alpha_runs(dg)
+    label_alpha_runs(dg)
     # power_spectrum(dg)
 
 
