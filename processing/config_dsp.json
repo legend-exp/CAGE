@@ -31,6 +31,14 @@
       "unit": "ADC",
       "defaults": { "db.pz.tau":"50*us" }
     },
+      "wf_pz2": {
+      "function": "double_pole_zero",
+      "module": "pygama.dsp.processors",
+      "args": ["wf_blsub", "db.pz2.tau1", "db.pz2.tau2",  "db.pz2.frac", "wf_pz2"],
+      "prereqs": ["wf_blsub"],
+      "unit": "ADC",
+      "defaults": { "db.pz2.tau1":"50*us", "db.pz2.tau2":"3*us", "db.pz2.frac":"0.013" }
+    },
     "wf_trap": {
       "function": "trap_norm",
       "module": "pygama.dsp.processors",

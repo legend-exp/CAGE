@@ -14,7 +14,7 @@
 /g4simple/setOutputFormat hdf5
 #/analysis/setFileName ./alpha/raw_out/newDet_sourceRot33_ICPC_Pb_241Am_20000000.hdf5
 #/analysis/setFileName ./alpha/raw_out/test.hdf5
-/analysis/setFileName ./alpha/raw_out/oppi/test_oppi_ring_lmfe_y8_norm_241Am_10000.hdf5
+/analysis/setFileName ./alpha/raw_out/oppi/test_oppi_ring_lmfe_y8_norm_241Am_100000000.hdf5
 
 ##Set Volume ID's for Geometry Volumes (volume.in.geometry.file_PV volID)
 #/g4simple/setVolID Top_Hat_PV 1
@@ -69,4 +69,4 @@
 
 
 ##set number of runs
-/run/beamOn 10000
+/run/beamOn 100000000
