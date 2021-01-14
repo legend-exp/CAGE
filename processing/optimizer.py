@@ -63,13 +63,13 @@ def main():
     dg = DataGroup('cage.json', load=True)
     if args.query:
         que = args.query[0]
-        dg.file_keys.query(que, inplace=True)
+        dg.fileDB.query(que, inplace=True)
     else:
-        dg.file_keys = dg.file_keys[-1:]
+        dg.fileDB = dg.fileDB[-1:]
  
     view_cols = ['run','cycle','daq_file','runtype','startTime','threshold']
-    print(dg.file_keys[view_cols].to_string())
-    # print(f'Found {len(dg.file_keys)} files.')
+    print(dg.fileDB[view_cols].to_string())
+    # print(f'Found {len(dg.fileDB)} files.')
     
     # -- run routines -- 
     
@@ -109,7 +109,7 @@ def optimize_trap(dg):
     # files to consider.  fixme: right now only works with one file
     sto = lh5.Store()
     lh5_dir = os.path.expandvars(dg.config['lh5_dir'])
-    raw_list = lh5_dir + dg.file_keys['raw_path'] + '/' + dg.file_keys['raw_file']
+    raw_list = lh5_dir + dg.fileDB['raw_path'] + '/' + dg.fileDB['raw_file']
     f_raw = raw_list.values[0] 
     tb_raw = 'ORSIS3302DecoderForEnergy/raw/'
 
@@ -333,13 +333,13 @@ def optimize_dcr(dg):
     # files to consider.  fixme: right now only works with one file
     sto = lh5.Store()
     lh5_dir = os.path.expandvars(dg.config['lh5_dir'])
-    raw_list = lh5_dir + dg.file_keys['raw_path'] + '/' + dg.file_keys['raw_file']
+    raw_list = lh5_dir + dg.fileDB['raw_path'] + '/' + dg.fileDB['raw_file']
     f_raw = raw_list.values[0] 
     
     tb_raw = 'ORSIS3302DecoderForEnergy/raw/'
     tb_data = sto.read_object(tb_raw, f_raw)
     
-    cycle = dg.file_keys['cycle'].values[0]
+    cycle = dg.fileDB['cycle'].values[0]
     f_results = f'./temp_{cycle}.h5'
     
     write_output = True
@@ -388,7 +388,7 @@ def show_dcr_results(dg):
     """
     plot of dcr vs energy for a single setting
     """
-    cycle = dg.file_keys['cycle'].values[0]
+    cycle = dg.fileDB['cycle'].values[0]
     df_dsp = pd.read_hdf(f'./temp_{cycle}.h5', 'opt_dcr')
     # print(df_dsp.describe())    
 
@@ -440,13 +440,13 @@ def check_wfs(dg):
     have to load all the waveforms in the file every time.  butts.
     """
     # load dsp results
-    cycle = dg.file_keys['cycle'].values[0]
+    cycle = dg.fileDB['cycle'].values[0]
     df_dsp = pd.read_hdf(f'./temp_{cycle}.h5', 'opt_dcr')
     
     # load waveforms
     sto = lh5.Store()
     lh5_dir = os.path.expandvars(dg.config['lh5_dir'])
-    raw_list = lh5_dir + dg.file_keys['raw_path'] + '/' + dg.file_keys['raw_file']
+    raw_list = lh5_dir + dg.fileDB['raw_path'] + '/' + dg.fileDB['raw_file']
     f_raw = raw_list.values[0] 
     tb_wfs = sto.read_object('ORSIS3302DecoderForEnergy/raw/waveform', f_raw)
     

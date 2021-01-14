@@ -35,13 +35,13 @@ def timepoints(runs):
         # get run files
         dg = DataGroup('cage.json', load=True)
         str_query = f'run=={run} and skip==False'
-        dg.file_keys.query(str_query, inplace=True)
+        dg.fileDB.query(str_query, inplace=True)
 
         #get runtime, startime, runtype
-        runtype_list = np.array(dg.file_keys['runtype'])
+        runtype_list = np.array(dg.fileDB['runtype'])
         runtype = runtype_list[0]
-        rt_min = dg.file_keys['runtime'].sum()
-        u_start = dg.file_keys.iloc[0]['startTime']
+        rt_min = dg.fileDB['runtime'].sum()
+        u_start = dg.fileDB.iloc[0]['startTime']
         t_start = pd.to_datetime(u_start, unit='s')
 
         # get scan position
@@ -61,7 +61,7 @@ def timepoints(runs):
 
         # get hit df
         lh5_dir = dg.lh5_user_dir #if user else dg.lh5_dir
-        hit_list = lh5_dir + dg.file_keys['hit_path'] + '/' + dg.file_keys['hit_file']
+        hit_list = lh5_dir + dg.fileDB['hit_path'] + '/' + dg.fileDB['hit_file']
         df_hit = lh5.load_dfs(hit_list, ['trapEmax', 'trapEmax_cal', 'bl','bl_sig','A_10','AoE', 'ts_sec', 'dcr_raw', 'dcr_ftp', 'dcr_max', 'tp_0', 'tp_10', 'tp_50', 'tp_90', 'tp_max'], 'ORSIS3302DecoderForEnergy/hit')
 
         # use baseline cut
