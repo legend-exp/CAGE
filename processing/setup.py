@@ -129,17 +129,17 @@ def update(dg, batch_mode=False):
     # scan daq dir for new file keys
     dg_new = DataGroup('cage.json')
     dg_new.scan_daq_dir()
-    dg_new.file_keys.sort_values(['cycle'], inplace=True)
-    dg_new.file_keys.reset_index(drop=True, inplace=True)
-    dg_new.file_keys = dg_new.file_keys.apply(get_cyc_info, args=[dg_new], axis=1)
+    dg_new.fileDB.sort_values(['cycle'], inplace=True)
+    dg_new.fileDB.reset_index(drop=True, inplace=True)
+    dg_new.fileDB = dg_new.fileDB.apply(get_cyc_info, args=[dg_new], axis=1)
     dg_new.get_lh5_cols()
     for col in ['run', 'cycle']:
-        dg_new.file_keys[col] = pd.to_numeric(dg_new.file_keys[col])
-    # print(dg_new.file_keys[dbg_cols])
+        dg_new.fileDB[col] = pd.to_numeric(dg_new.fileDB[col])
+    # print(dg_new.fileDB[dbg_cols])
 
     # identify new keys, save new indexes
     df1 = dg.fileDB['unique_key']
-    df2 = dg_new.file_keys['unique_key']
+    df2 = dg_new.fileDB['unique_key']
     new_keys = pd.concat([df1, df2]).drop_duplicates(keep=False)
     new_idx = new_keys.index
 
@@ -148,7 +148,7 @@ def update(dg, batch_mode=False):
         print(new_keys)
 
         print('Merging with existing fileDB:')
-        df_upd = pd.concat([dg.fileDB, dg_new.file_keys.loc[new_idx]])
+        df_upd = pd.concat([dg.fileDB, dg_new.fileDB.loc[new_idx]])
         print(df_upd[dbg_cols])
 
         if not batch_mode:
