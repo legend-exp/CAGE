@@ -1,27 +1,27 @@
 import numpy as np
 import scipy
-import matplotlib
+import matplotlib as mpl
 from matplotlib.colors import LogNorm
 from scipy.stats import norm, kde
 from scipy.optimize import curve_fit
 import matplotlib.pyplot as plt
 import h5py
 import pandas as pd
-import ROOT
 import sys
 from particle import PDGID
-matplotlib.rcParams['text.usetex'] = True
+mpl.rcParams['text.usetex'] = True
+mpl.use('Agg')
 
 def main():
     base_filename = '../alpha/processed_out/oppi/processed'
-    processed_filename = '../alpha/processed_out/oppi/processed_oppi_ring_y5_norm_241Am_100000000.hdf5'
+    processed_filename = '../alpha/processed_out/oppi/processed_oppi_ring_y10_norm_241Am_100000000.hdf5'
 
     primaries = 10000000
     radius = [5, 6, 7, 8, 10] # in mm
     elo = 5.4 # in MeV
     ehi = 5.6 # in MeV
 
-    getCounts(processed_filename) # get all counts in physical volume for this file. Useful for debugging if sim was successful
+    # getCounts(processed_filename) # get all counts in physical volume for this file. Useful for debugging if sim was successful
     # getCounts_cut(processed_filename, elo, ehi) # get counts within specific energy region
     # getRate(processed_filename, primaries, elo, ehi) # get rate in counts/sec for specific energy region
     # plotRate(radius, elo, ehi) # plot rates for multiple source positions (sims files) on one plot
@@ -57,9 +57,8 @@ def plotRate(radius, elo, ehi):
 		rate = getRate(f'../alpha/processed_out/oppi/processed_oppi_ring_y{r}_norm_241Am_100000000.hdf5', 10000000, 5.4, 5.6)
 		rates_arr.append(rate)
 	plt.plot(radius, rates_arr, '.r')
-	plt.show()
-
-	return(rate)
+	plt.savefig('./rates.png')
+    #return(rate)
 
 if __name__ == '__main__':
 	main()
