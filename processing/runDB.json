@@ -112,5 +112,6 @@
     "107":["1164-1171", "bkg", "elog 294.  Bkg runs for stability study"],
     "108":["1172-1182", "pul", "elog 294.  transfer function measurement"],
     "109":["1183", "transit", "elog 295. transition to linear at 10 mm"],
-    "110":["1184-1190", "alp", "elog 295.  alpha scan at r=10, norm inc."]
+    "110":["1184-1190", "alp", "elog 295.  alpha scan at r=10, norm inc."],
+    "111":["1191", "bkg", "elog 298.  very slow wfs after cartridge bake"]
 }

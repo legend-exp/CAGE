@@ -68,7 +68,7 @@ def main():
 
     # merge with fileDB
     cycles = dfp2['run'].tolist()
-    df_pulsDB = dg.file_keys.loc[dg.file_keys['cycle'].isin(cycles)]
+    df_pulsDB = dg.fileDB.loc[dg.fileDB['cycle'].isin(cycles)]
     df_pulsDB.reset_index(inplace=True)
     dfp2 = pd.concat([dfp2, df_pulsDB], axis=1)
 
