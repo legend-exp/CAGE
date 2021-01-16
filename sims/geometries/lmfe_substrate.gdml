@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<gdml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://service-spi.web.cern.ch/service-spi/app/releases/GDML/schema/gdml.xsd">
+
+##########################################
+
+#This is the LMFE substrate. It's really made of "Duroid 5880", which is a mixture of glass and PTFE, but I went with full PTFE
+
+##########################################
+
+ <define>
+
+  <constant name="HALFPI" value="pi/2."/>
+  <constant name="PI" value="1.*pi"/>
+  <constant name="TWOPI" value="2.*pi"/>
+
+  <position name="center" x="0" y="0" z="0"/>
+  <rotation name="identity" x="0" y="0" z="0" />
+
+  <quantity name="substrate_board_width" type="length" value="7.0" unit="mm"/>
+  <quantity name="substrate_board_length" type="length" value="19.5" unit="mm"/> <!-- extends 4.5 mm over PC, but we account for this when it's placed in the mother gdml file -->
+  <quantity name="substrate_board_thickness" type="length" value="0.5" unit="mm"/>
+
+
+ </define>
+
+##########################################
+<materials>
+
+  <material name="ptfe" formula="C2F4">
+    <D value="2.2" />
+    <fraction n="0.24" ref="G4_C"/>
+    <fraction n="0.76" ref="G4_F" />
+  </material>
+
+</materials>
+
+##########################################
+
+ <solids>
+
+  <box name = "lmfe_board" x="substrate_board_length" y="substrate_board_width" z="substrate_board_thickness" lunit= "mm"/>
+
+ </solids>
+
+##########################################
+
+ <structure>
+
+ <volume name="lmfe_substrate">
+   <materialref ref="ptfe"/>
+   <solidref ref="lmfe_board"/>
+  </volume>
+
+ </structure>
+
+##########################################
+
+ <setup name="Default" version="1.0">
+  <world ref="lmfe_substrate"/>
+ </setup>
+</gdml>

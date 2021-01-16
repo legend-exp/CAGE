@@ -63,14 +63,14 @@ See these elogs for more diagrams and information: https://elog.legend-exp.org/U
    <solidref ref="mother_vacuum_cylinder"/>
 
    <physvol>
-     <file name="./geometries/sourceRotationVolume.gdml"/>
-     <position name= "source_center" x="0.0" y="0.0" z="0.0" unit="mm"/>
+     <file name="./geometries/sourceRotationVolume_smallHole.gdml"/>
+     <position name= "source_center" x="0.0" y="8." z="0.0" unit="mm"/>
      <rotation name="identity" x="0.00" unit="deg"/>
    </physvol>
 
    <physvol>
      <file name="./geometries/OPPI1_ring.gdml"/>
-     <position name= "ring_center" x="0.0" y="0.0" z="-(22.0 + 3)+0.125" unit="mm"/>
+     <position name= "ring_center" x="0.0" y="0.0" z="-(22.0 + 3)" unit="mm"/>
      <rotation name="OPPI1_ring_Rotation" z="180-17.92" unit="deg"/>
    </physvol>
 
