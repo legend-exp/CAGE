@@ -31,19 +31,33 @@
       "unit": "ADC",
       "defaults": { "db.pz.tau":"50*us" }
     },
-      "wf_pz2": {
+    "wf_pz2": {
       "function": "double_pole_zero",
       "module": "pygama.dsp.processors",
       "args": ["wf_blsub", "db.pz2.tau1", "db.pz2.tau2",  "db.pz2.frac", "wf_pz2"],
       "prereqs": ["wf_blsub"],
       "unit": "ADC",
-      "defaults": { "db.pz2.tau1":"50*us", "db.pz2.tau2":"3*us", "db.pz2.frac":"0.013" }
+      "defaults": { "db.pz2.tau1":"50*us", "db.pz2.tau2":"5*us", "db.pz2.frac":"0.015" }
+    },
+    "fltp2, fltp2_sig":{
+        "function": "mean_stdev",
+        "module": "pygama.dsp.processors",
+        "args" : ["wf_pz2[4250:5050]", "fltp2", "fltp2_sig"],
+        "prereqs": ["wf_pz2"],
+        "unit": ["ADC", "ADC"]
     },
     "wf_trap": {
       "function": "trap_norm",
       "module": "pygama.dsp.processors",
       "args": ["wf_pz", "6*us", "4*us", "wf_trap"],
       "prereqs": ["wf_pz"],
+      "unit": "ADC"
+    },
+    "wf_trap2": {
+      "function": "trap_norm",
+      "module": "pygama.dsp.processors",
+      "args": ["wf_pz2", "8*us", "4*us", "wf_trap2"],
+      "prereqs": ["wf_pz2"],
       "unit": "ADC"
     },
     "trapEmax": {
@@ -53,6 +67,14 @@
       "kwargs": {"signature":"(n),()->()", "types":["fi->f"]},
       "unit": "ADC",
       "prereqs": ["wf_trap"]
+    },
+    "trapEmax2": {
+      "function": "amax",
+      "module": "numpy",
+      "args": ["wf_trap2", 1, "trapEmax2"],
+      "kwargs": {"signature":"(n),()->()", "types":["fi->f"]},
+      "unit": "ADC",
+      "prereqs": ["wf_trap2"]
     },
 
     "wf_triangle": {
@@ -99,6 +121,13 @@
       "args": ["wf_trap", "tp_0+(6*us+3.5*us)", "trapEftp"],
       "unit": "ADC",
       "prereqs": ["wf_trap", "tp_0"]
+    },
+    "trapEftp2": {
+      "function": "fixed_time_pickoff",
+      "module": "pygama.dsp.processors",
+      "args": ["wf_trap2", "tp_0+(6*us+20.5*us)", "trapEftp2"],
+      "unit": "ADC",
+      "prereqs": ["wf_trap2", "tp_0"]
     },
 
     "tp_10": {

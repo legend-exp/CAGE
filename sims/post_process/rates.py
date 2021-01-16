@@ -18,13 +18,13 @@ def main():
 
     primaries = 10000000
     radius = [5, 6, 7, 8, 10] # in mm
-    elo = 5.4 # in MeV
-    ehi = 5.6 # in MeV
+    elo = 0.05 # in MeV
+    ehi = 0.07 # in MeV
 
     # getCounts(processed_filename) # get all counts in physical volume for this file. Useful for debugging if sim was successful
     # getCounts_cut(processed_filename, elo, ehi) # get counts within specific energy region
     # getRate(processed_filename, primaries, elo, ehi) # get rate in counts/sec for specific energy region
-    # plotRate(radius, elo, ehi) # plot rates for multiple source positions (sims files) on one plot
+    plotRate(radius, elo, ehi) # plot rates for multiple source positions (sims files) on one plot
 
 def getCounts(processed_filename):
     df = pd.read_hdf(processed_filename, keys='procdf')
@@ -48,16 +48,28 @@ def getRate(processed_filename, primaries, elo, ehi):
     time_seconds = primaries/(source_activity)
     counts = getCounts_cut(processed_filename, elo, ehi)
     rate = counts/time_seconds #(rate in counts/s)
+    rate_err = np.sqrt(counts)/time_seconds
     print(f'{rate} counts/second in region {elo} to {ehi} keV')
+    
+    return(rate, rate_err)
 
 def plotRate(radius, elo, ehi):
     rates_arr = []
+    rates_uncertainty = []
     for r in radius:
-        rate = getRate(f'../alpha/processed_out/oppi/processed_oppi_ring_y{r}_norm_241Am_100000000.hdf5', 10000000, 5.4, 5.6)
+        rate, rate_err = getRate(f'../alpha/processed_out/oppi/processed_oppi_ring_y{r}_norm_241Am_100000000.hdf5', 10000000, elo, ehi)
         rates_arr.append(rate)
+        rates_uncertainty.append(rate_err)
         
-    plt.plot(radius, rates_arr, '.r')
-    plt.savefig('./rates.png')
+    print(rates_arr)
+        
+    fig, ax = plt.subplots(figsize=(6,5))
+    plt.errorbar(radius, rates_arr, yerr=rates_uncertainty, marker = '.', ls='none')
+#     plt.plot(radius, rates_arr, '.r')
+    plt.xlabel('Radius (mm)')
+    plt.ylabel('Rate (cts/sec)')
+    plt.title(f'Rate for {elo} to {ehi} MeV')
+    plt.savefig(f'./rates_{elo}_{ehi}.png')
     #return(rate)
 
 if __name__ == '__main__':
