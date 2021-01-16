@@ -43,12 +43,12 @@ def main():
     dg = DataGroup('cage.json', load=True)
     if args.query:
         que = args.query[0]
-        dg.file_keys.query(que, inplace=True)
+        dg.fileDB.query(que, inplace=True)
     else:
-        dg.file_keys = dg.file_keys[-1:]
+        dg.fileDB = dg.fileDB[-1:]
 
     view_cols = ['runtype', 'run', 'cycle', 'startTime', 'runtime', 'threshold']
-    print(dg.file_keys[view_cols])
+    print(dg.fileDB[view_cols])
 
     # -- run routines --
     # show_raw_spectrum(dg)
@@ -70,10 +70,10 @@ def show_raw_spectrum(dg):
     # get file list and load energy data (numpy array)
     # lh5_dir = os.path.expandvars(dg.config['lh5_dir'])
     lh5_dir = dg.lh5_dir
-    dsp_list = lh5_dir + dg.file_keys['dsp_path'] + '/' + dg.file_keys['dsp_file']
+    dsp_list = lh5_dir + dg.fileDB['dsp_path'] + '/' + dg.fileDB['dsp_file']
     edata = lh5.load_nda(dsp_list, ['trapEmax'], 'ORSIS3302DecoderForEnergy/dsp')
-    rt_min = dg.file_keys['runtime'].sum()
-    u_start = dg.file_keys.iloc[0]['startTime']
+    rt_min = dg.fileDB['runtime'].sum()
+    u_start = dg.fileDB.iloc[0]['startTime']
     t_start = pd.to_datetime(u_start, unit='s') # str
 
     print('Found energy data:', [(et, len(ev)) for et, ev in edata.items()])
@@ -106,10 +106,10 @@ def show_cal_spectrum(dg):
     """
     # get file list and load energy data (numpy array)
     lh5_dir = os.path.expandvars(dg.config['lh5_dir'])
-    dsp_list = lh5_dir + dg.file_keys['dsp_path'] + '/' + dg.file_keys['dsp_file']
+    dsp_list = lh5_dir + dg.fileDB['dsp_path'] + '/' + dg.fileDB['dsp_file']
     edata = lh5.load_nda(dsp_list, ['trapEmax'], 'ORSIS3302DecoderForEnergy/dsp')
-    rt_min = dg.file_keys['runtime'].sum()
-    u_start = dg.file_keys.iloc[0]['startTime']
+    rt_min = dg.fileDB['runtime'].sum()
+    u_start = dg.fileDB.iloc[0]['startTime']
     t_start = pd.to_datetime(u_start, unit='s') # str
     print('Found energy data:', [(et, len(ev)) for et, ev in edata.items()])
     print(f'Runtime (min): {rt_min:.2f}')
@@ -119,7 +119,7 @@ def show_cal_spectrum(dg):
     with open('ecalDB.json') as f:
         raw_db = json.load(f)
         cal_db.storage.write(raw_db)
-    runs = dg.file_keys.run.unique()
+    runs = dg.fileDB.run.unique()
     if len(runs) > 1:
         print("sorry, I can't do combined runs yet")
         exit()
@@ -163,7 +163,7 @@ def show_wfs(dg):
     """
     # get file list and load hit data
     lh5_dir = dg.lh5_user_dir #if user else dg.lh5_dir
-    hit_list = lh5_dir + dg.file_keys['hit_path'] + '/' + dg.file_keys['hit_file']
+    hit_list = lh5_dir + dg.fileDB['hit_path'] + '/' + dg.fileDB['hit_file']
     df_hit = lh5.load_dfs(hit_list, ['trapEmax', 'trapEmax_cal', 'bl','AoE', 'dcr_raw', 'tp_0', 'tp_50'], 'ORSIS3302DecoderForEnergy/hit')
     # print(df_hit)
     # print(df_hit.columns)
@@ -202,7 +202,7 @@ def show_wfs(dg):
     raw_store = lh5.Store()
     tb_name = 'ORSIS3302DecoderForEnergy/raw'
     lh5_dir = dg.lh5_dir
-    raw_list = lh5_dir + dg.file_keys['raw_path'] + '/' + dg.file_keys['raw_file']
+    raw_list = lh5_dir + dg.fileDB['raw_path'] + '/' + dg.fileDB['raw_file']
     f_raw = raw_list.values[0] # fixme, only works for one file rn
     data_raw, nrows = raw_store.read_object(tb_name, f_raw, start_row=0, n_rows=idx[-1]+1)
 
@@ -224,7 +224,7 @@ def show_wfs(dg):
 
     raw_store = lh5.Store()
     tb_name = 'ORSIS3302DecoderForEnergy/raw'
-    raw_list = lh5_dir + dg.file_keys['raw_path'] + '/' + dg.file_keys['raw_file']
+    raw_list = lh5_dir + dg.fileDB['raw_path'] + '/' + dg.fileDB['raw_file']
     f_raw = raw_list.values[0] # fixme, only works for one file rn
     data_raw, nrows = raw_store.read_object(tb_name, f_raw, start_row=0, n_rows=alpha_idx[-1]+1)
 
@@ -271,7 +271,7 @@ def data_cleaning(dg):
     # get file list and load hit data
     lh5_dir = dg.lh5_user_dir if user else dg.lh5_dir
     lh5_dir = os.path.expandvars(dg.config['lh5_dir'])
-    hit_list = lh5_dir + dg.file_keys['hit_path'] + '/' + dg.file_keys['hit_file']
+    hit_list = lh5_dir + dg.fileDB['hit_path'] + '/' + dg.fileDB['hit_file']
     df_hit = lh5.load_dfs(hit_list, ['trapEmax'], 'ORSIS3302DecoderForEnergy/hit')
     # print(df_hit)
     print(df_hit.columns)
@@ -398,10 +398,10 @@ def peak_drift(dg):
 
 
     lh5_dir = os.path.expandvars(dg.config['lh5_dir'])
-    hit_list = lh5_dir + dg.file_keys['hit_path'] + '/' + dg.file_keys['hit_file']
+    hit_list = lh5_dir + dg.fileDB['hit_path'] + '/' + dg.fileDB['hit_file']
     df_hit = lh5.load_dfs(hit_list, cols, 'ORSIS3302DecoderForEnergy/hit')
     df_hit.reset_index(inplace=True)
-    rt_min = dg.file_keys['runtime'].sum()
+    rt_min = dg.fileDB['runtime'].sum()
     print(f'runtime: {rt_min:.2f} min')
 
     # settings
@@ -445,10 +445,10 @@ def pole_zero(dg):
     """
     # load hit data
     lh5_dir = os.path.expandvars(dg.config['lh5_dir'])
-    hit_list = lh5_dir + dg.file_keys['hit_path'] + '/' + dg.file_keys['hit_file']
+    hit_list = lh5_dir + dg.fileDB['hit_path'] + '/' + dg.fileDB['hit_file']
     df_hit = lh5.load_dfs(hit_list, ['trapEmax'], 'ORSIS3302DecoderForEnergy/hit')
     df_hit.reset_index(inplace=True)
-    rt_min = dg.file_keys['runtime'].sum()
+    rt_min = dg.fileDB['runtime'].sum()
     # print(f'runtime: {rt_min:.2f} min')
 
     # load waveforms
@@ -461,7 +461,7 @@ def pole_zero(dg):
                             (df_hit[etype] <= ehi)].index[:nwfs]
     raw_store = lh5.Store()
     tb_name = 'ORSIS3302DecoderForEnergy/raw'
-    raw_list = lh5_dir + dg.file_keys['raw_path'] + '/' + dg.file_keys['raw_file']
+    raw_list = lh5_dir + dg.fileDB['raw_path'] + '/' + dg.fileDB['raw_file']
     f_raw = raw_list.values[0] # fixme, only works for one file rn
     data_raw = raw_store.read_object(tb_name, f_raw, start_row=0, n_rows=idx[-1]+1)
 
@@ -577,7 +577,7 @@ def power_spectrum(dg):
     clk = 100e6 # Hz
     nseg = 3500 # num baseline samples (cage wfs are usually length 8192)
 
-    runs = dg.file_keys['run'].unique()
+    runs = dg.fileDB['run'].unique()
     # cmap = plt.cm.get_cmap('jet', len(runs))
     # iplt = 0
 
@@ -607,7 +607,7 @@ def power_spectrum(dg):
 
         # exit()
 
-    dg.file_keys.groupby(['run']).apply(psd_run)#, iplt)
+    dg.fileDB.groupby(['run']).apply(psd_run)#, iplt)
 
     plt.xlabel('Frequency (Hz)', ha='right', x=0.9)
     plt.ylabel('PSD (ADC^2 / Hz)', ha='right', y=1)

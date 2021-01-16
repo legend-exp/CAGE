@@ -32,33 +32,47 @@ import warnings
 with warnings.catch_warnings():
     warnings.simplefilter("ignore")
     from tqdm import tqdm
-    tqdm.pandas() # suppress annoying FutureWarning
-
+    tqdm.pandas() 
 
 def main():
-    doc=""" === pygama: energy_cal.py ==========================================
-    energy calibration app
-    - Initial guesses are determined by running 'check_raw_spectrum'
-    - Uses a DataGroup to organize files and processing.
-    - Metadata is handled in JSON format with 'legend-metadata' conventions.
-    === T. Mathew, C. Wiseman (UW), G. Othman (UNC) ============================
+    doc="""
+    === energy_cal.py ==========================================================
+    
+    Energy calibration app for CAGE.
+    
+    Usage guidelines:
+    - Generate an up-to-date fileDB (setup.py) and DSP files (processing.py)
+    - Select a group of files to calibrate with a query:
+        $ ./energy_cal.py -q 'run==234 [and cycle <= 345, etc.]'
+    - Check the raw spectrum with '--raw' (default estimator: trapEmax)
+    - Adjust the JSON configuration file as needed (default: config_ecal.json)
+    - Run "peakdet," which tries to automatically calculate a 1st-order calib
+      constant for the run.  
+    - If this fails, run "peakinput" with an input file containing a manually-
+      entered set of uncalibrated peak locations.
+    - Run "peakfit", which fits each peak of interest to a peakshape function 
+      (default: gaussian + linear step function), and computes calibration 
+      constants, and resolution curves.
+    - Results are saved ('-w' option) to JSON format with 'legend-metadata' 
+      style conventions.
+    
+    === C. Wiseman, T. Mathew, G. Othman =======================================
     """
     rthf = argparse.RawTextHelpFormatter
     par = argparse.ArgumentParser(description=doc, formatter_class=rthf)
     arg, st, sf = par.add_argument, 'store_true', 'store_false'
 
-    # initial setup
-    arg('--init_db', action=st, help='initialize primary ecal output file')
+    # primary ops
     arg('--raw', action=st, help='display/save uncalibrated energy histogram')
-
-    # primary operations
     arg('-q', '--query', nargs=1, type=str,
         help="select file group to calibrate: -q 'run==1' ")
-    arg('-p1', '--peakdet', action=st, help='first pass: peak detection')
-    arg('-p2', '--peakfit', action=st, help='second pass: individual peak fit')
-    arg('--run_all', action=st, help='run all passes, write to db')
+    arg('-pd', '--peakdet', action=st, help='first pass: peak detection')
+    arg('-pi', '--peakinp', action=st, help='first pass: manually input peaks')
+    arg('-pf', '--peakfit', action=st, help='second pass: individual peak fit')
+    arg('--all', action=st, help='run all passes, write to db')
 
     # options
+    arg('--init_db', action=st, help='initialize primary ecal output file')
     arg('-u', '--lh5_user', action=st, help='user lh5 mode')
     arg('-w', '--write_db', action=st, help='write results to ecalDB file')
     arg('-s', '--show_db', action=st, help='show ecalDB results file')
@@ -66,8 +80,8 @@ def main():
     arg('-o', '--order', nargs=1, type=int, help='set cal poly order, default: 2')
     arg('-b', '--batch', action=st, help="batch mode: save & don't display plots")
     arg('--show_config', action=st, help='show current configuration')
-    arg('--indiv', action=st, help='calibrate individual cycle files')
-    arg('--match', nargs=1, type=str, help='set peak match mode (default: ratio)')
+    # arg('--indiv', action=st, help='calibrate individual cycle files')
+    arg('--match', nargs=1, type=str, help='set peak match mode (default: first)')
     arg('--epar', nargs=1, type=str,
         help="specify raw energy parameters: --epar 'asd sdf dfg' ")
     arg('--group', nargs=1, type=str,
@@ -79,35 +93,33 @@ def main():
     args = par.parse_args()
 
     # -- setup --
-
-    # load main DataGroup, select files to calibrate
+    
+    # query the fileDB
     dg = DataGroup('cage.json', load=True)
     if args.query:
         que = args.query[0]
-        dg.file_keys.query(que, inplace=True)
+        dg.fileDB.query(que, inplace=True)
     else:
-        dg.file_keys = dg.file_keys[-1:]
+        dg.fileDB = dg.fileDB[-1:]
 
-    view_cols = ['run','cycle','daq_file','runtype','startTime','threshold',
-                 'stopTime','runtime']
-    print(dg.file_keys[view_cols].to_string())
-    print(len(dg.file_keys))
-    # exit()
-
-    # merge main and ecal config JSON as dicts
+    # merge main and ecal config
     config = dg.config
-    if args.barium:
-        with open(config['ba_ecal_config']) as f:
-            config = {**dg.config, **json.load(f)}
-    else:
+    
+    
+    
+    # if args.barium:
+    #     with open(config['ba_ecal_config']) as f:
+    #         config = {**dg.config, **json.load(f)}
+    # else:
         with open(config['ecal_config']) as f:
             config = {**dg.config, **json.load(f)}
 
     # initialize JSON output file.  only run this once
     if args.init_db:
         init_ecaldb(config)
+    
+    # load ecal db in memory s/t the pretty on-disk formatting isn't changed
     try:
-        # load ecal db in memory s/t the pretty on-disk formatting isn't changed
         db_ecal = db.TinyDB(storage=MemoryStorage)
         with open(config['ecaldb']) as f:
             raw_db = json.load(f)
@@ -121,37 +133,50 @@ def main():
     config['rawe'] = args.epar[0].split(' ') if args.epar else config['rawe_default']
     config['match_mode'] = args.match if args.match else 'first'
     config['batch_mode'] = True if args.batch else False
-    config['indiv'] = True if args.indiv else False
+    # config['indiv'] = True if args.indiv else False
     config['show_plot'] = True if args.show_plot else False
     config['write_db'] = True if args.write_db else False
     config['pol_order'] = args.order if args.order else 2
     config['mp_tol'] = 100 # raw peaks must be within keV
     config = {**config, **db_ecal.table('_file_info').all()[0]}
 
-    if args.show_config:
-        print('Current configuration:')
-        pprint(config)
-        print('\n')
 
-    # -- raw spectrum check --
-    if args.raw:
-        check_raw_spectrum(dg, config, db_ecal)
+    # -- show status -- 
+    
+    # check fileDB
+    # print(dg.fileDB.columns)
+    # view_cols = ['run', 'cycle', 'startTime', 'runtime']
+    view_cols = ['run', 'cycle', 'daq_file', 'runtype', 'startTime', 'threshold',
+                 'stopTime', 'runtime']
+    if not dg.fileDB.columns.isin(view_cols).all():
+        print('Error, fileDB is missing some columns.  Did you run setup.py?')
         exit()
-
-    # show status
+    
     print(f'Ready to calibrate.\n'
           f"Output file: {config['ecaldb']} \n"
           'Calibrating raw energy parameters:', config['rawe'], '\n'
-          'Current DataGroup:')
-    print(dg.file_keys[['run', 'cycle', 'startTime', 'runtime']])
-    print('Columns:', dg.file_keys.columns.values)
+          f'Current data group ({len(dg.fileDB)} files) --->> ')
+    print(dg.fileDB[view_cols])
+    
+    if args.show_config:
+        print('Current energy_cal config:')
+        pprint(config)
+        print('\n')
+        
+    if args.show_db: 
+        show_ecaldb(config)
 
-    # -- main calibration routines --
-    if args.show_db: show_ecaldb(config)
+
+    # -- main routines --
+    
+    if args.raw:
+        check_raw_spectrum(dg, config, db_ecal)
+        exit()
+    
     if args.peakdet: run_peakdet(dg, config, db_ecal, args.lh5_user)
     if args.peakfit: run_peakfit(dg, config, db_ecal, args.lh5_user)
 
-    if args.run_all:
+    if args.all:
         config['write_db'] = True
         run_peakdet(dg, config, db_ecal, args.lh5_user)
         run_peakfit(dg, config, db_ecal, args.lh5_user)
@@ -217,9 +242,9 @@ def check_raw_spectrum(dg, config, db_ecal):
 
     # load energy data
     lh5_dir = os.path.expandvars(config['lh5_dir'])
-    dsp_list = lh5_dir + dg.file_keys['dsp_path'] + '/' + dg.file_keys['dsp_file']
+    dsp_list = lh5_dir + dg.fileDB['dsp_path'] + '/' + dg.fileDB['dsp_file']
     raw_data = lh5.load_nda(dsp_list, config['rawe'], config['input_table'])
-    runtime_min = dg.file_keys['runtime'].sum()
+    runtime_min = dg.fileDB['runtime'].sum()
 
     print('\nShowing raw spectra ...')
     for etype in config['rawe']:
@@ -261,7 +286,7 @@ def check_raw_spectrum(dg, config, db_ecal):
 
 def run_peakdet(dg, config, db_ecal, user=False):
     """
-    $ ./energy_cal.py -q 'query' -p1 [-p : show plot]
+    $ ./energy_cal.py -q 'query' -pd [-p : show plot]
     Run "first guess" calibration of an arbitrary energy estimator.
 
     NOTE: if you use too high a peakdet threshold, you may not capture
@@ -269,13 +294,10 @@ def run_peakdet(dg, config, db_ecal, user=False):
     to deal with more lines than you probably want for this 1-pt calibration.
     We include an option to show a diagnostic plot for this reason.
     """
-    print('\nRunning peakdet ...')
-
     # do the analysis
-    gb = dg.file_keys.groupby(config['gb_cols'])
+    gb = dg.fileDB.groupby(config['gb_cols'])
     gb_args = [config]
-    run_no = np.array(dg.file_keys['run'])[0]
-
+    run_no = np.array(dg.fileDB['run'])[0]
     print(f'Running peakdet for run: {run_no}')
 
     result = gb.apply(peakdet_group, *gb_args, user)
@@ -323,8 +345,7 @@ def peakdet_group(df_group, config, user=False):
 
     runtime_min = df_group['runtime'].sum()
     run_no = np.array(df_group['run'])[0]
-    print(f'In group peakdet for run {run_no}')
-    print(f'dsp_list: {dsp_list} ')
+    print(f'Running peakdet for run {run_no}')
     print(f'Runtime (min): {runtime_min:.2f}')
 
     # loop over energy estimators of interest
@@ -357,9 +378,10 @@ def peakdet_group(df_group, config, user=False):
         # run peak matching
         exp_pks = config['expected_peaks']
         tst_pks = config['test_peaks']
-        mode = config['match_mode']
+        mode = config['match_mode'][0]
         etol = config['raw_ene_tol']
         lin_cal, mp_success = match_peaks(maxes, exp_pks, tst_pks, mode, etol)
+        exit()
 
         if config['show_plot']:
 
@@ -533,20 +555,45 @@ def match_peaks(maxes, exp_pks, tst_pks, mode='first', ene_tol=10):
         ds_cal = np.median(cal_vals)
         ds_std = np.std(cal_vals)
         print(f"Pass-1 cal for {etype}: {ds_cal:.5e} pm {ds_std:.5e}")
+    
+    # if we get here, we failed
+    return None, False
+
+
+def run_peakinput():
+    """
+    bypass the automatic algorithm and compute the calib constant from an input
+    file.  can be useful when there are significant nonlinearities present.
+    """
+    cal_key = mode.split('_')[-1]
+    print("Loading calib key:", cal_key)
+    
+    with open('./metadata/input_peaks.json') as f:
+        pk_inputs = json.load(f)
+    
+    pk_list = {k:v for k,v in pk_inputs[cal_key].items() if k not in ['id','etype']}
+    
+    xv = [pk_list[k][0] for k in pk_list]
+    yv = [pk_list[k][1] for k in pk_list]
+    
+    pprint(pk_inputs)
+    pprint(pk_list)
+    print(xv, yv)
+    exit()
 
 
 def run_peakfit(dg, config, db_ecal, user=False):
     """
-    $ ./energy_cal.py -q 'query' -p2 [-b -p --ba]
+    $ ./energy_cal.py -q 'query' -pf [-p : show plot]
+    
+    Using the first guess calibration from peakdet, fit each peak of interest
+    and compute the calibration and resolution curves.
     """
-    print('\nRunning peakfit ...')
-
-    # do the analysis
-    gb = dg.file_keys.groupby(config['gb_cols'])
+    gb = dg.fileDB.groupby(config['gb_cols'])
     gb_args = [config, db_ecal]
-    run_no = np.array(dg.file_keys['run'])[0]
+    run_no = np.array(dg.fileDB['run'])[0]
 
-    print(f'Running peakfit for run {run_no}')
+    print(f'\nRunning peakfit for run {run_no}')
 
     result = gb.apply(peakfit_group, *gb_args, user)
 
@@ -589,7 +636,7 @@ def peakfit_group(df_group, config, db_ecal, user=False):
 
     gb_run = df_group['run'].unique()
     run_no = np.array(df_group['run'])[0]
-    print(f'In group peakfit for run {run_no}')
+    print(f'Running peakfit, run {run_no}')
 
     if len(gb_run) > 1:
         print("Multi-run (or other) groupbys aren't supported yet, sorry")
@@ -773,8 +820,6 @@ def peakfit_group(df_group, config, db_ecal, user=False):
         cal_data = pol(raw_data[et])
 
         fit_results = {}
-        # print('fit_results', fit_results)
-        print('cal_data', cal_data)
         for ie, epk in enumerate(epeaks):
             print('epk:', epk, '\n epeaks:', epeaks)
 
@@ -794,11 +839,6 @@ def peakfit_group(df_group, config, db_ecal, user=False):
             hist_norm = np.divide(hist, runtime_min * 60)
             hist_var = np.array([np.sqrt(h / (runtime_min * 60)) for h in hist])
 
-            print('cal_data:', cal_data)
-
-            print('bins:', bins)
-            print(hist_norm)
-
             # compute expected peak location and width (simple Gaussian)
             bkg0 = np.mean(hist_norm[:ibin_bkg])
             print(f'bkg0: {bkg0}')
@@ -814,15 +854,11 @@ def peakfit_group(df_group, config, db_ecal, user=False):
             p_fit, p_cov = pgf.fit_hist(pgf.gauss_bkg, hist_norm, bins,
                                         var=hist_var, guess=p_init)
             p_err = np.sqrt(np.diag(p_cov))
-
-            print('p_err: ', p_err)
-
             # save results
             fit_results[ie] = {
                 'epk':epk,
                 'mu':p_fit[1], 'fwhm':p_fit[2] * 2.355, 'sig':p_fit[2], 'amp':p_fit[0], 'bkg':p_fit[3],
                 }
-            print('fit results:', fit_results[ie])
 
         # consolidate results again
         view_cols = ['epk', 'mu', 'fwhm', 'residual']
