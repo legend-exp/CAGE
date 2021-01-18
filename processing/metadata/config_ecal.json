@@ -1,6 +1,6 @@
 {
   "system":"cage",
-  "ecaldb" : "ecalDB.json",
+  "ecaldb" : "./metadata/ecalDB.json",
   "input_table":"/ORSIS3302DecoderForEnergy/dsp",
 
   "init_vals" : {
@@ -14,15 +14,12 @@
       "peakdet_thresh": 0.02,
       "lowe_cut": 1000
     },
-
     "trapEftp" : {
       "raw_range":[0, 10000, 5],
       "peakdet_thresh": 0.025,
       "lowe_cut": 500
     }
-
   },
-
   "pks":{
     "238.6":"212Pb", "351.9":"214Pb", "583.2":"208Tl", "609.3":"214Bi",
     "911.2":"228Ac", "969.0":"228Ac", "1120.3":"214Bi", "1460.8":"40K",

@@ -72,7 +72,7 @@ def main():
     arg('--all', action=st, help='run all passes, write to db')
 
     # options
-    arg('--init_db', action=st, help='initialize primary ecal output file')
+    arg('--init_db', action=st, help='initialize ecal database JSON file')
     arg('-u', '--lh5_user', action=st, help='user lh5 mode')
     arg('-w', '--write_db', action=st, help='write results to ecalDB file')
     arg('-s', '--show_db', action=st, help='show ecalDB results file')
@@ -87,7 +87,7 @@ def main():
     arg('--group', nargs=1, type=str,
         help="select alternate groupby: --group 'YYYY run' ")
     
-    # select gamma lines 
+    # select gamma lines (different config files)
     arg('-ba', '--barium', action=st, help='use Ba133 ecal config')
 
     args = par.parse_args()
@@ -102,22 +102,23 @@ def main():
     else:
         dg.fileDB = dg.fileDB[-1:]
 
-    # merge main and ecal config
-    config = dg.config
+    # load ecal config file.
+    # note: if we add more modes, could make this arg take an integer instead
+    f_ecal = dg.config['ecal_default']
+    if args.barium:
+        f_ecal = './metadata/config_ecal_ba.json' 
+        print(f'Loading Ba133 calibration parameters from: {f_ecal}')
+    else:
+        print(f'Loading default calibration parameters from: {f_ecal}')
+        
+    # merge main and ecal config dicts
+    with open(f_ecal) as f:
+        config = {**dg.config, **json.load(f)}
     
-    
-    
-    # if args.barium:
-    #     with open(config['ba_ecal_config']) as f:
-    #         config = {**dg.config, **json.load(f)}
-    # else:
-        with open(config['ecal_config']) as f:
-            config = {**dg.config, **json.load(f)}
-
     # initialize JSON output file.  only run this once
     if args.init_db:
         init_ecaldb(config)
-    
+        
     # load ecal db in memory s/t the pretty on-disk formatting isn't changed
     try:
         db_ecal = db.TinyDB(storage=MemoryStorage)
