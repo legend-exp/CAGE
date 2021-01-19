@@ -18,8 +18,8 @@ def main():
 
     primaries = 10000000
     radius = [5, 6, 7, 8, 10] # in mm
-    elo = 0.05 # in MeV
-    ehi = 0.07 # in MeV
+    elo = 5.4 # in MeV
+    ehi = 5.6 # in MeV
 
     # getCounts(processed_filename) # get all counts in physical volume for this file. Useful for debugging if sim was successful
     # getCounts_cut(processed_filename, elo, ehi) # get counts within specific energy region
@@ -57,7 +57,7 @@ def plotRate(radius, elo, ehi):
     rates_arr = []
     rates_uncertainty = []
     for r in radius:
-        rate, rate_err = getRate(f'../alpha/processed_out/oppi/processed_oppi_ring_y{r}_norm_241Am_100000000.hdf5', 10000000, elo, ehi)
+        rate, rate_err = getRate(f'../alpha/processed_out/oppi/processed_oppi_largeHole_ring_y{r}_norm_241Am_100000000.hdf5', 10000000, elo, ehi)
         rates_arr.append(rate)
         rates_uncertainty.append(rate_err)
         
@@ -68,8 +68,8 @@ def plotRate(radius, elo, ehi):
 #     plt.plot(radius, rates_arr, '.r')
     plt.xlabel('Radius (mm)')
     plt.ylabel('Rate (cts/sec)')
-    plt.title(f'Rate for {elo} to {ehi} MeV')
-    plt.savefig(f'./rates_{elo}_{ehi}.png')
+    plt.title(f'Rate for {elo} to {ehi} MeV \n larger than nominal hole')
+    plt.savefig(f'./rates_smallHole_{elo}_{ehi}.png')
     #return(rate)
 
 if __name__ == '__main__':

@@ -29,7 +29,7 @@
       "args": ["wf_blsub", "db.pz.tau", "wf_pz"],
       "prereqs": ["wf_blsub"],
       "unit": "ADC",
-      "defaults": { "db.pz.tau":"50*us" }
+      "defaults": { "db.pz.tau":"48*us" }
     },
     "wf_pz2": {
       "function": "double_pole_zero",
@@ -37,13 +37,28 @@
       "args": ["wf_blsub", "db.pz2.tau1", "db.pz2.tau2",  "db.pz2.frac", "wf_pz2"],
       "prereqs": ["wf_blsub"],
       "unit": "ADC",
-      "defaults": { "db.pz2.tau1":"50*us", "db.pz2.tau2":"5*us", "db.pz2.frac":"0.015" }
+      "defaults": { "db.pz2.tau1":"45*us", "db.pz2.tau2":"4.*us", "db.pz2.frac":"0.035" }
     },
     "fltp2, fltp2_sig":{
         "function": "mean_stdev",
         "module": "pygama.dsp.processors",
         "args" : ["wf_pz2[4250:5050]", "fltp2", "fltp2_sig"],
         "prereqs": ["wf_pz2"],
+        "unit": ["ADC", "ADC"]
+    },
+    "wf_pzDCR": {
+      "function": "double_pole_zero",
+      "module": "pygama.dsp.processors",
+      "args": ["wf_blsub", "db.pz2.tau1", "db.pz2.tau2",  "db.pz2.frac", "wf_pzDCR"],
+      "prereqs": ["wf_blsub"],
+      "unit": "ADC",
+      "defaults": { "db.pz2.tau1":"48.00*us", "db.pz2.tau2":"7.00*us", "db.pz2.frac":"0.035" }
+    },
+    "fltpDCR, fltpDCR_sig":{
+        "function": "mean_stdev",
+        "module": "pygama.dsp.processors",
+        "args" : ["wf_pzDCR[4250:8000]", "fltpDCR", "fltpDCR_sig"],
+        "prereqs": ["wf_pzDCR"],
         "unit": ["ADC", "ADC"]
     },
     "wf_trap": {
@@ -56,7 +71,7 @@
     "wf_trap2": {
       "function": "trap_norm",
       "module": "pygama.dsp.processors",
-      "args": ["wf_pz2", "8*us", "4*us", "wf_trap2"],
+      "args": ["wf_pz2", "6*us", "8*us", "wf_trap2"],
       "prereqs": ["wf_pz2"],
       "unit": "ADC"
     },
@@ -125,7 +140,7 @@
     "trapEftp2": {
       "function": "fixed_time_pickoff",
       "module": "pygama.dsp.processors",
-      "args": ["wf_trap2", "tp_0+(6*us+20.5*us)", "trapEftp2"],
+      "args": ["wf_trap2", "tp_0+(6*us+15*us-0.5*us)", "trapEftp2"],
       "unit": "ADC",
       "prereqs": ["wf_trap2", "tp_0"]
     },
@@ -188,6 +203,13 @@
       "args": ["wf_pz", 100, 3000, "tp_90+1*us", "dcr_raw"],
       "unit": "ADC",
       "prereqs": ["wf_pz", "tp_90"]
+    },
+    "dcr_trap": {
+      "function": "trap_norm",
+      "module": "pygama.dsp.processors",
+      "args": ["wf_pzDCR", 100, 3000, "dcr_trap"],
+      "unit": "ADC",
+      "prereqs": ["wf_pzDCR"]
     },
     "dcr_ftp": {
       "function": "divide",
