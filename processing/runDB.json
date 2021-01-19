@@ -113,5 +113,11 @@
     "108":["1172-1182", "pul", "elog 294.  transfer function measurement"],
     "109":["1183", "transit", "elog 295. transition to linear at 10 mm"],
     "110":["1184-1190", "alp", "elog 295.  alpha scan at r=10, norm inc."],
-    "111":["1191", "bkg", "elog 298.  very slow wfs after cartridge bake"]
+    "111":["1191", "bkg", "elog 298.  very slow wfs after cartridge bake"],
+    "112":["1192", "bkg", "elog 303.  bkg run to check ecal after temp cycle"],
+    "113":["1193", "alp", "elog 304.  30 min centering alpha scan at 5 mm, normal incidence"],
+    "114":["1194", "alp", "elog 304.  30 min centering alpha scan at 6 mm, normal incidence"],
+    "115":["1195", "alp", "elog 304.  30 min centering alpha scan at 7 mm, normal incidence"],
+    "116":["1196", "alp", "elog 304.  30 min centering alpha scan at 8 mm, normal incidence"],
+    "117":["1197-1206", "alp", "elog 304.  5 hour alpha scan at 10 mm, normal incidence"]
 }
