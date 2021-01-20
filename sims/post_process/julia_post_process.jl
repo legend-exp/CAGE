@@ -15,9 +15,9 @@ function main()
 
     # specify here the base filename, directories, and file extensions, and choose which processing funciton to run
 
-    base_filename = "test_newDet_sourceRotNorm_y6mm_ICPC_Pb_241Am_100000"
-    raw_dir = "../alpha/raw_out/"
-    processed_dir = "../alpha/processed_out/"
+    base_filename = "oppi_ring_y10_norm_241Am_100000000"
+    raw_dir = "../alpha/raw_out/oppi/"
+    processed_dir = "../alpha/processed_out/oppi/"
     raw_extension = ".hdf5"
     processed_extension = ".lh5"
 
@@ -25,7 +25,7 @@ function main()
 
     # processHits(raw_dir, processed_dir, base_filename, raw_extension, processed_extension, icpc=true)
 
-    processEvents_forSSD(raw_dir, processed_dir, base_filename, raw_extension, processed_extension, icpc=true)
+    processEvents_forSSD(raw_dir, processed_dir, base_filename, raw_extension, processed_extension, icpc=false, oppi=true)
 
 end
 
@@ -257,7 +257,7 @@ function processEvents_forSSD(raw_dir, processed_dir, base_filename, raw_extensi
     hits_by_det = group_by_evtno_and_detno(ungroup_by_evtno(hits_clustered))
 
     # create output filename and save Table to .lh5
-    out_filename = processed_dir * "test2_events_SSD_processed_" * base_filename * processed_extension
+    out_filename = processed_dir * "SSD_processed_" * base_filename * processed_extension
 
     # println(typeof(out_filename))
 

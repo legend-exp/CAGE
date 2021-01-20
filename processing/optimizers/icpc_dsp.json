@@ -1,0 +1,137 @@
+{
+  "outputs": [ "bl", "bl_sig", "A_10", "AoE", "fltp", "fltp2", "tp_0", "ct_corr", "trapEftp", "dcr" ],
+  "processors":{
+    "bl, bl_sig":{
+      "function": "mean_stdev",
+      "module": "pygama.dsp.processors",
+      "args" : ["waveform[0:800]", "bl", "bl_sig"],
+      "prereqs": ["waveform"],
+      "unit": ["ADC", "ADC"]
+    },
+    "wf_blsub":{
+      "function": "subtract",
+      "module": "numpy",
+      "args": ["waveform", "bl", "wf_blsub"],
+      "prereqs": ["waveform", "bl"],
+      "unit": "ADC"
+    },
+    "wf_pz": {
+      "function": "pole_zero",
+      "module": "pygama.dsp.processors",
+      "args": ["wf_blsub", "db.pz.tau", "wf_pz"],
+      "prereqs": ["wf_blsub"],
+      "unit": "ADC",
+      "defaults": { "db.pz.tau":"74*us" }
+    },
+    "fltp, fltp_sig":{
+      "function": "mean_stdev",
+      "module": "pygama.dsp.processors",
+      "args" : ["wf_pz[-800:]", "fltp", "fltp_sig"],
+      "prereqs": ["wf_pz"],
+      "unit": ["ADC", "ADC"]
+    },
+    "wf_pz2": {
+      "function": "double_pole_zero",
+      "module": "pygama.dsp.processors",
+      "args": ["wf_blsub", "db.pz2.tau1", "db.pz2.tau2",  "db.pz2.frac", "wf_pz2"],
+      "prereqs": ["wf_blsub"],
+      "unit": "ADC",
+      "defaults": { "db.pz2.tau1":"74*us", "db.pz2.tau2":"3*us", "db.pz2.frac":"0.013" }
+    },
+    "fltp2, fltp2_sig":{
+      "function": "mean_stdev",
+      "module": "pygama.dsp.processors",
+      "args" : ["wf_pz2[1300:2100]", "fltp2", "fltp2_sig"],
+      "prereqs": ["wf_pz2"],
+      "unit": ["ADC", "ADC"]
+    },
+    "wf_trap": {
+      "function": "trap_norm",
+      "module": "pygama.dsp.processors",
+      "args": ["wf_pz2", "8*us", "3*us", "wf_trap"],
+      "prereqs": ["wf_pz2"],
+      "unit": "ADC"
+    },
+    "wf_atrap": {
+      "function": "asymTrapFilter",
+      "module": "pygama.dsp.processors",
+      "args": ["wf_pz2", "0.05*us", "2*us", "3*us", "wf_atrap"],
+      "prereqs": ["wf_pz2"],
+      "unit": "ADC"
+    },
+    "tp_max": {
+      "function": "argmax",
+      "module": "numpy",
+      "args": ["wf_blsub", 1, "tp_max"],
+      "kwargs": {"signature":"(n),()->()", "types":["fi->i"]},
+      "unit": "ns",
+      "prereqs": ["wf_blsub"]
+    },
+    "tp_0": {
+      "function": "time_point_thresh",
+      "module": "pygama.dsp.processors",
+      "args": ["wf_atrap", 0, "tp_max", "tp_0"],
+      "unit": "ns",
+      "prereqs": ["wf_atrap", "tp_max"]
+    },
+    "trapEftp": {
+      "function": "fixed_time_pickoff",
+      "module": "pygama.dsp.processors",
+      "args": ["wf_trap", "tp_0+(8*us+2.5*us)", "trapEftp"],
+      "unit": "ADC",
+      "prereqs": ["wf_trap", "tp_0"]
+    },
+    "trapmax": {
+      "function": "amax",
+      "module": "numpy",
+      "args": ["wf_trap", 1, "trapmax"],
+      "kwargs": {"signature":"(n),()->()", "types":["fi->f"]}
+    },
+    "trapE": {
+      "function": "amax",
+      "module": "numpy",
+      "args": ["wf_trap", 1, "trapE"],
+      "kwargs": {"signature":"(n),()->()", "types":["fi->f"]},
+      "unit": "ADC",
+      "prereqs": ["wf_trap"]
+    },
+    "curr10": {
+      "comment": "3rd argument allocates memory for a derivative of type float",
+      "function": "avg_current",
+      "module": "pygama.dsp.processors",
+      "args": ["wf_pz", 10, "curr10(len(wf_pz)-10, f)"],
+      "unit": "ADC/sample",
+      "prereqs": ["wf_pz"]
+    },
+    "A_10": {
+      "function": "amax",
+      "module": "numpy",
+      "args": ["curr10", 1, "A_10"],
+      "kwargs": {"signature":"(n),()->()", "types":["fi->f"]},
+      "unit": "ADC",
+      "prereqs": ["curr10"]
+    },
+    "AoE": {
+      "function": "divide",
+      "module": "numpy",
+      "args":["A_10", "trapE", "AoE"],
+      "unit": "1/sample",
+      "prereqs": ["A_10", "trapE"]
+    },
+    "ct_corr": {
+      "function": "trap_pickoff",
+      "module": "pygama.dsp.processors",
+      "args":["wf_pz2", "1.5*us", 0, "tp_0", "ct_corr"],
+      "unit": "ADC",
+      "prereqs": ["wf_pz2", "tp_0"]
+    },
+    "dcr": {
+      "function": "trap_pickoff",
+      "module": "pygama.dsp.processors",
+      "args": ["wf_pz2", 100, 1500, "13*us", "dcr"],
+      "unit": "ADC",
+      "prereqs": ["wf_pz2"]
+    }
+  }
+}
+

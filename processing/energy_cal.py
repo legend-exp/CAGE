@@ -22,7 +22,7 @@ plt.style.use('../clint.mpl')
 
 from pygama import DataGroup
 from pygama.io.orcadaq import parse_header
-import pygama.io.lh5 as lh5
+import pygama.lh5 as lh5
 import pygama.analysis.metadata as pmd
 import pygama.analysis.histograms as pgh
 import pygama.analysis.calibration as pgc
@@ -82,20 +82,17 @@ def main():
     arg('-s', '--show_db', action=st, help='show ecalDB results file')
     arg('-p', '--show_plot', action=st, help='show debug plot')
     arg('-b', '--batch', action=st, help="batch mode: save & don't display plots")
-    
     arg('--show_config', action=st, help='show current configuration')
     arg('--match', nargs=1, type=str, help='set peak match mode (default: first)')
     arg('--pol', nargs=1, type=int, help='set peakdet/peakinput pol order')
-    
     arg('--epar', nargs=1, type=str,
         help="specify raw energy parameters: --epar 'asd sdf dfg' ")
-    
     arg('-gb', '--group', nargs=1, type=str,
         help="select alternate groupby: -gb 'cycle' ")
     
-    # select gamma lines (different config files)
+    # select alternate sets of gamma lines (different config files)
     arg('-ba', '--barium', action=st, help='use Ba133 ecal config')
-
+    
     args = par.parse_args()
 
     # -- setup --
@@ -141,8 +138,19 @@ def main():
         print('JSON database file not found or corrupted.  Rerun --init_db')
         exit()
 
-    # set additional options, then augment the main config dict
+    # set additional options
     config['gb_cols'] = args.group[0].split(' ') if args.group else ['run']
+    if config['gb_cols'][0] != 'run':
+        print('Error, first groupby arg must be run!')
+        exit() 
+    
+    # set input data directory (CAGE_LH5, CAGE_LH5_USER, or cwd)
+    lh5_dir = dg.lh5_user_dir if user else dg.lh5_dir
+    lh5_dir = os.path.expandvars(config['lh5_dir'])
+    # set this:config['lh5_dir']
+    exit()
+    
+    
     config['rawe'] = args.epar[0].split(' ') if args.epar else config['rawe_default']
     config['match_mode'] = args.match if args.match else 'first'
     config['batch_mode'] = True if args.batch else False
@@ -151,6 +159,8 @@ def main():
     config['mp_tol'] = 100 # raw peaks must be within keV
     config['peakinp'] = args.peakinp
     config['pol'] = args.pol if args.pol else [2]
+    
+    # combine all options into one config dict
     config = {**config, **db_ecal.table('_file_info').all()[0]}
 
 
@@ -180,12 +190,12 @@ def main():
     
     if args.raw:
         check_raw_spectrum(dg, config, db_ecal)
-        exit()
     
     if args.peakdet or args.peakinp: 
         run_peakdet(dg, config, db_ecal, args.lh5_user)
     
-    if args.peakfit: run_peakfit(dg, config, db_ecal, args.lh5_user)
+    if args.peakfit: 
+        run_peakfit(dg, config, db_ecal, args.lh5_user)
 
     if args.all:
         config['write_db'] = True
@@ -252,8 +262,8 @@ def check_raw_spectrum(dg, config, db_ecal):
     import h5py
 
     # load energy data
-    lh5_dir = os.path.expandvars(config['lh5_dir'])
-    dsp_list = lh5_dir + dg.fileDB['dsp_path'] + '/' + dg.fileDB['dsp_file']
+    
+    dsp_list = config['lh5_dir'] + dg.fileDB['dsp_path'] + '/' + dg.fileDB['dsp_file']
     raw_data = lh5.load_nda(dsp_list, config['rawe'], config['input_table'], verbose=False)
     runtime_min = dg.fileDB['runtime'].sum()
 
@@ -297,27 +307,33 @@ def check_raw_spectrum(dg, config, db_ecal):
 
 def run_peakdet(dg, config, db_ecal, user=False):
     """
-    $ ./energy_cal.py -q 'query' [-pd,-pi] [-p]
+    $ ./energy_cal.py -q 'query' [-pd,-pi] [-p : show plot] [-w : write ecalDB]
     
     Run "first guess" calibration of a list of energy parameters.
     Creates a table in the ecalDB for each one, storing up to 2nd order
     polynomials: y = p0  +  p1 * x  +  p2 * x**2.
-    
     These are used as inputs to "peakfit".
 
     We have two modes:
-       --automatic (default): find p1 by matching the ratios of uncalibrated
-         auto-detected peaks to an input list of peaks in keV.  
-         Assumes y = p1 * x, which may not always work for all detectors.
+       -- automatic (default): find p1 by matching the ratios of uncalibrated
+          auto-detected peaks to an input list of peaks in keV.  
+          Assumes y = p1 * x, which may not always work for all detectors.
        
-       --input_peaks: use a JSON config file to set expected peak locations.
-         This is useful when the spectrum deviates too much from y = p1 * x.
+       -- "input peaks": use a JSON config file to set expected peak locations.
+          This is useful when the spectrum deviates too much from y = p1 * x.
+          
+    Files are grouped by run, and optionally by cycle (calibrates individual files
+    within the run.)  Right now, we require the first item in gb_cols to be 'run'.
 
     We then write several TinyDB 'Tables' to our ecalDB file.  
     They have a nice 1--1 correspondence to pandas dataframes.
     """
-    # set up groupby operation
+    # set up groupby operation -- either ['run'] or ['run', 'cycle']
     gb = dg.fileDB.groupby(config['gb_cols'])
+    
+    print('force the first gb col to be run')
+    exit()
+    
     gb_args = [config]
     run0 = dg.fileDB.run.iloc[0]
     cyc0 = dg.fileDB.cycle.iloc[0]
@@ -326,74 +342,74 @@ def run_peakdet(dg, config, db_ecal, user=False):
     
     # set calibration algorithm.
     if config['peakinp']:
-        print('Using peak-input mode, looking for a JSON input file.')
-        result = gb.apply(peakinput_group, *gb_args, user)
+        pol = config['pol'][0]
+        print(f'Fitting manually input peak locations to polynomial, order', pol)
+        result = gb.apply(peakdet_input, *gb_args, user)
     else:
         print('Automatically detecting peaks based on input list.')
-        result = gb.apply(peakdet_group, *gb_args, user)
+        result = gb.apply(peakdet_auto, *gb_args, user)
         
     # write the results
-    if config['write_db']:
+    if not config['write_db']:
+        print('Done. ecalDB write mode not set (-w option)')
+        return
+    
+    # write separate tables for each energy estimator to the TinyDB
+    for epar in config['rawe']:
 
-        # write separate tables for each energy estimator to the TinyDB
-        for epar in config['rawe']:
+        # format output table
+        epar_cols = [r for r in result.columns if epar in r]
+        df_epar = result[epar_cols].copy()
+        df_epar.rename(columns={c:c.split('_')[-1] for c in epar_cols},
+                       inplace=True)
+        df_epar['tsgen'] = int(time.time())
+        df_epar.reset_index(inplace=True)
+        df_epar['run'] = df_epar['run'].astype(str)
+        
+        df_epar['cyc0'] = cyc0
+        tmp = df_epar['cyc0']
+        df_epar.drop(labels=['cyc0'], axis=1, inplace=True)
+        df_epar.insert(1, 'cyc0', tmp) # run0, cyc0
+        
+        # rearrange s/t pol coeff columns are last (easier to extract)
+        # print(df_epar.columns)
+        pol_cols = [c for c in df_epar.columns if 'pol' in c]
+        xtr_cols = [c for c in df_epar.columns if 'pol' not in c]
+        # print(xtr_cols + pol_cols)
+        df_epar = df_epar[xtr_cols + pol_cols]
+        
+        # then think about how the run/cycle groupby fits into this
+        print(df_epar)
+        
+        exit()
 
-            # format output table
-            epar_cols = [r for r in result.columns if epar in r]
-            df_epar = result[epar_cols].copy()
-            df_epar.rename(columns={c:c.split('_')[-1] for c in epar_cols},
-                           inplace=True)
-            df_epar['tsgen'] = int(time.time())
-            df_epar.reset_index(inplace=True)
-            df_epar['run'] = df_epar['run'].astype(str)
-            
-            df_epar['cyc0'] = cyc0
-            tmp = df_epar['cyc0']
-            df_epar.drop(labels=['cyc0'], axis=1, inplace=True)
-            df_epar.insert(1, 'cyc0', tmp) # run0, cyc0
-            
-            # rearrange s/t pol coeff columns are last (easier to extract)
-            # print(df_epar.columns)
-            pol_cols = [c for c in df_epar.columns if 'pol' in c]
-            xtr_cols = [c for c in df_epar.columns if 'pol' not in c]
-            # print(xtr_cols + pol_cols)
-            df_epar = df_epar[xtr_cols + pol_cols]
-            
-            # then think about how the run/cycle groupby fits into this
-            print(df_epar)
-            
-            exit()
+        # write the DataFrame to JSON TinyDB
+        table = db_ecal.table(f'peakdet_{epar}')
+        query = db.Query()
+        for i, row in df_epar.iterrows():
+            table.upsert(row.to_dict(), query['run'] == row['run'])
 
-            # write the DataFrame to JSON TinyDB
-            table = db_ecal.table(f'peakdet_{epar}')
-            query = db.Query()
-            for i, row in df_epar.iterrows():
-                table.upsert(row.to_dict(), query['run'] == row['run'])
-
-        # show in-memory state and then write to file
-        pprint(db_ecal.storage.read())
-        pmd.write_pretty(db_ecal.storage.read(), config['ecaldb'])
+    # show in-memory state and then write to file
+    pprint(db_ecal.storage.read())
+    pmd.write_pretty(db_ecal.storage.read(), config['ecaldb'])
 
 
-def peakdet_group(df_group, config, user=False):
+def peakdet_auto(df_group, config):
     """
     Access all files in this group, load energy histograms, and find the
     "first guess" linear calibration constant.
     Return the value, and a bool indicating success.
     """
-    dg = DataGroup('cage.json', load=True)
-    lh5_dir = dg.lh5_user_dir if user else dg.lh5_dir
-    # lh5_dir = os.path.expandvars(config['lh5_dir'])
-    dsp_list = lh5_dir + df_group['dsp_path'] + '/' + df_group['dsp_file']
-
+    dsp_list = config['lh5_dir'] + df_group['dsp_path'] + '/' + df_group['dsp_file']
     edata = lh5.load_nda(dsp_list, config['rawe'], config['input_table'], verbose=False)
-    print('Found energy data:', [(et, len(ev)) for et, ev in edata.items()])
-
+    
     runtime_min = df_group['runtime'].sum()
     run0 = df_group.run.iloc[0] # assumes all files are in the same run
+    cyc0 = df_group.cycle.iloc[0]
     
-    print(f'Running peakdet for run {run0}')
+    print(f'Running peakdet for run {run0}, cycle {cyc0}, ')
     print(f'Runtime (min): {runtime_min:.2f}')
+    print('Found energy data:', [(et, len(ev)) for et, ev in edata.items()])
 
     # loop over energy estimators of interest
     pd_results = {}
@@ -606,7 +622,7 @@ def match_peaks(maxes, exp_pks, tst_pks, mode='first', ene_tol=10):
     return None, False
 
 
-def peakinput_group(df_group, config, user=False):
+def peakdet_input(df_group, config):
     """
     $ ./energy_cal.py -q 'whatever' -pi [-p]
     Instead of using the automatic peakdet algorithm, compute the first-guess
@@ -614,22 +630,16 @@ def peakinput_group(df_group, config, user=False):
     """
     pol = config['pol'][0]
     
-    # get file list and load energy data
-    dg = DataGroup('cage.json', load=True)
-    lh5_dir = dg.lh5_user_dir if user else dg.lh5_dir
-    # lh5_dir = os.path.expandvars(config['lh5_dir'])
-    dsp_list = lh5_dir + df_group['dsp_path'] + '/' + df_group['dsp_file']
-
+    
+    dsp_list = config['lh5_dir'] + df_group['dsp_path'] + '/' + df_group['dsp_file']
     edata = lh5.load_nda(dsp_list, config['rawe'], config['input_table'], verbose=False)
-    print('Found energy data:', [(et, len(ev)) for et, ev in edata.items()])
-
+    
     runtime_min = df_group['runtime'].sum()
     run0 = df_group.run.iloc[0] # assumes all files are in the same run
     cyc0 = df_group.cycle.iloc[0]
     
-    print(f'Running peakinput for run {run0}, first cycle: {cyc0}')
-    print(f'Runtime (min): {runtime_min:.2f}')
-    print(f'Fitting manually input peak locations to polynomial, order', pol)
+    print(f'  Run {run0}, first cycle: {cyc0}, rumtime (min): {runtime_min:.2f}')
+    print('    Calibrating:', [(et, len(ev)) for et, ev in edata.items()])
     
     # loop over energy estimators of interest
     pd_results = {}
@@ -713,8 +723,10 @@ def run_peakfit(dg, config, db_ecal, user=False):
     gb = dg.fileDB.groupby(config['gb_cols'])
     gb_args = [config, db_ecal]
     run0 = np.array(dg.fileDB['run'])[0]
+    run0 = dg.fileDB.run.iloc[0]
+    cyc0 = dg.fileDB.cycle.iloc[0]
 
-    print(f'\nRunning peakfit for run {run0}')
+    print(f'\nRunning peakfit, run {run0}, cycle {cyc0}')
 
     result = gb.apply(peakfit_group, *gb_args, user)
 
