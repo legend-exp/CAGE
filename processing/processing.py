@@ -11,7 +11,7 @@ import tinydb as db
 from tinydb.storages import MemoryStorage
 
 from pygama import DataGroup
-import pygama.io.lh5 as lh5
+import pygama.lh5 as lh5
 from pygama.io.daq_to_raw import daq_to_raw
 from pygama.io.raw_to_dsp import raw_to_dsp
 
@@ -46,15 +46,15 @@ def main():
     dg = DataGroup('cage.json', load=True)
     if args.query:
         que = args.query[0]
-        dg.file_keys.query(que, inplace=True)
+        dg.fileDB.query(que, inplace=True)
     else:
-        dg.file_keys = dg.file_keys[-1:]
+        dg.fileDB = dg.fileDB[-1:]
 
     # if you need a different view, i suggest modifying setup.py::show_fileDB
     view_cols = ['run','cycle','daq_file','runtype']
-    # print(dg.file_keys[view_cols].to_string())
-    print(dg.file_keys[view_cols])
-    print('Files:', len(dg.file_keys))
+    # print(dg.fileDB[view_cols].to_string())
+    print(dg.fileDB[view_cols])
+    print('Files:', len(dg.fileDB))
     # exit()
 
     # -- set options --
@@ -81,16 +81,16 @@ def d2r(dg, overwrite=False, nwfs=None, vrb=False, user=False):
     $ ./processing.py -q 'run==[something]' --d2r
     run daq_to_raw on the current DataGroup
     """
-    # print(dg.file_keys)
-    # print(dg.file_keys.columns)
+    # print(dg.fileDB)
+    # print(dg.fileDB.columns)
 
     subs = dg.subsystems # can be blank: ['']
     # subs = ['geds'] # TODO: ignore other datastreams
     # chans = ['g035', 'g042'] # TODO: select a subset of detectors
 
-    print(f'Processing {dg.file_keys.shape[0]} files ...')
+    print(f'Processing {dg.fileDB.shape[0]} files ...')
 
-    for i, row in dg.file_keys.iterrows():
+    for i, row in dg.fileDB.iterrows():
 
         lh5_dir = dg.lh5_user_dir if user else dg.lh5_dir
 
@@ -117,13 +117,13 @@ def r2d(dg, overwrite=False, nwfs=None, vrb=False, user=False):
     """
     $ ./processing.py -q 'run==[something]' --r2d
     """
-    # print(dg.file_keys)
-    # print(dg.file_keys.columns)
+    # print(dg.fileDB)
+    # print(dg.fileDB.columns)
 
     with open(f'config_dsp.json') as f:
         dsp_config = json.load(f, object_pairs_hook=OrderedDict)
 
-    for i, row in dg.file_keys.iterrows():
+    for i, row in dg.fileDB.iterrows():
         lh5_dir = dg.lh5_user_dir if user else dg.lh5_dir
 
         f_raw = f"{dg.lh5_dir}/{row['raw_path']}/{row['raw_file']}"
@@ -178,7 +178,7 @@ def d2h(dg, overwrite=False, nwfs=None, vrb=False, user=False):
         config = {**dg.config, **json.load(f)}
     dg.config = config
 
-    for i, row in dg.file_keys.iterrows():
+    for i, row in dg.fileDB.iterrows():
 
         # can use a dsp file from $CAGE_LH5_USER directory
         # TODO: might need to handle more use cases here (official dsp --> user hit)
@@ -227,7 +227,7 @@ def dsp_to_hit_cage(f_dsp, f_hit, dg, n_max=None, verbose=False, t_start=None):
         with open(dg.config['ecaldb']) as f:
             raw_db = json.load(f)
             cal_db.storage.write(raw_db)
-        runs = dg.file_keys.run.unique()
+        runs = dg.fileDB.run.unique()
         if len(runs) > 1:
             print("sorry, I can't do combined runs yet")
             exit()

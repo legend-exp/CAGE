@@ -30,7 +30,7 @@ def main():
 	# processed_filename = '../alpha/processed_out/processed_newDet_sourceRot25_thetaDet65_y14mm_ICPC_Pb_241Am_100000000.hdf5'
 
 	# processed_filename = '../alpha/processed_out/oppi/processed_oppi_y19mm_norm_241Am_100000000.hdf5'
-	processed_filename = '../alpha/processed_out/oppi/processed_oppi_ring_y9_norm_241Am_100000000.hdf5'
+	processed_filename = '../alpha/processed_out/oppi/processed_test_oppi_ring_lmfe_y8_norm_241Am_100000000.hdf5'
 	# processed_filename = '../alpha/processed_out/oppi/processed_test_oppi_y19mm_norm_241Am_1000000.hdf5'
 
 	# processed_filename = '../alpha/processed_out/processed_newDet_sourceRotNorm_y6mm_ICPC_Pb_241Am_20000000.hdf5'
@@ -39,12 +39,12 @@ def main():
 
 
 
-	plotHist(processed_filename)
+	# plotHist(processed_filename)
 	# post_process(filename, processed_filename, source=False)
 	# plotSpot(processed_filename, source=False, plot_title = 'Spot Size from $^{241}$Am (10$^8$ Primaries) \nnormal incidence at 6 mm', particle = 'all')
 	# ZplotSpot(filename)
 	# spot_curve()
-	# plot1DSpot(processed_filename, axis='y', particle='all')
+	plot1DSpot(processed_filename, axis='y', particle='all')
 	# plot2Dhist(processed_filename, nbins=500, plot_title = 'Spot Size from $^{241}$Am (10$^8$ Primaries) \nnormal incidence at 6 mm', source=False, particle = 'all')
 	# plotDepth(processed_filename, source=False, particle = 'all', plot_title='65 deg, 14mm, $10^8$ primaries')
 	# plotContour(processed_filename, source=False, particle = 'all')
@@ -156,13 +156,33 @@ def getCounts(processed_filename):
 	counts = len(energy)
 	print('%f counts in PV' %counts)
 
-def getRate(processed_filename):
+def getCounts_cut(processed_filename, elo, ehi):
 	df = pd.read_hdf(processed_filename, keys='procdf')
 	energy = np.array(df['energy'])
-	gamma_df = df.loc[(df.energy > .05) & (df.energy < 0.07)]
-	gamma_energy = np.array(gamma_df['energy']*1000)
+	cut_df = df.loc[(df.energy > elo) & (df.energy < ehi)]
+	cut_energy_keV = np.array(cut_df['energy']*1000)
+	counts = len(cut_energy_keV)
+	print(f'{counts} counts in region {elo} to {ehi} keV')
 
+	return(counts)
 
+def getRate(processed_filename, primaries, elo, ehi):
+	# see this elog https://elog.legend-exp.org/UWScanner/166
+	source_activity = 4.0e4 #40 kBq = 4e4 decays/s
+	time_seconds = primaries/(source_activity)
+	counts = getCounts_cut(processed_filename, elo, ehi)
+	rate = counts/time_seconds #(rate in counts/s)
+	print(f'{rate} counts/second in region {elo} to {ehi} keV')
+
+	return(rate)
+
+def plotRate(radius, elo, ehi):
+	rates_arr = []
+	for r in radius:
+		rate = getRate(f'../alpha/processed_out/oppi/processed_oppi_ring_y{r}_norm_241Am_100000000.hdf5', 10000000, 5.4, 5.6)
+		rates_arr.append(rate)
+	plt.plot(radius, rates_arr, '.r')
+	plt.show()
 
 def plotHist(filename):
 	# df = pandarize(filename)
