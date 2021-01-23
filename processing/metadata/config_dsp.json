@@ -25,7 +25,7 @@
     "bl_trap": {
       "function": "trap_norm",
       "module": "pygama.dsp.processors",
-      "args": ["wf_blsub", 1000, 300, "bl_trap"],
+      "args": ["wf_blsub", 500, 500, "bl_trap"],
       "unit": "ADC",
       "prereqs": ["wf_blsub"]
     },
