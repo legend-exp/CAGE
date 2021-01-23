@@ -16,7 +16,7 @@ plt.style.use('../clint.mpl')
 from matplotlib.colors import LogNorm
 
 from pygama import DataGroup
-import pygama.io.lh5 as lh5
+import pygama.lh5 as lh5
 import pygama.analysis.histograms as pgh
 import pygama.analysis.peak_fitting as pgf
 
@@ -55,9 +55,9 @@ def main():
     # show_cal_spectrum(dg)
     # show_wfs(dg)
     # data_cleaning(dg)
-    peak_drift(dg)
+    # peak_drift(dg)
     # pole_zero(dg)
-    # label_alpha_runs(dg)
+    label_alpha_runs(dg)
     # power_spectrum(dg)
 
 

@@ -28,8 +28,11 @@ fi
 # NOTE: you need to update runDB.json before running this!
 # shifter python setup.py --update --orca -b
 
+# update recent runs (cuts down on log file size)
+shifter python processing.py -q 'run>95' --d2r --r2d
+
 # update everything (no overwriting)
-shifter python processing.py -q 'cycle>0' --d2r --r2d
+# shifter python processing.py -q 'cycle>0' --d2r --r2d
 
 # overwrite everything (~24 hr job)
 # shifter python processing.py -q 'cycle>0' --d2r --r2d -o

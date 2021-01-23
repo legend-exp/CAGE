@@ -26,7 +26,7 @@
   <quantity name="cone_height" type="length" value="6.0" unit="mm"/>
 
   <quantity name="board_width" type="length" value="12.52" unit="mm"/>
-  <quantity name="board_length" type="length" value="35.5+4.5" unit="mm"/> <!-- extends 4.5 mm over PC -->
+  <quantity name="board_length" type="length" value="35.5+6.5" unit="mm"/> <!-- extends 6.5 mm over PC -->
   <quantity name="board_thickness" type="length" value="1.5" unit="mm"/>
 
   <quantity name="joiner_length" type="length" value="10." unit="mm"/> <!--ie ring max thickness -->
@@ -68,7 +68,7 @@
   <union name="ring_divingBoard">
     <first ref="ring" />
     <second ref="diving_board" />
-    <position x="-(board_length/2.0) + 4.5" y="0" z="(cone_height/2.0 + joiner_thickness + board_thickness/2.0)" />
+    <position x="-(board_length/2.0) + 6.5" y="0" z="(cone_height/2.0 + joiner_thickness + board_thickness/2.0)" />
     <!-- <position x="0" y="0" z="(body_bottom_height/2)+(body_middle_height)+(body_top_height/2)" /> -->
     <rotationref ref="identity"/>
   </union>

@@ -7,7 +7,7 @@ from pprint import pprint
 
 from pygama import DataGroup
 from pygama.io.orcadaq import parse_header
-import pygama.io.lh5 as lh5
+import pygama.lh5 as lh5
 
 import warnings
 with warnings.catch_warnings():
@@ -32,6 +32,10 @@ def main():
     arg('-u', '--update', action=st, help='rescan DAQ dir, update existing fileDB')
     arg('--orca', action=st, help='scan ORCA XML headers of DAQ files')
     arg('--rt', action=st, help='get runtimes (requires dsp file)')
+    
+    # TODO: add a "delete existing entries matching this query" mode, 
+    # so we don't have to rescan the whole fileDB if we make a change to 
+    # runDB.
 
     # options
     arg('-b', '--batch', action=st, help='batch mode, do not ask for user y/n')
