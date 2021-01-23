@@ -1,6 +1,6 @@
 {
   "system":"cage",
-  "ecaldb" : "ecalDB.json",
+  "ecaldb" : "./metadata/ecalDB.json",
   "input_table":"/ORSIS3302DecoderForEnergy/dsp",
 
   "init_vals" : {

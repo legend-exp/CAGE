@@ -1,0 +1,12 @@
+{ "_file_info": { "1": { "cal_type": "energy",
+                         "created_gmt": "01/22/2021, 05:15:38",
+                         "input_table": "/ORSIS3302DecoderForEnergy/dsp",
+                         "system": "cage"}},
+  "peakinp_trapEmax": { "1": { "calpass": 1.0,
+                               "cychi": 1206.0,
+                               "cyclo": 1197.0,
+                               "pol0": 55.54455159430211,
+                               "pol1": 0.5100906752000609,
+                               "pol2": -3.7621159765680566e-06,
+                               "run": 117.0,
+                               "runtime": 289.8982944426665}}}
