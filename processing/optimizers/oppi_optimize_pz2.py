@@ -3,6 +3,10 @@ import numpy as np
 from pygama.dsp.dsp_optimize import *
 from pygama import lh5
 from energy_selector import select_energies
+import matplotlib.pyplot as plt
+import matplotlib as mpl
+
+mpl.use('Agg')
 
 if len(sys.argv) < 2:
     print("Usage: oppi_optimize_pz [lh5 raw file(s)]")
@@ -19,15 +23,18 @@ dsp_config['outputs'] = ['fltp2_sig']
 # build a parameter grid for the dsp of choice
 pz2_grid = ParGrid()
 
-tau1_values = np.linspace(45, 48, 5)
+tau1_values = np.linspace(44, 49, 6)
+# tau1_values = np.linspace(45, 48, 5)
 tau1_values = [ f'{tau:.2f}*us' for tau in tau1_values]
 pz2_grid.add_dimension('wf_pz2', 1, tau1_values)
 
-tau2_values = np.linspace(2.0, 10., 9)
+tau2_values = np.linspace(3.0, 6.0, 4)
+# tau2_values = np.linspace(2.0, 10., 9)
 tau2_values = [ f'{tau:.2f}*us' for tau in tau2_values]
 pz2_grid.add_dimension('wf_pz2', 2, tau2_values)
 
-frac_values = np.linspace(0.005, 0.035, 9)
+frac_values = np.linspace(0.015, 0.055, 5)
+# frac_values = np.linspace(0.005, 0.035, 9)
 frac_values = [ f'{frac:.3f}' for frac in frac_values]
 pz2_grid.add_dimension('wf_pz2', 3, frac_values)
 
@@ -59,13 +66,22 @@ for detector in detectors:
 
     # run the optimization
     db_dict = apdb[detector]
-    grid_values = run_grid(tb_data, dsp_config, pz2_grid, fltp_sig_mean, db_dict=db_dict, verbosity=0)
+    grid_values = run_grid(tb_data, dsp_config, pz2_grid, fltp_sig_mean, db_dict=db_dict, verbosity=1)
 
     # analyze the results
     i_min = np.argmin(grid_values)
     i_min = np.unravel_index(i_min, grid_values.shape)
     print(f'{detector}: min {grid_values[i_min]:.3f} at {tau1_values[i_min[0]]}, {tau2_values[i_min[1]]}, {frac_values[i_min[2]]}')
-#     fig, ax = plt.subplots(figsize=(6,5))
-#     plt.plot()
+    
+    x = np.unravel_index(i_min, grid_values.shape)
+    print(grid_values)
+    print(i_min)
+#     print(grid_values[1::])
+    exit()
+    
+    fig, ax = plt.subplots(figsize=(6,5))
+    plt.plot(tau1_values, fltp_sig_mean, '.r')
+    plt.title('Tau 1')
+    plt.savefig('./test.png')
     
 
