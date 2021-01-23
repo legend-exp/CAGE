@@ -97,7 +97,7 @@ function processHits_steps(raw_dir, processed_dir, base_filename, raw_extension,
 
 end
 
-function processHits(raw_dir, processed_dir, base_filename, raw_extension, processed_extension; icpc::Bool=false, ppc::Bool=false)
+function processHits(raw_dir, processed_dir, base_filename, raw_extension, processed_extension; icpc::Bool=false, oppi::Bool=false)
     # Use when you want to process a raw g4simple simulation output (hdf5) into a Table with individual hits separated.
     # (May be useful for debugging, but not readable in SSD)
 
@@ -175,7 +175,7 @@ function processHits(raw_dir, processed_dir, base_filename, raw_extension, proce
 
 end
 
-function processEvents_forSSD(raw_dir, processed_dir, base_filename, raw_extension, processed_extension; icpc::Bool=false, ppc::Bool=false)
+function processEvents_forSSD(raw_dir, processed_dir, base_filename, raw_extension, processed_extension; icpc::Bool=false, oppi::Bool=false)
     # Use when you want to process a raw g4simple simulation output (hdf5) into a Table grouped by event
     # This produces a Table in a .lh5 file that can then be directly input into the SSD
     # SolidStateDetectors.simulate_waveforms() function for waveform generation from monte-carlo simulated events
