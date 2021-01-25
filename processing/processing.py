@@ -11,7 +11,7 @@ import tinydb as db
 from tinydb.storages import MemoryStorage
 
 from pygama import DataGroup
-import pygama.io.lh5 as lh5
+import pygama.lh5 as lh5
 from pygama.io.daq_to_raw import daq_to_raw
 from pygama.io.raw_to_dsp import raw_to_dsp
 
@@ -120,7 +120,7 @@ def r2d(dg, overwrite=False, nwfs=None, vrb=False, user=False):
     # print(dg.fileDB)
     # print(dg.fileDB.columns)
 
-    with open(f'config_dsp.json') as f:
+    with open(f'./metadata/config_dsp.json') as f:
         dsp_config = json.load(f, object_pairs_hook=OrderedDict)
 
     for i, row in dg.fileDB.iterrows():

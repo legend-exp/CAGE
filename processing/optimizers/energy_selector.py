@@ -18,9 +18,14 @@ def select_energies(energy_name, range_name, filenames, database, lh5_group='', 
 
     E_low = database[energy_name]["ranges"][range_name]["E_low"]
     E_high = database[energy_name]["ranges"][range_name]["E_high"]
+    
+    print(lh5_group+'/'+energy_name)
+    print(filenames)
+#     print(E_low, E_high)
+#     exit()
 
     if store is None: store = lh5.Store()
 
-    energies, _ = store.read_object(lh5_group+'/'+energy_name, filenames, verbosity=verbosity)
+    energies, _ = store.read_object(lh5_group+'/'+energy_name, filenames, verbosity=1)
     return np.where((energies.nda > E_low) & (energies.nda < E_high))
 
