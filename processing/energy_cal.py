@@ -47,13 +47,13 @@ def main():
     
     Adjust the JSON configuration file as needed (default: config_ecal.json)
     
-    Run "peakdet," which calculates up to 2nd-order calibration constants for
+    Run "peakdet", which calculates up to 2nd-order calibration constants for
       each channel, y = p0 +  p1 * x  +  p2 * x**2, and saves them as tables
       in our ecalDB file.
     
     Run "peakfit", which fits each peak of interest to a peakshape function 
-      (default: gaussian + linear step function), and computes calibration 
-      constants, and resolution curves.
+      (default: gaussian + linear step function), computes calibration 
+      constants, and resolution curves, and saves results to ecalDB.
 
     Results are saved ('-w' option) to JSON format with 'legend-metadata' 
       style conventions.
