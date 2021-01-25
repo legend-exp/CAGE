@@ -3,7 +3,7 @@
 
   "runDB" : "./runDB.json",
   "fileDB" : "./fileDB.h5",
-  "runSelectionDB" : "./run_selection.json",
+  "runSelectionDB" : "./metadata/run_selection.json",
 
   "daq" : "ORCA",
   "daq_dir" : "$CAGE_DAQ",
@@ -22,6 +22,5 @@
   "daq_template" : "{YYYY}-{mm}-{dd}-CAGERun{cycle}",
   "lh5_template" : "cage_run{run}_cyc{cycle}_{tier}.lh5",
 
-  "ecal_config": "config_ecal.json",
-  "ba_ecal_config": "config_ecal_ba.json"
+  "ecal_default" : "./metadata/config_ecal.json"
 }
