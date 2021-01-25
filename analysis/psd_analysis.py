@@ -40,7 +40,7 @@ def main():
     args = par.parse_args()
 
     # load main DataGroup, select files from cmd line
-    dg = DataGroup('cage.json', load=True)
+    dg = DataGroup('$CAGE_SW/processing/cage.json', load=True)
     if args.query:
         que = args.query[0]
         dg.fileDB.query(que, inplace=True)
@@ -515,7 +515,7 @@ def label_alpha_runs(dg):
     from a text file, and saving it to a new file, alphaDB.
     """
     # load fileDB
-    df_fileDB = pd.read_hdf(dg.f_fileDB)
+    df_fileDB = pd.read_hdf(os.path.expandvars(dg.config['fileDB']))
 
     # print(df_fileDB.columns)
     # ['unique_key', 'YYYY', 'mm', 'dd', 'cycle', 'daq_dir', 'daq_file', 'run',
@@ -531,33 +531,37 @@ def label_alpha_runs(dg):
     # print(df_alphaDB[view_cols])
 
     # load our beam position info -- manually curated list
-    df_beam = pd.read_csv('scan_key.txt')
+    df_beam = pd.read_csv(os.path.expandvars('$CAGE_SW/processing/metadata/scan_key.txt'))
     # print(df_beam)
 
     # add beam position columns to df_alphaDB (our subset)
     g = df_alphaDB.groupby(['run'])
+    srun = np.array(df_alphaDB['run'])
+
 
     def add_info(df_run, df_beam):
         run = df_run.iloc[0]['run']
         pos_vals = df_beam.loc[df_beam.run == run]
         if len(pos_vals) == 0:
             df_run['radius'] = np.nan
-            df_run['angle'] = np.nan
+            df_run['source'] = np.nan
+            df_run['rotary'] = np.nan
         else:
             df_run['radius'] = pos_vals.iloc[0]['radius']
-            df_run['angle'] = pos_vals.iloc[0]['angle']
+            df_run['source'] = pos_vals.iloc[0]['source']
+            df_run['rotary'] = pos_vals.iloc[0]['rotary']
         return df_run
 
     df_alphaDB = g.apply(add_info, df_beam)
 
-    view_cols += ['radius','angle']
+    view_cols += ['radius','source', 'rotary']
     print(df_alphaDB[view_cols].to_string())
 
     # two options to proceed here:
     # 1. move this function to setup.py and have it overwrite the fileDB
     # 2. just write df_alphaDB to a separate analysis file here
 
-    df_alphaDB.to_hdf('alphaDB.h5', key='alphaDB')
+    df_alphaDB.to_hdf(os.path.expandvars('$CAGE_SW/processing/alphaDB.h5'), key='alphaDB')
 
 
 def power_spectrum(dg):
