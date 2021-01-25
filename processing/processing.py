@@ -120,7 +120,7 @@ def r2d(dg, overwrite=False, nwfs=None, vrb=False, user=False):
     # print(dg.fileDB)
     # print(dg.fileDB.columns)
 
-    with open(f'config_dsp.json') as f:
+    with open(f'./metadata/config_dsp.json') as f:
         dsp_config = json.load(f, object_pairs_hook=OrderedDict)
 
     for i, row in dg.fileDB.iterrows():
