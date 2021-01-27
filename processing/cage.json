@@ -23,5 +23,5 @@
   "daq_template" : "{YYYY}-{mm}-{dd}-CAGERun{cycle}",
   "lh5_template" : "cage_run{run}_cyc{cycle}_{tier}.lh5",
 
-  "ecal_default" : "./metadata/config_ecal.json"
+  "ecal_default" : "$CAGE_SW/processing/metadata/config_ecal.json"
 }
