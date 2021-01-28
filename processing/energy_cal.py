@@ -182,7 +182,7 @@ def main():
         pprint(config)
         print('\n')
         
-    if args.show_db: 
+    if args.show_db is not None:
         show_ecaldb(config, args.show_db)
 
 
@@ -246,39 +246,46 @@ def show_ecaldb(config, tables=None):
     """
     print('Loading ecalDB ...')
     
-    if tables is None:
-        # show the file as-is on disk
-        with open(config['ecaldb']) as f:
-            print(f.read())
+    # # show the file as-is on disk
+    # with open(config['ecaldb']) as f:
+    #     print(f.read())
 
     # make sure the file is usable by TinyDB
     db_ecal = db.TinyDB(storage=MemoryStorage)
     with open(config['ecaldb']) as f:
         raw_db = json.load(f)
         db_ecal.storage.write(raw_db)
-            
-    if tables is not None:
-        for tb in tables:
-            print('looking for table:', tb)
-            db_table = db_ecal.table(tb).all()
-            df_table = pd.DataFrame(db_table)
-            
-            # can't save ints correctly to tinyDB (yet), so fix them here
-            for col in ['run','cychi','cyclo','calpass']:
-                df_table[col] = df_table[col].astype(int)
 
-            # fix the column order too
-            cols = ['run','cyclo','cychi']
-            cols += [c for c in df_table.columns if c not in cols]
-            
-            print(df_table[cols])
-                
+    # show tables in ecalDB, in pandas format.  user either passes
+    # a specific table to look at, or we print them all.
+    if tables is not None and len(tables)==0:
+        print('No table name given, showing all available tables in ecalDB.')
+        tables = [tb for tb in db_ecal.tables() if tb != '_file_info']
+    else:
+        tb_list = tables
+    
+    # show user requested tables
+    for tb in tables:
+        print('\necalDB table:', tb)
+        db_table = db_ecal.table(tb).all()
+        df_table = pd.DataFrame(db_table)
+        
+        # can't save ints correctly to tinyDB (yet), so fix them here
+        int_cols = [col for col in ['run','cychi','cyclo','calpass'] if col in df_table.columns]
+        for col in int_cols:
+            df_table[col] = df_table[col].astype(int)
+    
+        # fix the column order too
+        cols = ['run','cyclo','cychi']
+        cols += [c for c in df_table.columns if c not in cols]
+    
+        print(df_table[cols])
+    
 
 def check_raw_spectrum(dg, config, db_ecal):
     """
     $ ./energy_cal.py -q 'query' --raw
     """
-
     # load energy data
     dsp_list = config['lh5_dir'] + dg.fileDB['dsp_path'] + '/' + dg.fileDB['dsp_file']
     raw_data = lh5.load_nda(dsp_list, config['rawe'], config['input_table'], verbose=False)
@@ -632,6 +639,7 @@ def peakdet_input(df_group, config):
     dsp_list = config['lh5_dir'] + df_group['dsp_path'] + '/' + df_group['dsp_file']
     edata = lh5.load_nda(dsp_list, config['rawe'], config['input_table'], verbose=False)
     runtime_min = df_group['runtime'].sum()
+    run = df_group.run.iloc[0]
     cyc_lo, cyc_hi = df_group.cycle.iloc[0], df_group.cycle.iloc[-1]
     print(f'  Runtime: {runtime_min:.1f} min.  Calibrating:', [f'{et}:{len(ev)} events' for et, ev in edata.items()])
     
@@ -651,8 +659,24 @@ def peakdet_input(df_group, config):
             pk_inputs = json.load(f)
         pk_list = {k:v for k,v in pk_inputs[inp_id][et].items()}
         yv = [pk_list[k][0] for k in pk_list] # true peaks (keV)
-        xv = [pk_list[k][1] for k in pk_list] # raw peaks (uncalib.)
+        xv_input = [pk_list[k][1] for k in pk_list] # raw peaks (uncalib.)
         # pprint(pk_list)
+        
+        # To make the input_peaks method more robust, add a step to refine
+        # the input peak guess that can catch small changes in gain.
+        # For each peak, select the maximum bin within 3% of the input
+        # raw energy value.  It's hard to make this window larger if you're 
+        # using calibration peaks very close together (like 583 and 609).
+        xv_tuned = []
+        for rpk in xv_input:
+            winlo, winhi = rpk * (1 - 0.03), rpk * (1 + 0.03)
+            idx = np.where((bins >= winlo) & (bins <= winhi))
+            ilo = idx[0][0]
+            imax = np.argmax(hist_norm[idx])
+            ipk = ilo + imax
+            xval_adj = bins[ipk]
+            xv_tuned.append(xval_adj)
+        xv = xv_tuned
         
         # run polyfit (pass-1 fit is simple)
         pol = config['pol'][0]
@@ -674,17 +698,22 @@ def peakdet_input(df_group, config):
             # 1. show spectrum and input peaks
             p0.semilogy(bins[1:], hist_norm, 'b', ds='steps', lw=1)
             
+            p0.plot(np.nan, np.nan, '-w', label=f'Run {run}, cyc {cyc_lo}--{cyc_hi}')
+            
             cmap = plt.cm.get_cmap('jet', len(pk_list))
-            for i, (pk, ene) in enumerate(pk_list.items()):
-                idx = (np.abs(bins - ene[1])).argmin()
-                p0.plot(ene[1], hist_norm[idx], 'v', ms=10, c=cmap(i), 
-                        label=f'{pk} : {ene[0]}')
+            for i in range(len(xv)):
+                rpk = xv[i]
+                idx = (np.abs(bins - rpk)).argmin()
+                p0.plot(rpk, hist_norm[idx], 'v', ms=10, c=cmap(i),
+                        label=f'{yv[i]} : {rpk:.0f}')
             
             p0.set_xlabel(f'{et} (uncal)', ha='right', x=1)
-            p0.set_ylabel('Counts', ha='right', y=1)
+            p0.set_ylabel(f'Counts / min / {xpb:.1f} keV', ha='right', y=1)
             p0.legend(fontsize=10)
             
             # 2: show the calibration curve fit result
+            p1.plot(np.nan, np.nan, '-w', label=f'Run {run}, cyc {cyc_lo}--{cyc_hi}')
+            
             p1.plot(xv, yv, '.k')
             
             polfunc = np.poly1d(pfit) # handy numpy polynomial function
@@ -692,8 +721,8 @@ def peakdet_input(df_group, config):
             pol_label = '  '.join([f'p{i} : {ene:.2e}' for i, ene in enumerate(pfit)])
             p1.plot(xv, yfit, '-r', lw=2, label=pol_label)
             
-            p1.set_ylabel(f'{et} (uncal)', ha='right', x=1)
-            p1.set_xlabel('Energy (keV)', ha='right', y=1)
+            p1.set_xlabel('Energy (keV)', ha='right', x=1)
+            p1.set_ylabel(f'{et} (uncal)', ha='right', y=1)
             p1.legend(fontsize=10)
             
             if config['batch_mode']:
@@ -971,7 +1000,7 @@ def peakfit(df_group, config, db_ecal):
         pf_results[f'{et}_Anoise'] = p_fit[0]
         pf_results[f'{et}_Afano'] = p_fit[1]
         pf_results[f'{et}_Aqcol'] = p_fit[2]
-        
+        pf_results[f'{et}_runtime'] = runtime_min
         
     return pd.Series(pf_results)
 
