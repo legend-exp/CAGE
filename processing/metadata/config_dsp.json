@@ -218,23 +218,23 @@
     "wf_psd": {
       "function": "psd",
       "module": "pygama.dsp.processors",
-      "args": ["wf_blsub", "wf_psd"],
-      "init_args": ["wf_blsub", "wf_psd(len(wf_blsub)//2+1, f)"],
+      "args": ["wf_blsub[:3000]", "wf_psd"],
+      "init_args": ["wf_blsub[:3000]", "wf_psd(1501, f)"],
       "unit": "",
       "prereqs": ["wf_blsub"]
     },
     "hf_max": {
       "function": "amax",
       "module": "numpy",
-      "args": ["curr_psd[round(10*mhz*len(curr)):]", 1, "hf_max"],
+      "args": ["wf_psd[round(10*mhz*3000):round(20*mhz*3000)]", 1, "hf_max"],
       "kwargs": {"signature":"(n),()->()", "types":["fi->f"]},
       "unit": "",
-      "prereqs": ["curr_psd"]
+      "prereqs": ["wf_psd"]
     },
     "lf_max": {
       "function": "amax",
       "module": "numpy",
-      "args": ["wf_psd[round(60*khz*len(wf_blsub)):round(100*khz*len(wf_blsub))]", 1, "lf_max"],
+      "args": ["wf_psd[:round(150*khz*3000)]", 1, "lf_max"],
       "kwargs": {"signature":"(n),()->()", "types":["fi->f"]},
       "unit": "",
       "prereqs": ["wf_psd"]
