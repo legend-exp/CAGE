@@ -43,7 +43,7 @@ def main():
     args = par.parse_args()
 
     # load main DataGroup, select files to calibrate
-    dg = DataGroup('cage.json', load=True)
+    dg = DataGroup(os.path.expandvars('$CAGE_SW/processing/cage.json'), load=True)
     if args.query:
         que = args.query[0]
         dg.fileDB.query(que, inplace=True)
@@ -120,7 +120,7 @@ def r2d(dg, overwrite=False, nwfs=None, vrb=False, user=False):
     # print(dg.fileDB)
     # print(dg.fileDB.columns)
 
-    with open(f'config_dsp.json') as f:
+    with open(os.path.expandvars('$CAGE_SW/processing/metadata/config_dsp.json')) as f:
         dsp_config = json.load(f, object_pairs_hook=OrderedDict)
 
     for i, row in dg.fileDB.iterrows():
@@ -174,7 +174,7 @@ def d2h(dg, overwrite=False, nwfs=None, vrb=False, user=False):
     """
     # merge main and ecal config JSON as dicts
     config = dg.config
-    with open(config['ecal_config']) as f:
+    with open(os.path.expandvars(config['ecal_config'])) as f:
         config = {**dg.config, **json.load(f)}
     dg.config = config
 
