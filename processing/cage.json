@@ -1,15 +1,16 @@
 {
   "experiment" : "cage",
 
-  "runDB" : "./runDB.json",
-  "fileDB" : "./fileDB.h5",
-  "runSelectionDB" : "./metadata/run_selection.json",
+  "runDB" : "$CAGE_SW/processing/runDB.json",
+  "fileDB" : "$CAGE_SW/processing/fileDB.h5",
+  "runSelectionDB" : "$CAGE_SW/processing/metadata/run_selection.json",
 
   "daq" : "ORCA",
   "daq_dir" : "$CAGE_DAQ",
   "daq_ignore" : [".log",".DS_Store", "openFiles"],
   "lh5_dir" : "$CAGE_LH5",
   "lh5_user" : "$CAGE_LH5_USER",
+
 
   "nersc_dir":"/global/project/projectdirs/m2676/data/cage",
 
@@ -22,5 +23,5 @@
   "daq_template" : "{YYYY}-{mm}-{dd}-CAGERun{cycle}",
   "lh5_template" : "cage_run{run}_cyc{cycle}_{tier}.lh5",
 
-  "ecal_default" : "./metadata/config_ecal.json"
+  "ecal_default" : "$CAGE_SW/processing/metadata/config_ecal.json"
 }

@@ -46,7 +46,7 @@ def main():
     args = par.parse_args()
 
     # declare main DataGroup
-    dg = DataGroup('cage.json')
+    dg = DataGroup('$CAGE_SW/processing/cage.json')
 
     # -- run routines --
     if args.mkdirs: dg.lh5_dir_setup(args.lh5_user)
@@ -72,7 +72,7 @@ def show_fileDB(dg):
     """
     dg.load_df()
 
-    dbg_cols = ['run', 'cycle', 'unique_key']
+    dbg_cols = ['run', 'cycle', 'unique_key', 'runtype']
 
     if 'startTime' in dg.fileDB.columns:
         dbg_cols += ['startTime']
@@ -111,8 +111,8 @@ def init(dg):
     print('Ready to save.  This will overwrite any existing fileDB.')
     ans = input('Continue? (y/n) ')
     if ans.lower() == 'y':
-        dg.save_df(dg.config['fileDB'])
-        print('Wrote fileDB:', dg.config['fileDB'])
+        dg.save_df(os.path.expandvars(dg.config['fileDB']))
+        print('Wrote fileDB:', os.path.expandvars(dg.config['fileDB']))
 
 
 def update(dg, batch_mode=False):
@@ -131,7 +131,7 @@ def update(dg, batch_mode=False):
     # print(dg.fileDB[dbg_cols])
 
     # scan daq dir for new file keys
-    dg_new = DataGroup('cage.json')
+    dg_new = DataGroup('$CAGE_SW/processing/cage.json')
     dg_new.scan_daq_dir()
     dg_new.fileDB.sort_values(['cycle'], inplace=True)
     dg_new.fileDB.reset_index(drop=True, inplace=True)
@@ -160,11 +160,11 @@ def update(dg, batch_mode=False):
             ans = input('Save updated fileDB? (y/n):')
             if ans.lower() == 'y':
                 dg.fileDB = df_upd
-                dg.save_df(dg.config['fileDB'])
+                dg.save_df(os.path.expandvars(dg.config['fileDB']))
                 print('fileDB updated.')
         else:
             dg.fileDB = df_upd
-            dg.save_df(dg.config['fileDB'])
+            dg.save_df(os.path.expandvars(dg.config['fileDB']))
             print('fileDB updated.')
     else:
         print('No new files found!  current fileDB:')
@@ -284,10 +284,10 @@ def scan_orca_headers(dg, overwrite=False, batch_mode=False):
     if not batch_mode:
         ans = input('Save updated fileDB? (y/n):')
         if ans.lower() == 'y':
-            dg.save_df(dg.config['fileDB'])
+            dg.save_df(os.path.expandvars(dg.config['fileDB']))
             print('fileDB updated.')
     else:
-        dg.save_df(dg.config['fileDB'])
+        dg.save_df(os.path.expandvars(dg.config['fileDB']))
         print('fileDB updated.')
 
 
@@ -399,11 +399,11 @@ def get_runtimes(dg, overwrite=False, batch_mode=False):
         ans = input('Save updated fileDB? (y/n):')
         if ans.lower() == 'y':
             dg.fileDB = df_keys
-            dg.save_df(dg.config['fileDB'])
+            dg.save_df(os.path.expandvars(dg.config['fileDB']))
             print('fileDB updated.')
     else:
         dg.fileDB = df_keys
-        dg.save_df(dg.config['fileDB'])
+        dg.save_df(os.path.expandvars(dg.config['fileDB']))
         print('fileDB updated.')
 
 

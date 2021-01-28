@@ -61,6 +61,7 @@ def main():
     arg('-m', '--max_reads', nargs=1, type=int, help='set num. tries to zero encoder')
     arg('--constraints', action=sf, help="DISABLE constraints (bad idea!)")
     arg('--init_df', action=st, help='initialize the motor history dataframe')
+    arg('--show_df', action=st, help='print motor history df and exit')
 
     args = vars(par.parse_args())
 
@@ -91,6 +92,10 @@ def main():
     cp_label = motorDB['campaign'][campaign_number][0]
     print(f"Current campaign: {campaign_number} : cp_label")
     print(f'Move history is saved in: {f_history}')
+
+    if args['show_df']:
+        show_history(f_history)
+        exit()
 
     # =====================================================================
     connect_to_controller(verbose) # check Newmark and RPi by default
@@ -162,6 +167,15 @@ def main():
         motor_name = args['center'][0]
         approve_move(history_df, motor_name, 0, True, constraints)
         center_motor(motor_name, angle_check, history_df, verbose, constraints)
+
+def show_history(f_history):
+    """
+    $ python3 motor_movement.py --show_df
+    Show the recent move history.
+    """
+    df = pd.read_hdf(f_history)
+    print(df.columns)
+    print(df)
 
 
 def connect_to_controller(verbose=True):
