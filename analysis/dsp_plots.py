@@ -16,7 +16,7 @@ import boost_histogram as bh
 import pickle as pl
 
 from pygama import DataGroup
-import pygama.io.lh5 as lh5
+import pygama.lh5 as lh5
 import pygama.analysis.histograms as pgh
 import pygama.analysis.peak_fitting as pgf
 
@@ -24,16 +24,20 @@ mpl.use('Agg')
 
 def main():
 #     runs = [60, 42, 64, 44, 66, 48, 70, 50, 72, 54]
-    runs = [87]
+    runs = [120, 121, 123, 124, 126, 128, 129, 131, 132, 134, 135, 137]
+
+    user = False
+    hit = False
+    cal = False
 
 #     plot_energy(runs)
-    dcr_AvE(runs, cut=False)
+    dcr_AvE(runs, user, hit, cal, cut=False)
 
-def dcr_AvE(runs, cut=True):
+def dcr_AvE(runs, user=False, hit=True, cal=True, cut=True):
 
     for run in runs:
         # get run files
-        dg = DataGroup('cage.json', load=True)
+        dg = DataGroup('$CAGE_SW/processing/cage.json', load=True)
         str_query = f'run=={run} and skip==False'
         dg.fileDB.query(str_query, inplace=True)
 
@@ -47,10 +51,10 @@ def dcr_AvE(runs, cut=True):
         # get scan position
 
         if runtype == 'alp':
-            alphaDB = pd.read_hdf('alphaDB.h5')
+            alphaDB = pd.read_hdf(os.path.expandvars('$CAGE_SW/processing/alphaDB.h5'))
             scan_pos = alphaDB.loc[alphaDB['run']==run]
             radius = np.array(scan_pos['radius'])[0]
-            angle = np.array(scan_pos['angle'])[0]
+            angle = np.array(scan_pos['source'])[0]
             angle_det = 270 + angle
             print(f'Radius: {radius}; Angle: {angle}')
 
@@ -59,20 +63,68 @@ def dcr_AvE(runs, cut=True):
             angle = 'n/a'
             angle_det = 'n/a'
 
-        # get hit df
-        lh5_dir = dg.lh5_user_dir #if user else dg.lh5_dir
-        hit_list = lh5_dir + dg.fileDB['hit_path'] + '/' + dg.fileDB['hit_file']
-        df_hit = lh5.load_dfs(hit_list, ['trapEmax', 'trapEmax_cal', 'bl','bl_sig','A_10','AoE', 'ts_sec', 'dcr_raw', 'dcr_ftp', 'dcr_max', 'tp_0', 'tp_10', 'tp_90', 'tp_50', 'tp_80', 'tp_max'], 'ORSIS3302DecoderForEnergy/hit')
+        if cal==True:
+            etype_cal = etype+'_cal'
+
+
+
+        # get data and load into df
+        lh5_dir = dg.lh5_user_dir if user else dg.lh5_dir
+
+        if hit==True:
+            print('Using hit files')
+            file_list = lh5_dir + dg.fileDB['hit_path'] + '/' + dg.fileDB['hit_file']
+            if run<=117 and cal==True:
+                df = lh5.load_dfs(file_list, [f'{etype}', f'{etype_cal}', 'bl','bl_sig','A_10','AoE', 'ts_sec', 'dcr_raw', 'dcr_ftp', 'dcr_max', 'tp_0', 'tp_10', 'tp_90', 'tp_50', 'tp_80', 'tp_max'], 'ORSIS3302DecoderForEnergy/hit')
+            elif run>117 and cal==True:
+                df = lh5.load_dfs(file_list, [f'{etype}', f'{etype_cal}', 'bl','bl_sig', 'bl_slope', 'lf_max', 'A_10','AoE', 'dcr', 'tp_0', 'tp_10', 'tp_90', 'tp_50', 'tp_80', 'tp_max'], 'ORSIS3302DecoderForEnergy/hit')
+
+            elif run<=117 and cal==False:
+                df = lh5.load_dfs(file_list, [f'{etype}', 'bl','bl_sig','A_10','AoE', 'ts_sec', 'dcr_raw', 'dcr_ftp', 'dcr_max', 'tp_0', 'tp_10', 'tp_90', 'tp_50', 'tp_80', 'tp_max'], 'ORSIS3302DecoderForEnergy/hit')
+            elif run>117 and cal==False:
+                df = lh5.load_dfs(file_list, [f'{etype}', 'bl','bl_sig', 'bl_slope', 'lf_max', 'A_10','AoE', 'dcr', 'tp_0', 'tp_10', 'tp_90', 'tp_50', 'tp_80', 'tp_max'], 'ORSIS3302DecoderForEnergy/hit')
+
+        elif hit==False:
+            print('Using dsp files')
+            file_list = lh5_dir + dg.fileDB['dsp_path'] + '/' + dg.fileDB['dsp_file'])
+            if run<=117 and cal==True:
+                df = lh5.load_dfs(file_list, [f'{etype}', f'{etype_cal}', 'bl','bl_sig','A_10','AoE', 'ts_sec', 'dcr_raw', 'dcr_ftp', 'dcr_max', 'tp_0', 'tp_10', 'tp_90', 'tp_50', 'tp_80', 'tp_max'], 'ORSIS3302DecoderForEnergy/dsp')
+            elif run>117 and cal==True:
+                df = lh5.load_dfs(file_list, [f'{etype}', f'{etype_cal}', 'bl','bl_sig', 'bl_slope', 'lf_max', 'A_10','AoE', 'dcr', 'tp_0', 'tp_10', 'tp_90', 'tp_50', 'tp_80', 'tp_max'], 'ORSIS3302DecoderForEnergy/dsp')
+
+            elif run<=117 and cal==False:
+                df = lh5.load_dfs(file_list, [f'{etype}', 'bl','bl_sig','A_10','AoE', 'ts_sec', 'dcr_raw', 'dcr_ftp', 'dcr_max', 'tp_0', 'tp_10', 'tp_90', 'tp_50', 'tp_80', 'tp_max'], 'ORSIS3302DecoderForEnergy/dsp')
+            elif run>117 and cal==False:
+                df = lh5.load_dfs(file_list, [f'{etype}', 'bl','bl_sig', 'bl_slope', 'lf_max', 'A_10','AoE', 'dcr', 'tp_0', 'tp_10', 'tp_90', 'tp_50', 'tp_80', 'tp_max'], 'ORSIS3302DecoderForEnergy/dsp')
+
+        else:
+            print('dont know what to do here! need to specify if working with calibrated/uncalibrated data, or dsp/hit files')
+
+
 
         # use baseline cut
-        df_cut = df_hit.query('bl > 8500 and bl < 10000').copy()
+        if run <=117:
+            bl_cut_lo, bl_cut_hi = 8500, 10000
+        if run>117:
+            bl_cut_lo, bl_cut_hi = 9700, 9760
+
+        df_cut = df.query(f'bl > {bl_cut_lo} and bl < {bl_cut_hi}').copy()
 
         #creat new DCR
-        const = 0.0555
-        
-        if run>86:
+        if run <= 86:
+            const = 0.0555
+            df_cut['dcr_linoff'] = df_cut['dcr_raw'] + const*df_cut['trapEmax']
+
+        if run>86 and run <=117:
             const = -0.0225
-        df_cut['dcr_linoff'] = df_cut['dcr_raw'] + const*df_cut['trapEmax']
+            df_cut['dcr_linoff'] = df_cut['dcr_raw'] + const*df_cut['trapEmax']
+
+        if run>117:
+            const = -0.0003
+            const2 = -0.0000003
+            df_cut['dcr_linoff'] = df_cut['dcr'] + const*(df_cut['trapEftp']) + const2*(df_cut['trapEftp'])**2
+
+
 
         #create 0-50
         df_cut['tp0_50'] = df_cut['tp_50']- df_cut['tp_0']
@@ -86,24 +138,34 @@ def dcr_AvE(runs, cut=True):
         # Plots before alpha cuts
         #--------------------
 
-        # Make calibrated energy spectrum_________
+        # select energy type and energy range
+        if cal==False:
+            elo, ehi, epb = 0, 10000, 10 #entire enerty range trapEftp
+        elif cal==True:
+            elo, ehi, epb = 0, 6000, 10
+            etype=etype_cal
+
+        # Make (calibrated) energy spectrum_________
 
         fig, ax = plt.subplots()
         fig.suptitle(f'Energy', horizontalalignment='center', fontsize=16)
-        elo, ehi, epb = 0, 6000, 10
-        # elo, ehi, epb = 0, 3000, 10
-        # elo, ehi, epb = 0, 6000, 10
-
+        if cal==False:
+            elo, ehi, epb = 0, 2000, 10 #entire enerty range trapEftp
+            e_unit = ' (uncal)'
+        elif cal==True:
+            elo, ehi, epb = 0, 6000, 10
+            etype=etype_cal
+            e_unit = ' (keV)'
 
         nbx = int((ehi-elo)/epb)
 
-        energy_hist, bins = np.histogram(df_cut['trapEmax_cal'], bins=nbx,
+        energy_hist, bins = np.histogram(df_cut[etype], bins=nbx,
                 range=[elo, ehi])
         energy_rt = np.divide(energy_hist, rt_min * 60)
 
         plt.semilogy(bins[1:], energy_rt, ds='steps', c='b', lw=1) #, label=f'{etype}'
 
-        ax.set_xlabel('Energy (keV)', fontsize=16)
+        ax.set_xlabel(f'{etype+e_unit}', fontsize=16)
         ax.set_ylabel('counts/sec', fontsize=16)
         plt.setp(ax.get_xticklabels(), fontsize=14)
         plt.setp(ax.get_yticklabels(), fontsize=14)
@@ -114,7 +176,11 @@ def dcr_AvE(runs, cut=True):
         # plt.legend()
         plt.title(f'\n{runtype} run {run}, {rt_min:.2f} mins', fontsize=12)
         plt.tight_layout()
-        plt.savefig(f'./plots/normScan/cal_normScan/{runtype}_energy_run{run}.png', dpi=200)
+        # plt.savefig(f'./plots/normScan/cal_normScan/{runtype}_energy_run{run}.png', dpi=200)
+        if runtype=='alp':
+            plt.savefig(f'./plots/angleScan/{runtype}_energy_{radius}mm_{angle_det}deg_run{run}.png', dpi=200)
+        elif runtype=='bkg':
+            plt.savefig(f'./plots/angleScan/{runtype}_energy_run{run}.png', dpi=200)
         plt.clf()
         plt.close()
 
@@ -124,23 +190,21 @@ def dcr_AvE(runs, cut=True):
         alo, ahi, apb = 0.0, 0.09, 0.0001
         if run>=60:
             alo, ahi, apb = 0.005, 0.0905, 0.0001
-        elo, ehi, epb = 0, 6000, 10
-        # elo, ehi, epb = 0, 3000, 10
-        # elo, ehi, epb = 0, 6000, 10
-
+        if run>117:
+            alo, ahi, apb = 0.0, 0.125, 0.001
 
         nbx = int((ehi-elo)/epb)
         nby = int((ahi-alo)/apb)
 
         fig.suptitle(f'A/E vs Energy', horizontalalignment='center', fontsize=16)
 
-        h = plt.hist2d(df_cut['trapEmax_cal'], df_cut['AoE'], bins=[nbx,nby],
+        h = plt.hist2d(df_cut[etype], df_cut['AoE'], bins=[nbx,nby],
                     range=[[elo, ehi], [alo, ahi]], cmap='viridis', norm=LogNorm())
 
         cb = plt.colorbar()
         cb.set_label("counts", ha = 'right', va='center', rotation=270, fontsize=14)
         cb.ax.tick_params(labelsize=12)
-        ax.set_xlabel('Energy (keV)', fontsize=16)
+        ax.set_xlabel(f'{etype+e_unit}', fontsize=16)
         ax.set_ylabel('A/E (arb)', fontsize=16)
         plt.setp(ax.get_xticklabels(), fontsize=14)
         plt.setp(ax.get_yticklabels(), fontsize=14)
@@ -152,7 +216,11 @@ def dcr_AvE(runs, cut=True):
         # plt.legend()
         plt.title(f'\n{runtype} run {run}, {rt_min:.2f} mins', fontsize=12)
         plt.tight_layout()
-        plt.savefig(f'./plots/normScan/cal_normScan/{runtype}_AoE_run{run}.png', dpi=200)
+        # plt.savefig(f'./plots/normScan/cal_normScan/{runtype}_AoE_run{run}.png', dpi=200)
+        if runtype=='alp':
+            plt.savefig(f'./plots/angleScan/{runtype}_AoE_{radius}mm_{angle_det}deg_run{run}.png', dpi=200)
+        elif runtype=='bkg':
+            plt.savefig(f'./plots/angleScan/{runtype}_AoE_run{run}.png', dpi=200)
         # plt.show()
 
         plt.clf()
@@ -161,17 +229,18 @@ def dcr_AvE(runs, cut=True):
         # DCR vs E___________
 
         fig, ax = plt.subplots()
-        dlo, dhi, dpb = -100, 300, 0.6
-        elo, ehi, epb = 0, 6000, 10
-        # elo, ehi, epb = 0, 3000, 10
-        # elo, ehi, epb = 0, 6000, 10
+
+        if run>=60:
+            dlo, dhi, dpb = -100, 300, 0.6
+        elif run>117:
+            dlo, dhi, dpb = -20., 60, 0.1
 
         nbx = int((ehi-elo)/epb)
         nby = int((dhi-dlo)/dpb)
 
         fig.suptitle(f'DCR vs Energy', horizontalalignment='center', fontsize=16)
 
-        h = plt.hist2d(df_cut['trapEmax_cal'], df_cut['dcr_linoff'], bins=[nbx,nby],
+        h = plt.hist2d(df_cut[etype], df_cut['dcr_linoff'], bins=[nbx,nby],
                     range=[[elo, ehi], [dlo, dhi]], cmap='viridis', norm=LogNorm())
 
         cb = plt.colorbar()
@@ -189,7 +258,11 @@ def dcr_AvE(runs, cut=True):
 
         plt.title(f'\n{runtype} run {run}, {rt_min:.2f} mins', fontsize=12)
         plt.tight_layout()
-        plt.savefig(f'./plots/normScan/cal_normScan/{runtype}_dcr_run{run}.png', dpi=200)
+        # plt.savefig(f'./plots/normScan/cal_normScan/{runtype}_dcr_run{run}.png', dpi=200)
+        if runtype=='alp':
+            plt.savefig(f'./plots/angleScan/{runtype}_DCR_{radius}mm_{angle_det}deg_run{run}.png', dpi=200)
+        elif runtype=='bkg':
+            plt.savefig(f'./plots/angleScan/{runtype}_DCR_run{run}.png', dpi=200)
         # plt.show()
         plt.clf()
         plt.close()
@@ -224,7 +297,11 @@ def dcr_AvE(runs, cut=True):
 
         plt.title(f'\n{runtype} run {run}, {rt_min:.2f} mins', fontsize=12)
         plt.tight_layout()
-        plt.savefig(f'./plots/normScan/cal_normScan/{runtype}_AoE_vs_dcr_run{run}.png', dpi=200)
+        # plt.savefig(f'./plots/normScan/cal_normScan/{runtype}_AoE_vs_dcr_run{run}.png', dpi=200)
+        if runtype=='alp':
+            plt.savefig(f'./plots/angleScan/{runtype}_AoEvDCR_{radius}mm_{angle_det}deg_run{run}.png', dpi=200)
+        elif runtype=='bkg':
+            plt.savefig(f'./plots/angleScan/{runtype}_AoEvDCR_run{run}.png', dpi=200)
         # plt.show()
         plt.clf()
         plt.close()
@@ -234,8 +311,7 @@ def dcr_AvE(runs, cut=True):
         fig, ax = plt.subplots()
         fig.suptitle(f'DCR vs 50% rise time', horizontalalignment='center', fontsize=16)
 
-        dlo, dhi, dpb = -100, 200, 0.6
-        tlo, thi, tpb = 0, 700, 10
+        tlo, thi, tpb = 0, 800, 10
 
         nbx = int((dhi-dlo)/dpb)
         nby = int((thi-tlo)/tpb)
@@ -257,7 +333,11 @@ def dcr_AvE(runs, cut=True):
 
         plt.title(f'\n{runtype} run {run}, {rt_min:.2f} mins', fontsize=12)
         plt.tight_layout()
-        plt.savefig(f'./plots/normScan/cal_normScan/{runtype}_dcr_vs_tp0_50_run{run}.png', dpi=200)
+        # plt.savefig(f'./plots/normScan/cal_normScan/{runtype}_dcr_vs_tp0_50_run{run}.png', dpi=200)
+        if runtype=='alp':
+            plt.savefig(f'./plots/angleScan/{runtype}_DCRvTp050_{radius}mm_{angle_det}deg_run{run}.png', dpi=200)
+        elif runtype=='bkg':
+            plt.savefig(f'./plots/angleScan/{runtype}_DCRvTp050_run{run}.png', dpi=200)
         # plt.show()
         plt.clf()
         plt.close()
@@ -266,11 +346,6 @@ def dcr_AvE(runs, cut=True):
 
         fig, ax = plt.subplots()
         fig.suptitle(f'A/E', horizontalalignment='center', fontsize=16)
-
-        alo, ahi, apb = 0.0, 0.09, 0.0001
-        if run>=60:
-            alo, ahi, apb = 0.005, 0.0905, 0.0001
-        nbx = int((ahi-alo)/apb)
 
         aoe_hist, bins = np.histogram(df_cut['AoE'], bins=nbx,
                 range=[alo, ahi])
@@ -288,15 +363,19 @@ def dcr_AvE(runs, cut=True):
         # plt.legend()
         plt.title(f'\n{runtype} run {run}, {rt_min:.2f} mins', fontsize=12)
         plt.tight_layout()
-        plt.savefig(f'./plots/normScan/cal_normScan/{runtype}_1d_aoe_run{run}.png', dpi=200)
+        # plt.savefig(f'./plots/normScan/cal_normScan/{runtype}_1d_aoe_run{run}.png', dpi=200)
+        if runtype=='alp':
+            plt.savefig(f'./plots/angleScan/{runtype}_1dAoE_{radius}mm_{angle_det}deg_run{run}.png', dpi=200)
+        elif runtype=='bkg':
+            plt.savefig(f'./plots/angleScan/{runtype}_1dAoE_run{run}.png', dpi=200)
         plt.clf()
         plt.close()
-        
+
 
         #-------------------------------------
         # Plots after alpha cuts
         #--------------------
-        
+
         if cut==False:
             exit()
         else:
@@ -503,7 +582,7 @@ def dcr_AvE(runs, cut=True):
         plt.savefig(f'./plots/normScan/cal_normScan/{runtype}_cut__1d_aoe_run{run}.png', dpi=200)
         plt.clf()
         plt.close()
-        
+
 def plot_energy(runs):
     radius_arr_1 = []
     mean_energy_arr_1 = []
