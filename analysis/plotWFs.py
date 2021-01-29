@@ -27,7 +27,7 @@ def main():
     cal = False
     etype = 'trapEftp'
 
-    plot_wfs(run, cycle, user, hit, cal)
+    plot_wfs(run, cycle, etype, user, hit, cal)
 
 def plot_wfs(run, cycle, etype, user=False, hit=True, cal=True):
     """
@@ -49,7 +49,7 @@ def plot_wfs(run, cycle, etype, user=False, hit=True, cal=True):
     # get data and load into df
     lh5_dir = dg.lh5_user_dir if user else dg.lh5_dir
     if cal==True:
-        etype_cal = etype+'_cal'
+        etype_cal = etype + '_cal'
 
     if hit==True:
         print('Using hit files')
@@ -66,7 +66,7 @@ def plot_wfs(run, cycle, etype, user=False, hit=True, cal=True):
 
     elif hit==False:
         print('Using dsp files')
-        file_list = lh5_dir + dg.fileDB['dsp_path'] + '/' + dg.fileDB['dsp_file'])
+        file_list = lh5_dir + dg.fileDB['dsp_path'] + '/' + dg.fileDB['dsp_file']
         if run<=117 and cal==True:
             df = lh5.load_dfs(file_list, [f'{etype}', f'{etype_cal}', 'bl','bl_sig','A_10','AoE', 'ts_sec', 'dcr_raw', 'dcr_ftp', 'dcr_max', 'tp_0', 'tp_10', 'tp_90', 'tp_50', 'tp_80', 'tp_max'], 'ORSIS3302DecoderForEnergy/dsp')
         elif run>117 and cal==True:
@@ -83,12 +83,12 @@ def plot_wfs(run, cycle, etype, user=False, hit=True, cal=True):
 
     waveforms = []
 
-    n_eranges = 50
-    nwfs= 50
-    emin = 5000
-    emax = 15000
+    n_eranges = 10 #number of steps between lower and higher energy limits
+    nwfs= 50 #number of waveforms to average for superpulse
+    emin = 500 #lower energy limit
+    emax = 1000 #higher energy limit
 
-    eranges = np.linspace(emin, emax, n_eranges) #trying to get about 60 keV energy slices
+    eranges = np.linspace(emin, emax, n_eranges) #set up energy slices
     for e in eranges:
         #get events within 1% of energy
         elo = e-(0.01*e)
@@ -112,7 +112,7 @@ def plot_wfs(run, cycle, etype, user=False, hit=True, cal=True):
         superpulse = np.divide(super_wf, wf_max)
         waveforms.append(superpulse)
 
-    fig, ax = plt.subplots()
+    fig, ax = plt.subplots(figsize=(9,8))
     ax = plt.axes()
 
     # set up colorbar to plot waveforms of different energies different colors
@@ -131,11 +131,11 @@ def plot_wfs(run, cycle, etype, user=False, hit=True, cal=True):
 
     plt.xlim(3800, 8000)
     plt.ylim(0.4, 1.01)
-    plt.setp(ax.get_xticklabels(), fontsize=18)
-    plt.setp(ax.get_yticklabels(), fontsize=18)
+    plt.setp(ax.get_xticklabels(), fontsize=16)
+    plt.setp(ax.get_yticklabels(), fontsize=16)
     plt.title(f'Waveforms, {emin}-{emax} trapEftp, {n_eranges} steps', fontsize=20)
     plt.xlabel('clock cycles', fontsize=20)
-    plt.savefig(f'./plots/angleScan/wfs_fallingEdge_run{run}.png', dpi=300)
+    plt.savefig(f'./plots/angleScan/waveforms/wfs_fallingEdge_cycle{cycle}.png', dpi=300)
     # plt.cla()
 
 if __name__=="__main__":
