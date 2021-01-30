@@ -342,15 +342,6 @@ def dsp_to_hit_cage(f_dsp, f_hit, dg, n_max=None, verbose=False, t_start=None):
     if t_start is not None:
         df_hit['ts_glo'] = df_hit['ts_sec'] + t_start
 
-    # # quick diagnostic plot
-    # xlo, xhi, xpb = 0, 3000, 10
-    # hist, bins, _ = pgh.get_hist(df_hit['trapEftp_cal'], range=(xlo, xhi), dx=xpb)
-    # plt.semilogy(bins[1:], hist, ds='steps', c='b', lw=1)
-    # plt.xlabel('Energy (keV)', ha='right', x=1)
-    # plt.ylabel('Counts', ha='right', y=1)
-    # plt.savefig('./plots/d2h_test.png')
-    # exit()
-
     # write to LH5 file
     if os.path.exists(f_hit):
         os.remove(f_hit)
@@ -365,6 +356,24 @@ def dsp_to_hit_cage(f_dsp, f_hit, dg, n_max=None, verbose=False, t_start=None):
 
     print(f'Writing table: {tb_name} in file:\n   {f_hit}')
     sto.write_object(tb_lh5, tb_name, f_hit)
+    
+    if show_plot:
+        # # quick diagnostic plots
+        
+        # energy
+        # xlo, xhi, xpb = 0, 3000, 10
+        # hist, bins, _ = pgh.get_hist(df_hit['trapEftp_cal'], range=(xlo, xhi), dx=xpb)
+        # plt.semilogy(bins[1:], hist, ds='steps', c='b', lw=1)
+        # plt.xlabel('Energy (keV)', ha='right', x=1)
+        # plt.ylabel('Counts', ha='right', y=1)
+        # plt.savefig('./plots/d2h_etest.png')
+        
+        # timestamp
+        xv = np.arange(len(df_hit))
+        plt.plot(xv, df_hit['ts_sec'], '.b')
+        plt.savefig('./plots/d2h_ttest.png')
+        
+        exit()
 
 
 if __name__=="__main__":
