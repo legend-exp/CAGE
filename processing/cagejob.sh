@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --qos=shared
-#SBATCH --time=10:00:00
+#SBATCH --time=48:00:00
 #SBATCH --constraint=haswell
 #SBATCH --account=m2676
 #SBATCH --export=HDF5_USE_FILE_LOCKING=FALSE
@@ -29,7 +29,7 @@ fi
 # shifter python setup.py --update --orca -b
 
 # update recent runs (cuts down on log file size)
-shifter python processing.py -q 'run>95' --d2r --r2d
+shifter python processing.py -q 'run>=118' --d2r --r2d
 
 # update everything (no overwriting)
 # shifter python processing.py -q 'cycle>0' --d2r --r2d
