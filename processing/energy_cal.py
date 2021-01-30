@@ -64,10 +64,12 @@ def main():
     par = argparse.ArgumentParser(description=doc, formatter_class=rthf)
     arg, st, sf = par.add_argument, 'store_true', 'store_false'
 
+    # declare group of files of interest.  supports sql-style(ish) queries
+    arg('-q', '--query', nargs=1, type=str,
+        help="select file group to calibrate: -q 'run==1 and [condition]' ")
+    
     # primary ops
     arg('--raw', action=st, help='display/save uncalibrated energy histogram')
-    arg('-q', '--query', nargs=1, type=str,
-        help="select file group to calibrate: -q 'run==1' ")
     arg('-pd', '--peakdet', action=st, help='first pass: peak detection')
     arg('-pi', '--peakinp', nargs=1, type=str, help='first pass: manually input peaks')
     arg('-pf', '--peakfit', action=st, help='second pass: individual peak fit')
@@ -116,7 +118,7 @@ def main():
         print(f'Loading default calibration parameters from: {f_ecal}')
         
     # merge main and ecal config dicts
-    with open(f_ecal) as f:
+    with open(os.path.expandvars(f_ecal)) as f:
         config = {**dg.config, **json.load(f)}
     
     # initialize ecalDB JSON output file.  only run this once
@@ -356,8 +358,8 @@ def run_peakdet(dg, config, db_ecal):
     """
     gb = dg.fileDB.groupby(config['gb_cols'])
     run = dg.fileDB.run.iloc[0]
-    cyc_lo, cyc_hi = dg.fileDB.cycle.iloc[0], dg.fileDB.cycle.iloc[-1]
-    print(f'Running peakdet, run {run}, cycles {cyc_lo}--{cyc_hi}')
+    cyclo, cychi = dg.fileDB.cycle.iloc[0], dg.fileDB.cycle.iloc[-1]
+    print(f'Running peakdet, run {run}, cycles {cyclo}--{cychi}')
     
     if 'input_id' in config.keys():
         pol = config['pol'][0]
@@ -413,7 +415,8 @@ def peakdet_auto(df_group, config):
     dsp_list = config['lh5_dir'] + df_group['dsp_path'] + '/' + df_group['dsp_file']
     edata = lh5.load_nda(dsp_list, config['rawe'], config['input_table'], verbose=False)
     runtime_min = df_group['runtime'].sum()
-    cyc_lo, cyc_hi = df_group.cycle.iloc[0], df_group.cycle.iloc[-1]
+    run = df_group.run.iloc[0]
+    cyclo, cychi = df_group.cycle.iloc[0], df_group.cycle.iloc[-1]
     print(f'  Runtime: {runtime_min:.1f} min.  Calibrating:', [f'{et}:{len(ev)} events' for et, ev in edata.items()])
 
     # loop over energy estimators of interest
@@ -493,7 +496,7 @@ def peakdet_auto(df_group, config):
             p1.legend(fontsize=10)
 
             if config['batch_mode']:
-                plt.savefig(f'./plots/energy_cal/run{run0}peakdet_cal_{et}.pdf')
+                plt.savefig(f'./plots/energy_cal/peakdet_{et}_run{run}_clo{cyclo}_chi{cychi}.pdf')
             else:
                 plt.show()
 
@@ -501,8 +504,8 @@ def peakdet_auto(df_group, config):
         pd_results[f'{et}_runtime'] = runtime_min
         pd_results[f'{et}_pol0'] = 0 
         pd_results[f'{et}_pol1'] = lin_cal
-        pd_results[f'{et}_cyclo'] = cyc_lo
-        pd_results[f'{et}_cychi'] = cyc_hi
+        pd_results[f'{et}_cyclo'] = cyclo
+        pd_results[f'{et}_cychi'] = cychi
 
     return pd.Series(pd_results)
 
@@ -640,7 +643,7 @@ def peakdet_input(df_group, config):
     edata = lh5.load_nda(dsp_list, config['rawe'], config['input_table'], verbose=False)
     runtime_min = df_group['runtime'].sum()
     run = df_group.run.iloc[0]
-    cyc_lo, cyc_hi = df_group.cycle.iloc[0], df_group.cycle.iloc[-1]
+    cyclo, cychi = df_group.cycle.iloc[0], df_group.cycle.iloc[-1]
     print(f'  Runtime: {runtime_min:.1f} min.  Calibrating:', [f'{et}:{len(ev)} events' for et, ev in edata.items()])
     
     # loop over energy estimators of interest
@@ -657,6 +660,7 @@ def peakdet_input(df_group, config):
         inp_id = config['input_id'] # string id, like 002
         with open(config['input_peaks']) as f:
             pk_inputs = json.load(f)
+        # pprint(pk_inputs)
         pk_list = {k:v for k,v in pk_inputs[inp_id][et].items()}
         yv = [pk_list[k][0] for k in pk_list] # true peaks (keV)
         xv_input = [pk_list[k][1] for k in pk_list] # raw peaks (uncalib.)
@@ -685,8 +689,8 @@ def peakdet_input(df_group, config):
         pd_results = {}
         pd_results[f'{et}_calpass'] = True
         pd_results[f'{et}_runtime'] = runtime_min
-        pd_results[f'{et}_cyclo'] = cyc_lo
-        pd_results[f'{et}_cychi'] = cyc_hi
+        pd_results[f'{et}_cyclo'] = cyclo
+        pd_results[f'{et}_cychi'] = cychi
         for i, p in enumerate(np.flip(pfit)): # p0, p1, p2
             pd_results[f'{et}_pol{i}'] = p
 
@@ -698,7 +702,7 @@ def peakdet_input(df_group, config):
             # 1. show spectrum and input peaks
             p0.semilogy(bins[1:], hist_norm, 'b', ds='steps', lw=1)
             
-            p0.plot(np.nan, np.nan, '-w', label=f'Run {run}, cyc {cyc_lo}--{cyc_hi}')
+            p0.plot(np.nan, np.nan, '-w', label=f'Run {run}, cyc {cyclo}--{cychi}')
             
             cmap = plt.cm.get_cmap('jet', len(pk_list))
             for i in range(len(xv)):
@@ -712,7 +716,7 @@ def peakdet_input(df_group, config):
             p0.legend(fontsize=10)
             
             # 2: show the calibration curve fit result
-            p1.plot(np.nan, np.nan, '-w', label=f'Run {run}, cyc {cyc_lo}--{cyc_hi}')
+            p1.plot(np.nan, np.nan, '-w', label=f'Run {run}, cyc {cyclo}--{cychi}')
             
             p1.plot(xv, yv, '.k')
             
@@ -726,7 +730,7 @@ def peakdet_input(df_group, config):
             p1.legend(fontsize=10)
             
             if config['batch_mode']:
-                plt.savefig(f'./plots/energy_cal/peakinput_cyc{cyc}.png')
+                plt.savefig(f'./plots/energy_cal/peakinput_{et}_run{run}_clo{cyclo}_chi{cychi}.pdf')
             else:
                 plt.show()
             plt.close()
@@ -743,8 +747,8 @@ def run_peakfit(dg, config, db_ecal):
     """
     gb = dg.fileDB.groupby(config['gb_cols'])
     run = dg.fileDB.run.iloc[0]
-    cyc_lo, cyc_hi = dg.fileDB.cycle.iloc[0], dg.fileDB.cycle.iloc[-1]
-    print(f'Running peakfit, run {run}, cycles {cyc_lo}--{cyc_hi}')
+    cyclo, cychi = dg.fileDB.cycle.iloc[0], dg.fileDB.cycle.iloc[-1]
+    print(f'Running peakfit, run {run}, cycles {cyclo}--{cychi}')
     
     result = gb.apply(peakfit, *[config, db_ecal])
     
@@ -977,7 +981,7 @@ def peakfit(df_group, config, db_ecal):
 
             if config['batch_mode']:
                 print('Saving plot')
-                plt.savefig(f'./plots/energy_cal/run{run0}_peakfit.png')
+                plt.savefig(f'./plots/energy_cal/peakfit_{et}_run{run}_clo{cyclo}_chi{cychi}.pdf')
             else:
                 plt.show()
             plt.cla()
