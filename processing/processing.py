@@ -250,8 +250,8 @@ def dsp_to_hit_cage(f_dsp, f_hit, dg, n_max=None, verbose=False, t_start=None):
     - energy calibration (peakfit results)
     - timestamp correction
     """
-    apply_ecal = True # user changes these here for now, sorry
-    apply_tscorr = False
+    apply_ecal = True 
+    apply_tscorr = False # not needed, should be fixed by the jan 30 2021 re-d2r
     
     # create initial 'hit' DataFrame from dsp data
     hit_store = lh5.Store()
@@ -335,6 +335,8 @@ def dsp_to_hit_cage(f_dsp, f_hit, dg, n_max=None, verbose=False, t_start=None):
             t_roll += t_last + t_diff
         df_hit['ts_sec'] = np.concatenate(ts_new)
     else:
+        # NOTE: may need to subtract off the 1st value here if we find
+        # that the timestamp doesn't reset at cycle boundaries.
         df_hit['ts_sec'] = df_hit['timestamp'].values / clock
 
 
@@ -348,7 +350,7 @@ def dsp_to_hit_cage(f_dsp, f_hit, dg, n_max=None, verbose=False, t_start=None):
     sto = lh5.Store()
     tb_name = dg.config['input_table'].replace('dsp', 'hit')
     tb_lh5 = lh5.Table(size=len(df_hit))
-
+    
     for col in df_hit.columns:
         tb_lh5.add_field(col, lh5.Array(df_hit[col].values, attrs={'units':''}))
         if verbose:
@@ -357,22 +359,28 @@ def dsp_to_hit_cage(f_dsp, f_hit, dg, n_max=None, verbose=False, t_start=None):
     print(f'Writing table: {tb_name} in file:\n   {f_hit}')
     sto.write_object(tb_lh5, tb_name, f_hit)
     
-    if show_plot:
-        # # quick diagnostic plots
+    if verbose:
+        print('Creating diagnostic plots ...')
         
         # energy
-        # xlo, xhi, xpb = 0, 3000, 10
-        # hist, bins, _ = pgh.get_hist(df_hit['trapEftp_cal'], range=(xlo, xhi), dx=xpb)
-        # plt.semilogy(bins[1:], hist, ds='steps', c='b', lw=1)
-        # plt.xlabel('Energy (keV)', ha='right', x=1)
-        # plt.ylabel('Counts', ha='right', y=1)
-        # plt.savefig('./plots/d2h_etest.png')
+        xlo, xhi, xpb = 0, 3000, 10
+        hist, bins, _ = pgh.get_hist(df_hit['trapEftp_cal'], range=(xlo, xhi), dx=xpb)
+        plt.semilogy(bins[1:], hist, ds='steps', c='b', lw=1)
+        plt.xlabel('Energy (keV)', ha='right', x=1)
+        plt.ylabel('Counts', ha='right', y=1)
+        plt.savefig('./plots/d2h_etest.png')
+        print('saved figure: ./plots/d2h_etest.png')
+        plt.cla()
         
         # timestamp
         xv = np.arange(len(df_hit))
         plt.plot(xv, df_hit['ts_sec'], '.b')
         plt.savefig('./plots/d2h_ttest.png')
+        print('saved figure: ./plots/d2h_ttest.png')
+        plt.cla()
         
+        # exit, don't create + overwrite a million plots
+        print('verbose mode of d2h is meant to look at 1 cycle file, exiting...')
         exit()
 
 
