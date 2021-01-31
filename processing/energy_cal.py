@@ -272,6 +272,11 @@ def show_ecaldb(config, tables=None):
         db_table = db_ecal.table(tb).all()
         df_table = pd.DataFrame(db_table)
         
+        # print(df_table)
+        # print(df_table.run)
+        # print(df_table.dtypes)
+        # exit()
+        
         # can't save ints correctly to tinyDB (yet), so fix them here
         int_cols = [col for col in ['run','cychi','cyclo','calpass'] if col in df_table.columns]
         for col in int_cols:
@@ -357,10 +362,11 @@ def run_peakdet(dg, config, db_ecal):
     They have a nice 1--1 correspondence to pandas dataframes.
     """
     gb = dg.fileDB.groupby(config['gb_cols'])
-    run = dg.fileDB.run.iloc[0]
+    runs = dg.fileDB.run.unique()
     cyclo, cychi = dg.fileDB.cycle.iloc[0], dg.fileDB.cycle.iloc[-1]
-    print(f'Running peakdet, run {run}, cycles {cyclo}--{cychi}')
+    print(f'Running peakdet, runs {runs}, cycles {cyclo}--{cychi}')
     
+    # run peakdet function as a pandas groupby
     if 'input_id' in config.keys():
         pol = config['pol'][0]
         print(f'Fitting manually input peak locations to polynomial, order', pol)
@@ -368,33 +374,43 @@ def run_peakdet(dg, config, db_ecal):
     else:
         print('Automatically detecting peaks based on input list.')
         result = gb.apply(peakdet_auto, *[config])
+    
+    def parse_results(df_run):
+        """
+        for each run, compute entries for each energy estimator to TinyDB
+        """
+        run = int(df_run.index[0])
         
-    # write separate tables for each energy estimator to the TinyDB
-    for epar in config['rawe']:
-
-        # format output table
-        epar_cols = [r for r in result.columns if epar in r]
-        df_epar = result[epar_cols].copy()
-        df_epar.rename(columns={c:c.split('_')[-1] for c in epar_cols},
-                       inplace=True)
-        df_epar['calpass'] = df_epar['calpass'].astype(int)
-        df_epar.reset_index(inplace=True)
+        for epar in config['rawe']:
+            
+            # format output table
+            epar_cols = [r for r in df_run.columns if epar in r]
+            df_epar = df_run[epar_cols].copy()
+            df_epar.rename(columns={c:c.split('_')[-1] for c in epar_cols},
+                           inplace=True)
+            df_epar['calpass'] = df_epar['calpass'].astype(int)
+            df_epar.reset_index(inplace=True)
+            
+            if 'cycle' in df_epar.columns:
+                # this is redundant with cyclo and cychi
+                df_epar.drop('cycle', 1, inplace=True)
+            cyclo, cychi = df_epar.iloc[0][['cyclo','cychi']]
+            
+            tb_name = f'peakinp_{epar}' if 'input_id' in config.keys() else f'peakdet_{epar}'
+            print('Results:', tb_name)
+            print(f'Run {run}  cycles {cyclo}--{cychi}')
+            print(df_epar)
+            
+            # this is in-memory, no write to file yet
+            table = db_ecal.table(tb_name)
+            q = db.Query()
+            for i, row in df_epar.iterrows():
+                que = ((q.run==row.run) & (q.cyclo==row.cyclo) & (q.cychi==row.cychi))
+                table.upsert(row.to_dict(), que)
+            
+    # parse the results
+    result.groupby(['run']).apply(parse_results)
         
-        if 'cycle' in df_epar.columns:
-            # this is redundant with cyclo and cychi
-            df_epar.drop('cycle', 1, inplace=True)
-        
-        tb_name = f'peakinp_{epar}' if 'input_id' in config.keys() else f'peakdet_{epar}'
-        print('Results:', tb_name)
-        print(df_epar)
-        
-        # this is in-memory, no write to file yet
-        table = db_ecal.table(tb_name)
-        q = db.Query()
-        for i, row in df_epar.iterrows():
-            que = ((q.run==row.run) & (q.cyclo==row.cyclo) & (q.cychi==row.cychi))
-            table.upsert(row.to_dict(), que)
-
     if not config['write_db']:
         print('Done. ecalDB write mode not set (-w option)')
         return
@@ -462,6 +478,7 @@ def peakdet_auto(df_group, config):
             p0.semilogy(bins[idx], hist_norm[idx], ds='steps', c='b', lw=1, label=et)
             p0.set_ylabel(f'cts/s, {xpb}/bin', ha='right', y=1)
             p0.set_xlabel(et, ha='right', x=1)
+            p0.set_ylim(1e-4)
 
             # energy, with rough calibration
             bins_cal = bins[1:] * lin_cal
@@ -499,6 +516,7 @@ def peakdet_auto(df_group, config):
                 plt.savefig(f'./plots/energy_cal/peakdet_{et}_run{run}_clo{cyclo}_chi{cychi}.pdf')
             else:
                 plt.show()
+            plt.close()
 
         pd_results[f'{et}_calpass'] = mp_success
         pd_results[f'{et}_runtime'] = runtime_min
@@ -642,7 +660,7 @@ def peakdet_input(df_group, config):
     dsp_list = config['lh5_dir'] + df_group['dsp_path'] + '/' + df_group['dsp_file']
     edata = lh5.load_nda(dsp_list, config['rawe'], config['input_table'], verbose=False)
     runtime_min = df_group['runtime'].sum()
-    run = df_group.run.iloc[0]
+    run = int(df_group.run.iloc[0])
     cyclo, cychi = df_group.cycle.iloc[0], df_group.cycle.iloc[-1]
     print(f'  Runtime: {runtime_min:.1f} min.  Calibrating:', [f'{et}:{len(ev)} events' for et, ev in edata.items()])
     
@@ -686,7 +704,7 @@ def peakdet_input(df_group, config):
         pol = config['pol'][0]
         pfit = np.polyfit(xv, yv, pol) # p2, p1, p0
         
-        pd_results = {}
+        # save results for this energy estimator
         pd_results[f'{et}_calpass'] = True
         pd_results[f'{et}_runtime'] = runtime_min
         pd_results[f'{et}_cyclo'] = cyclo
@@ -714,6 +732,7 @@ def peakdet_input(df_group, config):
             p0.set_xlabel(f'{et} (uncal)', ha='right', x=1)
             p0.set_ylabel(f'Counts / min / {xpb:.1f} keV', ha='right', y=1)
             p0.legend(fontsize=10)
+            p0.set_ylim(1e-4)
             
             # 2: show the calibration curve fit result
             p1.plot(np.nan, np.nan, '-w', label=f'Run {run}, cyc {cyclo}--{cychi}')
@@ -722,7 +741,7 @@ def peakdet_input(df_group, config):
             
             polfunc = np.poly1d(pfit) # handy numpy polynomial function
             yfit = polfunc(xv)
-            pol_label = '  '.join([f'p{i} : {ene:.2e}' for i, ene in enumerate(pfit)])
+            pol_label = '  '.join([f'p{i} : {ene:.2e}' for i, ene in enumerate(pfit[::-1])])
             p1.plot(xv, yfit, '-r', lw=2, label=pol_label)
             
             p1.set_xlabel('Energy (keV)', ha='right', x=1)
@@ -735,7 +754,7 @@ def peakdet_input(df_group, config):
                 plt.show()
             plt.close()
             
-        return pd.Series(pd_results)
+    return pd.Series(pd_results)
 
 
 def run_peakfit(dg, config, db_ecal):
@@ -746,37 +765,46 @@ def run_peakfit(dg, config, db_ecal):
     and compute the calibration and resolution curves.
     """
     gb = dg.fileDB.groupby(config['gb_cols'])
-    run = dg.fileDB.run.iloc[0]
+    runs = dg.fileDB.run.unique()
     cyclo, cychi = dg.fileDB.cycle.iloc[0], dg.fileDB.cycle.iloc[-1]
-    print(f'Running peakfit, run {run}, cycles {cyclo}--{cychi}')
+    print(f'Running peakfit, runs {runs}, cycles {cyclo}--{cychi}')
     
     result = gb.apply(peakfit, *[config, db_ecal])
     
-    # write separate tables for each energy estimator to the TinyDB
-    for epar in config['rawe']:
+    def parse_results(df_run):
+        """
+        for each run, compute entries for each energy estimator for TinyDB
+        """
+        run = int(df_run.index[0])
 
-        # format output
-        epar_cols = [r for r in result.columns if epar in r]
-        df_epar = result[epar_cols].copy()
-        df_epar.rename(columns={c:c.split('_')[-1] for c in epar_cols},
-                       inplace=True)
-        df_epar.reset_index(inplace=True)
-        df_epar['run'] = df_epar['run'].astype(str)
+        for epar in config['rawe']:
+            
+            # format output
+            epar_cols = [r for r in df_run.columns if epar in r]
+            df_epar = df_run[epar_cols].copy()
+            df_epar.rename(columns={c:c.split('_')[-1] for c in epar_cols},
+                           inplace=True)
+            df_epar.reset_index(inplace=True)
+            
+            if 'cycle' in df_epar.columns:
+                # this is redundant with cyclo and cychi
+                df_epar.drop('cycle', 1, inplace=True)
+            cyclo, cychi = df_epar.iloc[0][['cyclo','cychi']]
+            
+            tb_name = f'peakfit_{epar}'
+            print('Results:', tb_name)
+            print(f'Run {run}  cycles {cyclo}--{cychi}')
+            print(df_epar)
+            
+            # this is in-memory, no write to file yet
+            table = db_ecal.table(tb_name)
+            q = db.Query()
+            for i, row in df_epar.iterrows():
+                que = ((q.run==row.run) & (q.cyclo==row.cyclo) & (q.cychi==row.cychi))
+                table.upsert(row.to_dict(), que)
 
-        if 'cycle' in df_epar.columns:
-            # this is redundant with cyclo and cychi
-            df_epar.drop('cycle', 1, inplace=True)
-        
-        tb_name = f'peakfit_{epar}'
-        print('Results:', tb_name)
-        print(df_epar)
-        
-        # this is in-memory, no write to file yet
-        table = db_ecal.table(tb_name)
-        q = db.Query()
-        for i, row in df_epar.iterrows():
-            que = ((q.run==row.run) & (q.cyclo==row.cyclo) & (q.cychi==row.cychi))
-            table.upsert(row.to_dict(), que)
+    # parse the results
+    result.groupby(['run']).apply(parse_results)
 
     if not config['write_db']:
         print('Done. ecalDB write mode not set (-w option)')
@@ -803,7 +831,7 @@ def peakfit(df_group, config, db_ecal):
         input_peaks = False
         pol = 1 # and p0==0 always
         
-    run = df_group.run.iloc[0]
+    run = int(df_group.run.iloc[0])
     cyclo, cychi = df_group.cycle.iloc[0], df_group.cycle.iloc[-1]    
     
     gb_run = df_group['run'].unique()
@@ -950,6 +978,7 @@ def peakfit(df_group, config, db_ecal):
                             label=f"{pk_lbl} : {row['epk']} + {pk_diff:.3f}")
 
             p0.semilogy(bins[1:], hist_norm, ds='steps', c='b', lw=1)
+            p0.set_ylim(1e-4)
             p0.set_xlabel('Energy (keV)', ha='right', x=1)
             p0.set_ylabel('cts / s / keV', ha='right', y=1)
             p0.legend(loc=3, fontsize=11)
@@ -984,7 +1013,7 @@ def peakfit(df_group, config, db_ecal):
                 plt.savefig(f'./plots/energy_cal/peakfit_{et}_run{run}_clo{cyclo}_chi{cychi}.pdf')
             else:
                 plt.show()
-            plt.cla()
+            plt.close('all')
 
         # fill in the peakfit results and return
         
