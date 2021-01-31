@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --qos=shared
-#SBATCH --time=48:00:00
+#SBATCH --time=24:00:00
 #SBATCH --constraint=haswell
 #SBATCH --account=m2676
 #SBATCH --export=HDF5_USE_FILE_LOCKING=FALSE
@@ -28,13 +28,16 @@ fi
 # NOTE: you need to update runDB.json before running this!
 # shifter python setup.py --update --orca -b
 
-# update recent runs (cuts down on log file size)
-shifter python processing.py -q 'run>=118' --d2r --r2d
+# reprocess 2021 d2r (ts bug)
+shifter python processing.py -q 'cycle>=1192' --d2r -o
+
+# Standard mode: update recent runs (cuts down on log file size)
+# shifter python processing.py -q 'run>=118' --d2r --r2d
 
 # update everything (no overwriting)
 # shifter python processing.py -q 'cycle>0' --d2r --r2d
 
-# overwrite everything (~24 hr job)
+# overwrite everything (>> 24 hr job)
 # shifter python processing.py -q 'cycle>0' --d2r --r2d -o
 
 # SPECIAL: d2r new runs and rerun r2d with a new processor list (25 GB/hr)
