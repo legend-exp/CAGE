@@ -13,11 +13,13 @@ import itertools
 from scipy.optimize import curve_fit
 import tinydb as db
 from tinydb.storages import MemoryStorage
+
 import matplotlib
 if os.environ.get('HOSTNAME'): # cenpa-rocks
     matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 plt.style.use('../clint.mpl')
+
 import warnings
 with warnings.catch_warnings():
     warnings.simplefilter("ignore")
@@ -58,7 +60,7 @@ def main():
     Results are saved ('-w' option) to JSON format with 'legend-metadata' 
       style conventions.
     
-    -- C. Wiseman, T. Mathew, G. Othman, J. Detwiler
+    C. Wiseman, T. Mathew, G. Othman, J. Detwiler
     """
     rthf = argparse.RawTextHelpFormatter
     par = argparse.ArgumentParser(description=doc, formatter_class=rthf)
@@ -73,7 +75,7 @@ def main():
     arg('-pd', '--peakdet', action=st, help='first pass: peak detection')
     arg('-pi', '--peakinp', nargs=1, type=str, help='first pass: manually input peaks')
     arg('-pf', '--peakfit', action=st, help='second pass: individual peak fit')
-    arg('--all', action=st, help='run all passes, write to db')
+    arg('--all', action=st, help='run all passes, write to DB')
 
     # options
     arg('-v', '--verbose', nargs=1, help='set verbosity (default: 1)')
@@ -102,9 +104,11 @@ def main():
     if args.query:
         que = args.query[0]
         dg.fileDB.query(que, inplace=True)
+        show_all = False
     else: 
         dg.fileDB = dg.fileDB[-1:]
-
+        show_all = True
+        
     # load ecal config file
     f_ecal = dg.config['ecal_default']
     if args.spec:
@@ -115,7 +119,7 @@ def main():
         else:
             print('Error, unknown calib mode:', args.spec[0])
     else:
-        print(f'Loading default calibration parameters from: {f_ecal}')
+        print(f'Loading default calibration parameters from:\n  {f_ecal}')
         
     # merge main and ecal config dicts
     with open(os.path.expandvars(f_ecal)) as f:
@@ -157,7 +161,7 @@ def main():
     config['verbose'] = args.verbose[0] if args.verbose else 0
     
     # include fields from ecalDB in the config dict
-    config = {**config, **db_ecal.table('_file_info').all()[0]}
+    dg.config = {**config, **db_ecal.table('_file_info').all()[0]}
 
 
     # -- show status -- 
@@ -185,7 +189,8 @@ def main():
         print('\n')
         
     if args.show_db is not None:
-        show_ecaldb(config, args.show_db)
+        tables = args.show_db # list
+        show_ecaldb(dg, tables, args.query, show_all)
 
 
     # -- main routines --
@@ -242,11 +247,18 @@ def init_ecaldb(config):
         print(f.read())
 
 
-def show_ecaldb(config, tables=None):
+def show_ecaldb(dg, tables=None, query=None, show_all=True):
     """
     $ ./energy_cal.py --show_db [table name]
+    
+    if show_all, don't filter by the dg query and use to_string
     """
-    print('Loading ecalDB ...')
+    print('Loading ecalDB:', dg.config['ecaldb'])
+    print('  Show all entries?', show_all)
+    print('  Reading tables:', tables)
+    
+    if isinstance(query, list): query = query[0]
+    print('  Query is:', query)
     
     # # show the file as-is on disk
     # with open(config['ecaldb']) as f:
@@ -254,10 +266,10 @@ def show_ecaldb(config, tables=None):
 
     # make sure the file is usable by TinyDB
     db_ecal = db.TinyDB(storage=MemoryStorage)
-    with open(config['ecaldb']) as f:
+    with open(dg.config['ecaldb']) as f:
         raw_db = json.load(f)
         db_ecal.storage.write(raw_db)
-
+        
     # show tables in ecalDB, in pandas format.  user either passes
     # a specific table to look at, or we print them all.
     if tables is not None and len(tables)==0:
@@ -272,11 +284,6 @@ def show_ecaldb(config, tables=None):
         db_table = db_ecal.table(tb).all()
         df_table = pd.DataFrame(db_table)
         
-        # print(df_table)
-        # print(df_table.run)
-        # print(df_table.dtypes)
-        # exit()
-        
         # can't save ints correctly to tinyDB (yet), so fix them here
         int_cols = [col for col in ['run','cychi','cyclo','calpass'] if col in df_table.columns]
         for col in int_cols:
@@ -285,8 +292,12 @@ def show_ecaldb(config, tables=None):
         # fix the column order too
         cols = ['run','cyclo','cychi']
         cols += [c for c in df_table.columns if c not in cols]
-    
-        print(df_table[cols])
+        
+        # display table.  if user sends in a query, only show matching entries
+        if not show_all:
+            print(df_table.query(query)[cols])
+        else:
+            print(df_table[cols].to_string())
     
 
 def check_raw_spectrum(dg, config, db_ecal):
@@ -1009,7 +1020,6 @@ def peakfit(df_group, config, db_ecal):
             p2.legend(fontsize=13)
 
             if config['batch_mode']:
-                print('Saving plot')
                 plt.savefig(f'./plots/energy_cal/peakfit_{et}_run{run}_clo{cyclo}_chi{cychi}.pdf')
             else:
                 plt.show()
