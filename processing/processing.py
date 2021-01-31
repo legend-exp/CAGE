@@ -213,70 +213,56 @@ def d2h(dg, overwrite=False, nwfs=None, verbose=False, user=False):
     with open(os.path.expandvars(f_ecal)) as f:
         config = {**dg.config, **json.load(f)}
     dg.config = config
-    
+
+    # set additional options
     if 'rawe' not in dg.config:
         dg.config['rawe'] = dg.config['rawe_default']
-
-    # loop over dsp files
-    for i, row in dg.fileDB.iterrows():
-
-        # Default: look for production dsp files, give the user an option
-        # to redirect output to CAGE_LH5_USER.  This also needs an option
-        # to take INPUT from CAGE_LH5_USER, but ok, TODO.
-        lh5_dir = dg.lh5_user_dir if user else dg.lh5_dir
-        f_dsp = f"{dg.lh5_dir}/{row['dsp_path']}/{row['dsp_file']}"
-        f_hit = f"{lh5_dir}/{row['hit_path']}/{row['hit_file']}"
+    dg.config['dsp_input_dir'] = dg.lh5_dir
+    dg.config['hit_output_dir'] = dg.lh5_user_dir if user else dg.lh5_dir
         
-        if verbose:
-            print('input:', f_dsp)
-            print('output:', f_hit)
+    # run dsp_to_hit (the pandas apply is more useful than a regular loop)
+    dg.fileDB.apply(dsp_to_hit, axis=1, args=(dg, verbose, overwrite))    
         
-        if not overwrite and os.path.exists(f_hit):
-            print('file exists, overwrite not set, skipping f_hit:\n   ', f_dsp)
-            continue
-
-        cyc = row['cycle']
-        if row.skip:
-            print(f'Cycle {cyc} has been marked junk, will not process.')
-            continue
-
-        t_start = row['startTime']
-        dsp_to_hit_cage(f_dsp, f_hit, dg, n_max=nwfs, verbose=verbose, t_start=t_start)
-
-
-def dsp_to_hit_cage(f_dsp, f_hit, dg, n_max=None, verbose=False, t_start=None):
+        
+def dsp_to_hit(df_row, dg=None, verbose=False, overwrite=False):
     """
-    For every file, apply:
-    - energy calibration (peakfit results)
-    - timestamp correction
+    Create hit files from dsp files.  This routine is specific to CAGE but could
+    be extended & modified in the future to work for multi-channel data (PGT, 
+    L200, etc.)
     """
     apply_ecal = True 
     apply_tscorr = False # not needed, should be fixed by the jan 30 2021 re-d2r
     
+    f_dsp = f"{dg.config['dsp_input_dir']}/{df_row['dsp_path']}/{df_row['dsp_file']}"
+    f_hit = f"{dg.config['hit_output_dir']}/{df_row['hit_path']}/{df_row['hit_file']}"
+    if verbose:
+        print('input:', f_dsp)
+        print('output:', f_hit)
+    
+    if not overwrite and os.path.exists(f_hit):
+        print('file exists, overwrite not set, skipping f_hit:\n   ', f_dsp)
+        return
+    
+    # get run and cycle for ecalDB lookup.  also apply run selection
+    run, cycle = df_row[['run', 'cycle']].astype(int)
+    if df_row.skip:
+        print(f'Cycle {cyc} has been marked junk, will not process.')
+        return
+
     # create initial 'hit' DataFrame from dsp data
     hit_store = lh5.Store()
     data, n_rows = hit_store.read_object(dg.config['input_table'], f_dsp)
     df_hit = data.get_dataframe()
-
+    
     # 1. get energy calibration for this run from peakfit
     if apply_ecal:
         
-        # loading the tinydb this way preserves the on-disk appearance
+        # loading the tinydb this way preserves the in-file text formatting
         cal_db = db.TinyDB(storage=MemoryStorage)
         with open(dg.config['ecaldb']) as f:
             raw_db = json.load(f)
             cal_db.storage.write(raw_db)
         
-        runs = dg.fileDB.run.unique()
-        if len(runs) > 1:
-            print("sorry, I can't do combined runs yet")
-            exit()
-
-        # IMPORTANT: by convention the ecalDB lookups are by 'run, cyclo, cychi'
-        run = runs[0]
-        cyclo, cychi = dg.fileDB.cycle.values[0], dg.fileDB.cycle.values[-1]
-        # print(run, cyclo, cychi)
-
         # loop over energy estimators of interest
         for etype in dg.config['rawe']:
             
@@ -286,13 +272,14 @@ def dsp_to_hit_cage(f_dsp, f_hit, dg, n_max=None, verbose=False, t_start=None):
             for col in ['run','cyclo','cychi']:
                 df_cal[col] = df_cal[col].astype(int)
 
-            que = f'run=={run} and cyclo=={cyclo} and cychi=={cychi}'
+            # load cal constants for this cycle
+            que = f'run=={run} and cyclo <= {cycle} <= cychi'
             df_run = df_cal.query(que)
             if len(df_run) != 1:
                 print('Warning, non-unique query:', que)
                 print(df_run)
                 exit()
-            
+                
             # figure out the order of the polynomial from column names
             pols = {}
             for col in [c for c in df_run.columns if 'cal' in c]:
@@ -341,6 +328,7 @@ def dsp_to_hit_cage(f_dsp, f_hit, dg, n_max=None, verbose=False, t_start=None):
 
 
     # 3. compute global timestamp
+    t_start = df_row['startTime']
     if t_start is not None:
         df_hit['ts_glo'] = df_hit['ts_sec'] + t_start
 
