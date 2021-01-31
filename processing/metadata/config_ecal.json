@@ -5,7 +5,7 @@
 
   "init_vals" : {
     "energy" : {
-      "raw_range":[0, 1e7, 10000],
+      "raw_range":[0, 3e6, 5000],
       "peakdet_thresh": 0.04,
       "lowe_cut": 120000
     },
