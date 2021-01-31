@@ -246,7 +246,7 @@ def dsp_to_hit(df_row, dg=None, verbose=False, overwrite=False):
     # get run and cycle for ecalDB lookup.  also apply run selection
     run, cycle = df_row[['run', 'cycle']].astype(int)
     if df_row.skip:
-        print(f'Cycle {cyc} has been marked junk, will not process.')
+        print(f'Cycle {cycle} has been marked junk, will not process.')
         return
 
     # create initial 'hit' DataFrame from dsp data
