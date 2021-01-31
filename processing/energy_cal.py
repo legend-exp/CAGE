@@ -478,6 +478,7 @@ def peakdet_auto(df_group, config):
             p0.semilogy(bins[idx], hist_norm[idx], ds='steps', c='b', lw=1, label=et)
             p0.set_ylabel(f'cts/s, {xpb}/bin', ha='right', y=1)
             p0.set_xlabel(et, ha='right', x=1)
+            p0.set_ylim(1e-4)
 
             # energy, with rough calibration
             bins_cal = bins[1:] * lin_cal
@@ -515,6 +516,7 @@ def peakdet_auto(df_group, config):
                 plt.savefig(f'./plots/energy_cal/peakdet_{et}_run{run}_clo{cyclo}_chi{cychi}.pdf')
             else:
                 plt.show()
+            plt.close()
 
         pd_results[f'{et}_calpass'] = mp_success
         pd_results[f'{et}_runtime'] = runtime_min
@@ -730,6 +732,7 @@ def peakdet_input(df_group, config):
             p0.set_xlabel(f'{et} (uncal)', ha='right', x=1)
             p0.set_ylabel(f'Counts / min / {xpb:.1f} keV', ha='right', y=1)
             p0.legend(fontsize=10)
+            p0.set_ylim(1e-4)
             
             # 2: show the calibration curve fit result
             p1.plot(np.nan, np.nan, '-w', label=f'Run {run}, cyc {cyclo}--{cychi}')
@@ -975,6 +978,7 @@ def peakfit(df_group, config, db_ecal):
                             label=f"{pk_lbl} : {row['epk']} + {pk_diff:.3f}")
 
             p0.semilogy(bins[1:], hist_norm, ds='steps', c='b', lw=1)
+            p0.set_ylim(1e-4)
             p0.set_xlabel('Energy (keV)', ha='right', x=1)
             p0.set_ylabel('cts / s / keV', ha='right', y=1)
             p0.legend(loc=3, fontsize=11)
@@ -1009,8 +1013,7 @@ def peakfit(df_group, config, db_ecal):
                 plt.savefig(f'./plots/energy_cal/peakfit_{et}_run{run}_clo{cyclo}_chi{cychi}.pdf')
             else:
                 plt.show()
-            plt.cla()
-            fig.close()
+            plt.close('all')
 
         # fill in the peakfit results and return
         
