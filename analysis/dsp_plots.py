@@ -211,7 +211,7 @@ def normalized_dcr_AvE(runs, user=False, hit=True, cal=True, etype='trapEmax', c
 
         fig.suptitle(f'A/E vs Energy', horizontalalignment='center', fontsize=16)
 
-        aoe_hist, xedges, yedges = np.histogram2d(alpha_df_cut[etype], alpha_df_cut['AoE'], bins=[nbx, nby], range=([elo, ehi], [alo, ahi]))
+        aoe_hist, xedges, yedges = np.histogram2d(df_cut[etype], df_cut['AoE'], bins=[nbx, nby], range=([elo, ehi], [alo, ahi]))
         X, Y = np.mgrid[elo:ehi:nbx*1j, alo:ahi:nby*1j]
 
         aoe_hist_norm = np.divide(aoe_hist, (rt_min))
