@@ -24,18 +24,21 @@ mpl.use('Agg')
 
 def main():
 #     runs = [60, 42, 64, 44, 66, 48, 70, 50, 72, 54]
-    # runs = [120, 121, 123, 124, 126, 128, 129, 131, 132, 134, 135, 137]
+#     runs = [120, 121, 123, 124, 126, 128, 129, 131, 132, 134, 135, 137]
     runs = [143]
 
     user = False
-    hit = False
-    cal = False
+    hit = True
+    cal = True
     etype = 'trapEftp'
 
 #     plot_energy(runs)
     dcr_AvE(runs, user, hit, cal, etype, cut=False)
 
 def dcr_AvE(runs, user=False, hit=True, cal=True, etype='trapEmax', cut=True):
+    
+    if cal==True:
+            etype_cal = etype+'_cal'
 
     for run in runs:
         # get run files
@@ -69,8 +72,9 @@ def dcr_AvE(runs, user=False, hit=True, cal=True, etype='trapEmax', cut=True):
             angle = 'n/a'
             angle_det = 'n/a'
 
-        if cal==True:
-            etype_cal = etype+'_cal'
+            
+        # print(etype, etype_cal, run)
+        # exit()
 
 
 
@@ -81,9 +85,9 @@ def dcr_AvE(runs, user=False, hit=True, cal=True, etype='trapEmax', cut=True):
             print('Using hit files')
             file_list = lh5_dir + dg.fileDB['hit_path'] + '/' + dg.fileDB['hit_file']
             if run<=117 and cal==True:
-                df = lh5.load_dfs(file_list, [f'{etype}', f'{etype_cal}', 'bl','bl_sig','A_10','AoE', 'ts_sec', 'dcr_raw', 'dcr_ftp', 'dcr_max', 'tp_0', 'tp_10', 'tp_90', 'tp_50', 'tp_80', 'tp_max'], 'ORSIS3302DecoderForEnergy/hit')
+                df = lh5.load_dfs(file_list, [f'{etype}', f'{etype_cal}', 'bl','bl_sig','A_10','AoE', 'ts_sec', 'dcr_raw', 'dcr_ftp', 'dcr_max', 'tp_0','tp_10', 'tp_90', 'tp_50', 'tp_80', 'tp_max'], 'ORSIS3302DecoderForEnergy/hit')
             elif run>117 and cal==True:
-                df = lh5.load_dfs(file_list, [f'{etype}', f'{etype_cal}', 'bl','bl_sig', 'bl_slope', 'lf_max', 'A_10','AoE', 'dcr', 'tp_0', 'tp_10', 'tp_90', 'tp_50', 'tp_80', 'tp_max'], 'ORSIS3302DecoderForEnergy/hit')
+                df = lh5.load_dfs(file_list, ['energy', 'trapEmax', 'trapEftp', 'trapEmax_cal', 'trapEftp_cal', 'bl','bl_sig', 'bl_slope', 'lf_max', 'A_10','AoE', 'dcr', 'tp_0', 'tp_10', 'tp_90', 'tp_50', 'tp_80', 'tp_max'], 'ORSIS3302DecoderForEnergy/hit')
 
             elif run<=117 and cal==False:
                 df = lh5.load_dfs(file_list, [f'{etype}', 'bl','bl_sig','A_10','AoE', 'ts_sec', 'dcr_raw', 'dcr_ftp', 'dcr_max', 'tp_0', 'tp_10', 'tp_90', 'tp_50', 'tp_80', 'tp_max'], 'ORSIS3302DecoderForEnergy/hit')
@@ -96,7 +100,7 @@ def dcr_AvE(runs, user=False, hit=True, cal=True, etype='trapEmax', cut=True):
             if run<=117 and cal==True:
                 df = lh5.load_dfs(file_list, [f'{etype}', f'{etype_cal}', 'bl','bl_sig','A_10','AoE', 'ts_sec', 'dcr_raw', 'dcr_ftp', 'dcr_max', 'tp_0', 'tp_10', 'tp_90', 'tp_50', 'tp_80', 'tp_max'], 'ORSIS3302DecoderForEnergy/dsp')
             elif run>117 and cal==True:
-                df = lh5.load_dfs(file_list, [f'{etype}', f'{etype_cal}', 'bl','bl_sig', 'bl_slope', 'lf_max', 'A_10','AoE', 'dcr', 'tp_0', 'tp_10', 'tp_90', 'tp_50', 'tp_80', 'tp_max'], 'ORSIS3302DecoderForEnergy/dsp')
+                df = lh5.load_dfs(file_list, [f'{etype}', f'{etype_cal}', 'bl','bl_sig', 'bl_slope', 'lf_max', 'A_10','AoE', 'dcr', 'tp_0', 'tp_10', 'tp_90','tp_50', 'tp_80', 'tp_max'], 'ORSIS3302DecoderForEnergy/dsp')
 
             elif run<=117 and cal==False:
                 df = lh5.load_dfs(file_list, [f'{etype}', 'bl','bl_sig','A_10','AoE', 'ts_sec', 'dcr_raw', 'dcr_ftp', 'dcr_max', 'tp_0', 'tp_10', 'tp_90', 'tp_50', 'tp_80', 'tp_max'], 'ORSIS3302DecoderForEnergy/dsp')
@@ -129,6 +133,11 @@ def dcr_AvE(runs, user=False, hit=True, cal=True, etype='trapEmax', cut=True):
             const = -0.0003
             const2 = -0.0000003
             df_cut['dcr_linoff'] = df_cut['dcr'] + const*(df_cut['trapEftp']) + const2*(df_cut['trapEftp'])**2
+            if cal==True:
+                #creat new DCR
+                const = -0.0015
+                const2 = -0.0000015
+                df_cut['dcr_linoff'] = df_cut['dcr'] + const*(df_cut['trapEftp_cal']) + const2*(df_cut['trapEftp_cal'])**2 
 
 
 
@@ -168,6 +177,7 @@ def dcr_AvE(runs, user=False, hit=True, cal=True, etype='trapEmax', cut=True):
 
         ax.set_xlabel(f'{etype+e_unit}', fontsize=16)
         ax.set_ylabel('counts/sec', fontsize=16)
+        plt.ylim(0.0001,5)
         plt.setp(ax.get_xticklabels(), fontsize=14)
         plt.setp(ax.get_yticklabels(), fontsize=14)
 
