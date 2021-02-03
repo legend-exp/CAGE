@@ -235,154 +235,137 @@ def normalized_dcr_AvE(runs, user=False, hit=True, cal=True, etype='trapEmax', c
         plt.tight_layout()
         # plt.savefig(f'./plots/normScan/cal_normScan/{runtype}_AoE_run{run}.png', dpi=200)
         if runtype=='alp':
-            plt.savefig(f'./plots/angleScan/{runtype}_normalized_AoE_{radius}mm_{angle_det}deg_run{run}.png', dpi=200)
+            plt.savefig(f'./plots/angleScan/normalized_{runtype}_AoE_{radius}mm_{angle_det}deg_run{run}.png', dpi=200)
         elif runtype=='bkg':
-            plt.savefig(f'./plots/angleScan/{runtype}_normalized_AoE_run{run}.png', dpi=200)
+            plt.savefig(f'./plots/angleScan/normalized_{runtype}_normalized_AoE_run{run}.png', dpi=200)
         # plt.show()
 
         plt.clf()
         plt.close()
 
-        # # DCR vs E___________
-        #
-        # fig, ax = plt.subplots()
-        #
-        # if run>=60 and run<117:
-        #     dlo, dhi, dpb = -100, 300, 0.6
-        # elif run>117:
-        #     dlo, dhi, dpb = -20., 60, 0.1
-        #
-        # nbx = int((ehi-elo)/epb)
-        # nby = int((dhi-dlo)/dpb)
-        #
-        # fig.suptitle(f'DCR vs Energy', horizontalalignment='center', fontsize=16)
-        #
-        # h = plt.hist2d(df_cut[etype], df_cut['dcr_linoff'], bins=[nbx,nby],
-        #             range=[[elo, ehi], [dlo, dhi]], cmap='viridis', norm=LogNorm())
-        #
-        # cb = plt.colorbar()
-        # cb.set_label("counts", ha = 'right', va='center', rotation=270, fontsize=14)
-        # cb.ax.tick_params(labelsize=12)
-        # ax.set_xlabel('Energy (keV)', fontsize=16)
-        # ax.set_ylabel('DCR (arb)', fontsize=16)
-        # plt.setp(ax.get_xticklabels(), fontsize=14)
-        # plt.setp(ax.get_yticklabels(), fontsize=14)
-        #
-        # # plt.legend()
-        #
-        # ax.text(0.95, 0.83, f'r = {radius} mm \ntheta = {angle_det} deg', verticalalignment='bottom',
-        #             horizontalalignment='right', transform=ax.transAxes, color='green', fontsize=14, bbox={'facecolor': 'white', 'alpha': 0.5, 'pad': 10})
-        #
-        # plt.title(f'\n{runtype} run {run}, {rt_min:.2f} mins', fontsize=12)
-        # plt.tight_layout()
-        # # plt.savefig(f'./plots/normScan/cal_normScan/{runtype}_dcr_run{run}.png', dpi=200)
-        # if runtype=='alp':
-        #     plt.savefig(f'./plots/angleScan/{runtype}_DCR_{radius}mm_{angle_det}deg_run{run}.png', dpi=200)
-        # elif runtype=='bkg':
-        #     plt.savefig(f'./plots/angleScan/{runtype}_DCR_run{run}.png', dpi=200)
-        # # plt.show()
-        # plt.clf()
-        # plt.close()
-        #
-        # # DCR vs A/E___________
-        #
-        # fig, ax = plt.subplots()
-        # nbx = int((ahi-alo)/apb)
-        # nby = int((dhi-dlo)/dpb)
-        #
-        # fig.suptitle(f'A/E vs DCR', horizontalalignment='center', fontsize=16)
-        #
-        # h = plt.hist2d(df_cut['AoE'], df_cut['dcr_linoff'], bins=[nbx,nby],
-        #             range=[[alo, ahi], [dlo, dhi]], cmap='viridis', norm=LogNorm())
-        #
-        # cb = plt.colorbar()
-        # cb.set_label("counts", ha = 'right', va='center', rotation=270, fontsize=14)
-        # cb.ax.tick_params(labelsize=12)
-        # ax.set_xlabel('A/E (arb)', fontsize=16)
-        # ax.set_ylabel('DCR (arb)', fontsize=16)
-        # plt.setp(ax.get_xticklabels(), fontsize=12)
-        # plt.setp(ax.get_yticklabels(), fontsize=14)
-        #
-        # # plt.legend()
-        # ax.text(0.95, 0.83, f'r = {radius} mm \ntheta = {angle_det} deg', verticalalignment='bottom',
-        #             horizontalalignment='right', transform=ax.transAxes, color='green', fontsize=14, bbox={'facecolor': 'white', 'alpha': 0.5, 'pad': 10})
-        #
-        # plt.title(f'\n{runtype} run {run}, {rt_min:.2f} mins', fontsize=12)
-        # plt.tight_layout()
-        # # plt.savefig(f'./plots/normScan/cal_normScan/{runtype}_AoE_vs_dcr_run{run}.png', dpi=200)
-        # if runtype=='alp':
-        #     plt.savefig(f'./plots/angleScan/{runtype}_AoEvDCR_{radius}mm_{angle_det}deg_run{run}.png', dpi=200)
-        # elif runtype=='bkg':
-        #     plt.savefig(f'./plots/angleScan/{runtype}_AoEvDCR_run{run}.png', dpi=200)
-        # # plt.show()
-        # plt.clf()
-        # plt.close()
-        #
-        # # DCR vs tp_50___________
-        #
-        # fig, ax = plt.subplots()
-        # fig.suptitle(f'DCR vs 50% rise time', horizontalalignment='center', fontsize=16)
-        #
-        # tlo, thi, tpb = 0, 800, 10
-        #
-        # nbx = int((dhi-dlo)/dpb)
-        # nby = int((thi-tlo)/tpb)
-        #
-        # alpha_dcr_hist = plt.hist2d(df_cut['dcr_linoff'], df_cut['tp0_50'], bins=[nbx,nby],
-        #         range=[[dlo, dhi], [tlo, thi]], cmap='viridis', norm=LogNorm())
-        #
-        # cb = plt.colorbar()
-        # cb.set_label("counts", ha = 'right', va='center', rotation=270, fontsize=14)
-        # cb.ax.tick_params(labelsize=12)
-        # ax.set_xlabel('DCR (arb)', fontsize=16)
-        # ax.set_ylabel('tp 0-50 (ns)', fontsize=16)
-        # plt.setp(ax.get_xticklabels(), fontsize=14)
-        # plt.setp(ax.get_yticklabels(), fontsize=14)
-        #
-        # # plt.legend()
-        # ax.text(0.95, 0.83, f'r = {radius} mm \ntheta = {angle_det} deg', verticalalignment='bottom',
-        #             horizontalalignment='right', transform=ax.transAxes, color='green', fontsize=14, bbox={'facecolor': 'white', 'alpha': 0.95, 'pad': 10})
-        #
-        # plt.title(f'\n{runtype} run {run}, {rt_min:.2f} mins', fontsize=12)
-        # plt.tight_layout()
-        # # plt.savefig(f'./plots/normScan/cal_normScan/{runtype}_dcr_vs_tp0_50_run{run}.png', dpi=200)
-        # if runtype=='alp':
-        #     plt.savefig(f'./plots/angleScan/{runtype}_DCRvTp050_{radius}mm_{angle_det}deg_run{run}.png', dpi=200)
-        # elif runtype=='bkg':
-        #     plt.savefig(f'./plots/angleScan/{runtype}_DCRvTp050_run{run}.png', dpi=200)
-        # # plt.show()
-        # plt.clf()
-        # plt.close()
-        #
-        # # 1D AoE_________
-        #
-        # fig, ax = plt.subplots()
-        # fig.suptitle(f'A/E', horizontalalignment='center', fontsize=16)
-        #
-        # aoe_hist, bins = np.histogram(df_cut['AoE'], bins=nbx,
-        #         range=[alo, ahi])
-        #
-        # plt.semilogy(bins[1:], aoe_hist, ds='steps', c='b', lw=1) #, label=f'{etype}'
-        #
-        # ax.set_xlabel('A/E (arb)', fontsize=16)
-        # ax.set_ylabel('counts', fontsize=16)
-        # plt.setp(ax.get_xticklabels(), fontsize=14)
-        # plt.setp(ax.get_yticklabels(), fontsize=14)
-        #
-        # ax.text(0.95, 0.83, f'r = {radius} mm \ntheta = {angle_det} deg', verticalalignment='bottom',
-        #             horizontalalignment='right', transform=ax.transAxes, color='green', fontsize=14, bbox={'facecolor': 'white', 'alpha': 0.5, 'pad': 10})
-        #
-        # # plt.legend()
-        # plt.title(f'\n{runtype} run {run}, {rt_min:.2f} mins', fontsize=12)
-        # plt.tight_layout()
-        # # plt.savefig(f'./plots/normScan/cal_normScan/{runtype}_1d_aoe_run{run}.png', dpi=200)
-        # if runtype=='alp':
-        #     plt.savefig(f'./plots/angleScan/{runtype}_1dAoE_{radius}mm_{angle_det}deg_run{run}.png', dpi=200)
-        # elif runtype=='bkg':
-        #     plt.savefig(f'./plots/angleScan/{runtype}_1dAoE_run{run}.png', dpi=200)
-        # plt.clf()
-        # plt.close()
+        # DCR vs E___________
 
+        fig, ax = plt.subplots()
+
+        if run>=60 and run<117:
+            dlo, dhi, dpb = -100, 300, 0.6
+        elif run>117:
+            dlo, dhi, dpb = -20., 40, 0.1
+
+        nbx = int((ehi-elo)/epb)
+        nby = int((dhi-dlo)/dpb)
+
+        fig.suptitle(f'DCR vs Energy', horizontalalignment='center', fontsize=16)
+
+        dcr_hist, xedges, yedges = np.histogram2d(df_cut[etype], df_cut['dcr_linoff'], bins=[nbx, nby], range=([elo, ehi], [dlo, dhi]))
+        X, Y = np.mgrid[elo:ehi:nbx*1j, dlo:dhi:nby*1j]
+
+        dcr_hist_norm = np.divide(dcr_hist, (rt_min))
+
+        pcm = plt.pcolormesh(X, Y, dcr_hist_norm, norm=LogNorm(0.002, 0.2))
+
+        cb = plt.colorbar()
+        cb.set_label("counts/min", ha = 'right', va='center', rotation=270, fontsize=14)
+        cb.ax.tick_params(labelsize=12)
+        ax.set_xlabel('Energy (keV)', fontsize=16)
+        ax.set_ylabel('DCR (arb)', fontsize=16)
+        plt.setp(ax.get_xticklabels(), fontsize=14)
+        plt.setp(ax.get_yticklabels(), fontsize=14)
+
+        # plt.legend()
+
+        ax.text(0.95, 0.83, f'r = {radius} mm \ntheta = {angle_det} deg', verticalalignment='bottom',
+                    horizontalalignment='right', transform=ax.transAxes, color='green', fontsize=14, bbox={'facecolor': 'white', 'alpha': 0.5, 'pad': 10})
+
+        plt.title(f'\n{runtype} run {run}, {rt_min:.2f} mins', fontsize=12)
+        plt.tight_layout()
+        # plt.savefig(f'./plots/normScan/cal_normScan/{runtype}_dcr_run{run}.png', dpi=200)
+        if runtype=='alp':
+            plt.savefig(f'./plots/angleScan/normalized_{runtype}_DCR_{radius}mm_{angle_det}deg_run{run}.png', dpi=200)
+        elif runtype=='bkg':
+            plt.savefig(f'./plots/angleScan/normalized_{runtype}_DCR_run{run}.png', dpi=200)
+        # plt.show()
+        plt.clf()
+        plt.close()
+
+        # DCR vs A/E___________
+
+        fig, ax = plt.subplots()
+        nbx = int((ahi-alo)/apb)
+        nby = int((dhi-dlo)/dpb)
+
+        fig.suptitle(f'A/E vs DCR', horizontalalignment='center', fontsize=16)
+
+        aoeVdcr_hist, xedges, yedges = np.histogram2d(df_cut[AoE], df_cut['dcr_linoff'], bins=[nbx, nby], range=([alo, ahi], [dlo, dhi]))
+        X, Y = np.mgrid[alo:ahi:nbx*1j, dlo:dhi:nby*1j]
+
+        aoeVdcr_hist_norm = np.divide(aoeVdcr_hist, (rt_min))
+
+        pcm = plt.pcolormesh(X, Y, aoeVdcr_hist_norm, norm=LogNorm(0.002, 0.2))
+
+        cb = plt.colorbar()
+        cb.set_label("counts/min", ha = 'right', va='center', rotation=270, fontsize=14)
+        cb.ax.tick_params(labelsize=12)
+        ax.set_xlabel('A/E (arb)', fontsize=16)
+        ax.set_ylabel('DCR (arb)', fontsize=16)
+        plt.setp(ax.get_xticklabels(), fontsize=12)
+        plt.setp(ax.get_yticklabels(), fontsize=14)
+
+        # plt.legend()
+        ax.text(0.95, 0.83, f'r = {radius} mm \ntheta = {angle_det} deg', verticalalignment='bottom',
+                    horizontalalignment='right', transform=ax.transAxes, color='green', fontsize=14, bbox={'facecolor': 'white', 'alpha': 0.5, 'pad': 10})
+
+        plt.title(f'\n{runtype} run {run}, {rt_min:.2f} mins', fontsize=12)
+        plt.tight_layout()
+        # plt.savefig(f'./plots/normScan/cal_normScan/{runtype}_AoE_vs_dcr_run{run}.png', dpi=200)
+        if runtype=='alp':
+            plt.savefig(f'./plots/angleScan/normalized_{runtype}_AoEvDCR_{radius}mm_{angle_det}deg_run{run}.png', dpi=200)
+        elif runtype=='bkg':
+            plt.savefig(f'./plots/angleScan/normalized_{runtype}_AoEvDCR_run{run}.png', dpi=200)
+        # plt.show()
+        plt.clf()
+        plt.close()
+
+        # DCR vs tp_50___________
+
+        fig, ax = plt.subplots()
+        fig.suptitle(f'DCR vs 50% rise time', horizontalalignment='center', fontsize=16)
+
+        tlo, thi, tpb = 0, 400, 10
+
+        nbx = int((dhi-dlo)/dpb)
+        nby = int((thi-tlo)/tpb)
+
+        DCRvTp050_hist, xedges, yedges = np.histogram2d(df_cut['dcr_linoff'], df_cut['tp0_50'], bins=[nbx, nby], range=([dlo, dhi], [tlo, thi]))
+        X, Y = np.mgrid[dlo:dhi:nbx*1j, tlo:thi:nby*1j]
+
+        DCRvTp050_hist_norm = np.divide(DCRvTp050_hist, (rt_min))
+
+        pcm = plt.pcolormesh(X, Y, DCRvTp050_hist_norm, norm=LogNorm(0.002, 0.2))
+
+        cb = plt.colorbar()
+        cb.set_label("counts/min", ha = 'right', va='center', rotation=270, fontsize=14)
+        cb.ax.tick_params(labelsize=12)
+        ax.set_xlabel('DCR (arb)', fontsize=16)
+        ax.set_ylabel('tp 0-50 (ns)', fontsize=16)
+        plt.setp(ax.get_xticklabels(), fontsize=14)
+        plt.setp(ax.get_yticklabels(), fontsize=14)
+
+        # plt.legend()
+        ax.text(0.95, 0.83, f'r = {radius} mm \ntheta = {angle_det} deg', verticalalignment='bottom',
+                    horizontalalignment='right', transform=ax.transAxes, color='green', fontsize=14, bbox={'facecolor': 'white', 'alpha': 0.95, 'pad': 10})
+
+        plt.title(f'\n{runtype} run {run}, {rt_min:.2f} mins', fontsize=12)
+        plt.tight_layout()
+        # plt.savefig(f'./plots/normScan/cal_normScan/{runtype}_dcr_vs_tp0_50_run{run}.png', dpi=200)
+        if runtype=='alp':
+            plt.savefig(f'./plots/angleScan/normalized_{runtype}_DCRvTp050_{radius}mm_{angle_det}deg_run{run}.png', dpi=200)
+        elif runtype=='bkg':
+            plt.savefig(f'./plots/angleScan/normalized_{runtype}_DCRvTp050_run{run}.png', dpi=200)
+        # plt.show()
+        plt.clf()
+        plt.close()
+        
 
 def dcr_AvE(runs, user=False, hit=True, cal=True, etype='trapEmax', cut=True):
 
