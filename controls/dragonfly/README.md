@@ -22,7 +22,7 @@
 6. not-generic_daq is the generic DAQProvider service and serves as our interface to simulate a run. Config: generic_daq.yaml
 
 # Adding new services
-A dragonfly "service" (in the dripline sense of the word) can be added to this "service" (docker-compose sense) without needing to run in its own container. In fact, that is desirable since then it can be controlled using supervisord/cesi. The steps for adding a new service are:
+A dragonfly "service" (in the dripline sense of the word) can be added to this "service" (docker-compose sense) without needing to run in its own container. In fact, that is desirable since then it can be controlled using supervisord. The steps for adding a new service are:
 1. Write a dragonfly config file and place it in the config subdirectory (note that while most config parameters from a production service are still valid, the containers do not not map one-to-one with lab server names, and so you will need to change these - see the config files already provided for examples.)
 2. Write a supervisord config file and place it in etc.supervisord/conf.d. You can just copy either of the example files and change the config file to be the one you added in the prior step. At the moment, all services are specified within the test_run.conf supervisor file.
 
