@@ -24,8 +24,8 @@ mpl.use('Agg')
 
 def main():
 #     runs = [60, 42, 64, 44, 66, 48, 70, 50, 72, 54]
-#     runs = [120, 121, 123, 124, 126, 128, 129, 131, 132, 134, 135, 137]
-    runs = [143]
+    runs = [120, 121, 123, 124, 126, 128, 129, 131, 132, 134, 135, 137, 143]
+#     runs = [143]
 
     user = False
     hit = True
@@ -190,9 +190,9 @@ def normalized_dcr_AvE(runs, user=False, hit=True, cal=True, etype='trapEmax', c
         plt.tight_layout()
         # plt.savefig(f'./plots/normScan/cal_normScan/{runtype}_energy_run{run}.png', dpi=200)
         if runtype=='alp':
-            plt.savefig(f'./plots/angleScan/{runtype}_energy_{radius}mm_{angle_det}deg_run{run}.png', dpi=200)
+            plt.savefig(f'./plots/angleScan/normalized_{runtype}_energy_{radius}mm_{angle_det}deg_run{run}.png', dpi=200)
         elif runtype=='bkg':
-            plt.savefig(f'./plots/angleScan/{runtype}_energy_run{run}.png', dpi=200)
+            plt.savefig(f'./plots/angleScan/normalized_{runtype}_energy_run{run}.png', dpi=200)
         plt.clf()
         plt.close()
 
@@ -296,7 +296,7 @@ def normalized_dcr_AvE(runs, user=False, hit=True, cal=True, etype='trapEmax', c
 
         fig.suptitle(f'A/E vs DCR', horizontalalignment='center', fontsize=16)
 
-        aoeVdcr_hist, xedges, yedges = np.histogram2d(df_cut[AoE], df_cut['dcr_linoff'], bins=[nbx, nby], range=([alo, ahi], [dlo, dhi]))
+        aoeVdcr_hist, xedges, yedges = np.histogram2d(df_cut['AoE'], df_cut['dcr_linoff'], bins=[nbx, nby], range=([alo, ahi], [dlo, dhi]))
         X, Y = np.mgrid[alo:ahi:nbx*1j, dlo:dhi:nby*1j]
 
         aoeVdcr_hist_norm = np.divide(aoeVdcr_hist, (rt_min))
