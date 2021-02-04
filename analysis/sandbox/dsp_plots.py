@@ -23,7 +23,6 @@ import pygama.analysis.peak_fitting as pgf
 mpl.use('Agg')
 
 def main():
-#     runs = [60, 42, 64, 44, 66, 48, 70, 50, 72, 54]
     # runs = [120, 121, 123, 124, 126, 128, 129, 131, 132, 134, 135, 137, 143]
     # runs = [143]
     alp_runs = [137, 143]
@@ -34,7 +33,7 @@ def main():
     cal = True
     etype = 'trapEftp'
 
-#     plot_energy(runs)
+    # plot_energy(runs)
     # dcr_AvE(runs, user, hit, cal, etype, cut=False)
     # normalized_dcr_AvE(runs, user, hit, cal, etype, cut=False)
     bkg_sub_dcr_AvE(alp_runs, bkg_runs, user, hit, cal, etype, cut=False)
