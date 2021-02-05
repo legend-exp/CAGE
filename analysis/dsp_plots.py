@@ -25,9 +25,9 @@ mpl.use('Agg')
 def main():
 #     runs = [60, 42, 64, 44, 66, 48, 70, 50, 72, 54]
     # runs = [120, 121, 123, 124, 126, 128, 129, 131, 132, 134, 135, 137, 143]
-    # runs = [143]
-    alp_runs = [137, 143]
-    bkg_runs = [136, 136]
+    runs = [117]
+#     alp_runs = [137, 143]
+#     bkg_runs = [136, 136]
 
     user = False
     hit = True
@@ -36,8 +36,8 @@ def main():
 
 #     plot_energy(runs)
     # dcr_AvE(runs, user, hit, cal, etype, cut=False)
-    # normalized_dcr_AvE(runs, user, hit, cal, etype, cut=False)
-    bkg_sub_dcr_AvE(alp_runs, bkg_runs, user, hit, cal, etype, cut=False)
+    normalized_dcr_AvE(runs, user, hit, cal, etype, cut=False)
+#     bkg_sub_dcr_AvE(alp_runs, bkg_runs, user, hit, cal, etype, cut=False)
 
 def bkg_sub_dcr_AvE(alp_runs, bkg_runs, user=False, hit=True, cal=True, etype='trapEmax', cut=True):
 
@@ -58,7 +58,7 @@ def bkg_sub_dcr_AvE(alp_runs, bkg_runs, user=False, hit=True, cal=True, etype='t
         #get bkg runtime, startime
         bkg_rt_min = bkg_dg.fileDB['runtime'].sum()
         bkg_u_start = bkg_dg.fileDB.iloc[0]['startTime']
-        bkg_t_start = pd.to_datetime(nkg_u_start, unit='s')
+        bkg_t_start = pd.to_datetime(bkg_u_start, unit='s')
 
         # setup alpha run files
         alp_dg = DataGroup('$CAGE_SW/processing/cage.json', load=True)
@@ -107,17 +107,17 @@ def bkg_sub_dcr_AvE(alp_runs, bkg_runs, user=False, hit=True, cal=True, etype='t
             print('Using hit files')
             bkg_file_list = bkg_lh5_dir + bkg_dg.fileDB['hit_path'] + '/' + bkg_dg.fileDB['hit_file']
             alp_file_list = alp_lh5_dir + alp_dg.fileDB['hit_path'] + '/' + alp_dg.fileDB['hit_file']
-            if run<=117 and cal==True:
+            if run<117 and cal==True:
                 bkg_df = lh5.load_dfs(bkg_file_list, ['energy', 'trapEmax', 'trapEmax_cal', 'bl','bl_sig','A_10','AoE', 'ts_sec', 'dcr_raw', 'dcr_ftp', 'dcr_max', 'tp_0','tp_10', 'tp_90', 'tp_50', 'tp_80', 'tp_max'], 'ORSIS3302DecoderForEnergy/hit')
                 alp_df = lh5.load_dfs(alp_file_list, ['energy', 'trapEmax', 'trapEmax_cal', 'bl','bl_sig','A_10','AoE', 'ts_sec', 'dcr_raw', 'dcr_ftp', 'dcr_max', 'tp_0','tp_10', 'tp_90', 'tp_50', 'tp_80', 'tp_max'], 'ORSIS3302DecoderForEnergy/hit')
-            elif run>117 and cal==True:
+            elif run>=117 and cal==True:
                 bkg_df = lh5.load_dfs(bkg_file_list, ['energy', 'trapEmax', 'trapEftp', 'trapEmax_cal', 'trapEftp_cal', 'bl','bl_sig', 'bl_slope', 'lf_max', 'A_10','AoE', 'dcr', 'tp_0', 'tp_10', 'tp_90', 'tp_50', 'tp_80', 'tp_max'], 'ORSIS3302DecoderForEnergy/hit')
                 alp_df = lh5.load_dfs(alp_file_list, ['energy', 'trapEmax', 'trapEftp', 'trapEmax_cal', 'trapEftp_cal', 'bl','bl_sig', 'bl_slope', 'lf_max', 'A_10','AoE', 'dcr', 'tp_0', 'tp_10', 'tp_90', 'tp_50', 'tp_80', 'tp_max'], 'ORSIS3302DecoderForEnergy/hit')
 
-            elif run<=117 and cal==False:
+            elif run<117 and cal==False:
                 bkg_df = lh5.load_dfs(bkg_file_list, [f'{etype}', 'bl','bl_sig','A_10','AoE', 'ts_sec', 'dcr_raw', 'dcr_ftp', 'dcr_max', 'tp_0', 'tp_10', 'tp_90', 'tp_50', 'tp_80', 'tp_max'], 'ORSIS3302DecoderForEnergy/hit')
                 alp_df = lh5.load_dfs(alp_file_list, [f'{etype}', 'bl','bl_sig','A_10','AoE', 'ts_sec', 'dcr_raw', 'dcr_ftp', 'dcr_max', 'tp_0', 'tp_10', 'tp_90', 'tp_50', 'tp_80', 'tp_max'], 'ORSIS3302DecoderForEnergy/hit')
-            elif run>117 and cal==False:
+            elif run>=117 and cal==False:
                 bkg_df = lh5.load_dfs(bkg_file_list, [f'{etype}', 'bl','bl_sig', 'bl_slope', 'lf_max', 'A_10','AoE', 'dcr', 'tp_0', 'tp_10', 'tp_90', 'tp_50', 'tp_80', 'tp_max'], 'ORSIS3302DecoderForEnergy/hit')
                 alp_df = lh5.load_dfs(alp_file_list, [f'{etype}', 'bl','bl_sig', 'bl_slope', 'lf_max', 'A_10','AoE', 'dcr', 'tp_0', 'tp_10', 'tp_90', 'tp_50', 'tp_80', 'tp_max'], 'ORSIS3302DecoderForEnergy/hit')
 
@@ -125,17 +125,17 @@ def bkg_sub_dcr_AvE(alp_runs, bkg_runs, user=False, hit=True, cal=True, etype='t
             print('Using dsp files')
             bkg_file_list = bkg_lh5_dir + bkg_dg.fileDB['dsp_path'] + '/' + bkg_dg.fileDB['dsp_file']
             alp_file_list = alp_lh5_dir + alp_dg.fileDB['dsp_path'] + '/' + alp_dg.fileDB['dsp_file']
-            if run<=117 and cal==True:
+            if run<117 and cal==True:
                 bkg_df = lh5.load_dfs(bkg_file_list, ['energy', 'trapEmax', 'trapEmax_cal', 'bl','bl_sig','A_10','AoE', 'ts_sec', 'dcr_raw', 'dcr_ftp', 'dcr_max', 'tp_0', 'tp_10', 'tp_90', 'tp_50', 'tp_80', 'tp_max'], 'ORSIS3302DecoderForEnergy/dsp')
                 alp_df = lh5.load_dfs(alp_file_list, ['energy', 'trapEmax', 'trapEmax_cal', 'bl','bl_sig','A_10','AoE', 'ts_sec', 'dcr_raw', 'dcr_ftp', 'dcr_max', 'tp_0', 'tp_10', 'tp_90', 'tp_50', 'tp_80', 'tp_max'], 'ORSIS3302DecoderForEnergy/dsp')
-            elif run>117 and cal==True:
+            elif run>=117 and cal==True:
                 bkg_df = lh5.load_dfs(bkg_file_list, ['energy', 'trapEmax', 'trapEftp', 'trapEmax_cal', 'trapEftp_cal', 'bl','bl_sig', 'bl_slope', 'lf_max', 'A_10','AoE', 'dcr', 'tp_0', 'tp_10', 'tp_90','tp_50', 'tp_80', 'tp_max'], 'ORSIS3302DecoderForEnergy/dsp')
                 alp_df = lh5.load_dfs(alp_file_list, ['energy', 'trapEmax', 'trapEftp', 'trapEmax_cal', 'trapEftp_cal', 'bl','bl_sig', 'bl_slope', 'lf_max', 'A_10','AoE', 'dcr', 'tp_0', 'tp_10', 'tp_90','tp_50', 'tp_80', 'tp_max'], 'ORSIS3302DecoderForEnergy/dsp')
 
-            elif run<=117 and cal==False:
+            elif run<117 and cal==False:
                 bkg_df = lh5.load_dfs(bkg_file_list, [f'{etype}', 'bl','bl_sig','A_10','AoE', 'ts_sec', 'dcr_raw', 'dcr_ftp', 'dcr_max', 'tp_0', 'tp_10', 'tp_90', 'tp_50', 'tp_80', 'tp_max'], 'ORSIS3302DecoderForEnergy/dsp')
                 alp_df = lh5.load_dfs(alp_file_list, [f'{etype}', 'bl','bl_sig','A_10','AoE', 'ts_sec', 'dcr_raw', 'dcr_ftp', 'dcr_max', 'tp_0', 'tp_10', 'tp_90', 'tp_50', 'tp_80', 'tp_max'], 'ORSIS3302DecoderForEnergy/dsp')
-            elif run>117 and cal==False:
+            elif run>=117 and cal==False:
                 bkg_df = lh5.load_dfs(bkg_file_list, [f'{etype}', 'bl','bl_sig', 'bl_slope', 'lf_max', 'A_10','AoE', 'dcr', 'tp_0', 'tp_10', 'tp_90', 'tp_50', 'tp_80', 'tp_max'], 'ORSIS3302DecoderForEnergy/dsp')
                 alp_df = lh5.load_dfs(alp_file_list, [f'{etype}', 'bl','bl_sig', 'bl_slope', 'lf_max', 'A_10','AoE', 'dcr', 'tp_0', 'tp_10', 'tp_90', 'tp_50', 'tp_80', 'tp_max'], 'ORSIS3302DecoderForEnergy/dsp')
 
@@ -145,9 +145,9 @@ def bkg_sub_dcr_AvE(alp_runs, bkg_runs, user=False, hit=True, cal=True, etype='t
 
 
         # use baseline cut
-        if run <=117:
+        if run <117:
             bl_cut_lo, bl_cut_hi = 8500, 10000
-        if run>117:
+        if run>=117:
             bl_cut_lo, bl_cut_hi = 9700, 9760
 
         bkg_df_cut = bkg_df.query(f'bl > {bl_cut_lo} and bl < {bl_cut_hi}').copy()
@@ -159,12 +159,12 @@ def bkg_sub_dcr_AvE(alp_runs, bkg_runs, user=False, hit=True, cal=True, etype='t
             bkg_df_cut['dcr_corr'] = bkg_df_cut['dcr_raw'] + const*bkg_df_cut['trapEmax']
             alp_df_cut['dcr_corr'] = alp_df_cut['dcr_raw'] + const*alp_df_cut['trapEmax']
 
-        if run>86 and run <=117:
+        if run>86 and run <117:
             const = -0.0225
             bkg_df_cut['dcr_corr'] = bkg_df_cut['dcr_raw'] + const*bkg_df_cut['trapEmax']
             alp_df_cut['dcr_corr'] = alp_df_cut['dcr_raw'] + const*alp_df_cut['trapEmax']
 
-        if run>117:
+        if run>=117:
             const = -0.0003
             const2 = -0.0000003
             bkg_df_cut['dcr_corr'] = bkg_df_cut['dcr'] + const*(bkg_df_cut['trapEftp']) + const2*(bkg_df_cut['trapEftp'])**2
@@ -195,12 +195,14 @@ def bkg_sub_dcr_AvE(alp_runs, bkg_runs, user=False, hit=True, cal=True, etype='t
             elo, ehi, epb = 0, 10000, 10 #entire enerty range trapEftp
             e_unit = ' (uncal)'
         elif cal==True:
-            elo, ehi, epb = 0, 6000, 5
+            elo, ehi, epb = 0., 6000., 5.
             etype=etype_cal
             e_unit = ' (keV)'
 
         # Make background-subtracted (calibrated) energy spectrum_________
         # Background run spectrum
+        nbx = int((ehi-elo)/epb)
+        
         bkg_ene_hist, bins = np.histogram(bkg_df_cut[etype], bins=nbx, range=([elo, ehi]))
         bkg_ene_hist_norm = np.divide(bkg_ene_hist, (bkg_rt_min))
 
@@ -215,7 +217,7 @@ def bkg_sub_dcr_AvE(alp_runs, bkg_runs, user=False, hit=True, cal=True, etype='t
         fig, ax = plt.subplots()
         fig.suptitle(f'Background-Subtracted Energy', horizontalalignment='center', fontsize=16)
 
-        plt.semilogy(bins[1:], energy_bgSub, ds='steps', c='b', lw=1) #, label=f'{etype}'
+        plt.semilogy(bins[1:], energy_bgSub_hist, ds='steps', c='b', lw=1) #, label=f'{etype}'
 
         ax.set_xlabel(f'{etype+e_unit}', fontsize=16)
         ax.set_ylabel(f'counts/min/{str(epb)}{e_unit}', fontsize=16)
@@ -244,7 +246,7 @@ def bkg_sub_dcr_AvE(alp_runs, bkg_runs, user=False, hit=True, cal=True, etype='t
         alo, ahi, apb = 0.0, 0.09, 0.0001
         if run>=60:
             alo, ahi, apb = 0.005, 0.0905, 0.0001
-        if run>117:
+        if run>=117:
             alo, ahi, apb = 0.0, 0.15, 0.00015
 
         nbx = int((ehi-elo)/epb)
@@ -272,14 +274,14 @@ def bkg_sub_dcr_AvE(alp_runs, bkg_runs, user=False, hit=True, cal=True, etype='t
         plt.setp(ax.get_yticklabels(), fontsize=14)
 
 
-        ax.text(0.95, 0.83, f'r = {radius} mm \ntheta = {angle_det} deg', verticalalignment='bottom',
+        ax.text(0.95, 0.80, f'r = {radius} mm \ntheta = {angle_det} deg', verticalalignment='bottom',
                     horizontalalignment='right', transform=ax.transAxes, color='green', fontsize=14, bbox={'facecolor': 'white', 'alpha': 0.5, 'pad': 10})
 
         # plt.legend()
         plt.title(f'\n{alp_runtype} run {run}, {alp_rt_min:.2f} mins \nbkg run {bkg}, {bkg_rt_min:.2f} mins', fontsize=12)
         plt.tight_layout()
         # plt.savefig(f'./plots/normScan/cal_normScan/{runtype}_AoE_run{run}.png', dpi=200)
-        if runtype=='alp':
+        if alp_runtype=='alp':
             plt.savefig(f'./plots/angleScan/bgSub_AoE_{radius}mm_{angle_det}deg_{alp_runtype}_run{run}.png', dpi=200)
         elif alp_runtype=='bkg':
             plt.savefig(f'./plots/angleScan/bgSub_AoE_{alp_runtype}_run{run}.png', dpi=200)
@@ -294,7 +296,7 @@ def bkg_sub_dcr_AvE(alp_runs, bkg_runs, user=False, hit=True, cal=True, etype='t
 
         if run>=60 and run<117:
             dlo, dhi, dpb = -100, 300, 0.6
-        elif run>117:
+        elif run>=117:
             dlo, dhi, dpb = -20., 40, 0.1
 
         nbx = int((ehi-elo)/epb)
@@ -323,13 +325,13 @@ def bkg_sub_dcr_AvE(alp_runs, bkg_runs, user=False, hit=True, cal=True, etype='t
 
         # plt.legend()
 
-        ax.text(0.95, 0.83, f'r = {radius} mm \ntheta = {angle_det} deg', verticalalignment='bottom',
+        ax.text(0.95, 0.80, f'r = {radius} mm \ntheta = {angle_det} deg', verticalalignment='bottom',
                     horizontalalignment='right', transform=ax.transAxes, color='green', fontsize=14, bbox={'facecolor': 'white', 'alpha': 0.5, 'pad': 10})
 
         plt.title(f'\n{alp_runtype} run {run}, {alp_rt_min:.2f} mins \nbkg run {bkg}, {bkg_rt_min:.2f} mins', fontsize=12)
         plt.tight_layout()
         # plt.savefig(f'./plots/normScan/cal_normScan/{runtype}_dcr_run{run}.png', dpi=200)
-        if runtype=='alp':
+        if alp_runtype=='alp':
             plt.savefig(f'./plots/angleScan/bgSub_DCR_{radius}mm_{angle_det}deg_{alp_runtype}_run{run}.png', dpi=200)
         elif alp_runtype=='bkg':
             plt.savefig(f'./plots/angleScan/bgSub_DCR_{alp_runtype}_run{run}.png', dpi=200)
@@ -354,7 +356,7 @@ def bkg_sub_dcr_AvE(alp_runs, bkg_runs, user=False, hit=True, cal=True, etype='t
 
         aoeVdcr_bgSub_hist = alp_aoeVdcr_hist_norm - bkg_aoeVdcr_hist_norm
 
-        pcm = plt.pcolormesh(X, Y, aoeVdcr_hist_norm, norm=LogNorm(0.002, 0.2))
+        pcm = plt.pcolormesh(X, Y, aoeVdcr_bgSub_hist, norm=LogNorm(0.002, 0.2))
 
         cb = plt.colorbar()
         cb.set_label("counts/min", ha = 'right', va='center', rotation=270, fontsize=14)
@@ -365,13 +367,13 @@ def bkg_sub_dcr_AvE(alp_runs, bkg_runs, user=False, hit=True, cal=True, etype='t
         plt.setp(ax.get_yticklabels(), fontsize=14)
 
         # plt.legend()
-        ax.text(0.95, 0.83, f'r = {radius} mm \ntheta = {angle_det} deg', verticalalignment='bottom',
+        ax.text(0.95, 0.80, f'r = {radius} mm \ntheta = {angle_det} deg', verticalalignment='bottom',
                     horizontalalignment='right', transform=ax.transAxes, color='green', fontsize=14, bbox={'facecolor': 'white', 'alpha': 0.5, 'pad': 10})
 
         plt.title(f'\n{alp_runtype} run {run}, {alp_rt_min:.2f} mins \nbkg run {bkg}, {bkg_rt_min:.2f} mins', fontsize=12)
         plt.tight_layout()
         # plt.savefig(f'./plots/normScan/cal_normScan/{runtype}_AoE_vs_dcr_run{run}.png', dpi=200)
-        if runtype=='alp':
+        if alp_runtype=='alp':
             plt.savefig(f'./plots/angleScan/bgSub_aoeVdcr_{radius}mm_{angle_det}deg_{alp_runtype}_run{run}.png', dpi=200)
         elif alp_runtype=='bkg':
             plt.savefig(f'./plots/angleScan/bgSub_aoeVdcr_{alp_runtype}_run{run}.png', dpi=200)
@@ -409,13 +411,13 @@ def bkg_sub_dcr_AvE(alp_runs, bkg_runs, user=False, hit=True, cal=True, etype='t
         plt.setp(ax.get_yticklabels(), fontsize=14)
 
         # plt.legend()
-        ax.text(0.95, 0.83, f'r = {radius} mm \ntheta = {angle_det} deg', verticalalignment='bottom',
+        ax.text(0.95, 0.80, f'r = {radius} mm \ntheta = {angle_det} deg', verticalalignment='bottom',
                     horizontalalignment='right', transform=ax.transAxes, color='green', fontsize=14, bbox={'facecolor': 'white', 'alpha': 0.95, 'pad': 10})
 
         plt.title(f'\n{alp_runtype} run {run}, {alp_rt_min:.2f} mins \nbkg run {bkg}, {bkg_rt_min:.2f} mins', fontsize=12)
         plt.tight_layout()
         # plt.savefig(f'./plots/normScan/cal_normScan/{runtype}_dcr_vs_tp0_50_run{run}.png', dpi=200)
-        if runtype=='alp':
+        if alp_runtype=='alp':
             plt.savefig(f'./plots/angleScan/bgSub_DCRvTp050_{radius}mm_{angle_det}deg_{alp_runtype}_run{run}.png', dpi=200)
         elif alp_runtype=='bkg':
             plt.savefig(f'./plots/angleScan/bgSub_DCRvTp050_{alp_runtype}_run{run}.png', dpi=200)
@@ -472,27 +474,27 @@ def normalized_dcr_AvE(runs, user=False, hit=True, cal=True, etype='trapEmax', c
         if hit==True:
             print('Using hit files')
             file_list = lh5_dir + dg.fileDB['hit_path'] + '/' + dg.fileDB['hit_file']
-            if run<=117 and cal==True:
+            if run<117 and cal==True:
                 df = lh5.load_dfs(file_list, ['energy', 'trapEmax', 'trapEmax_cal', 'bl','bl_sig','A_10','AoE', 'ts_sec', 'dcr_raw', 'dcr_ftp', 'dcr_max', 'tp_0','tp_10', 'tp_90', 'tp_50', 'tp_80', 'tp_max'], 'ORSIS3302DecoderForEnergy/hit')
-            elif run>117 and cal==True:
+            elif run>=117 and cal==True:
                 df = lh5.load_dfs(file_list, ['energy', 'trapEmax', 'trapEftp', 'trapEmax_cal', 'trapEftp_cal', 'bl','bl_sig', 'bl_slope', 'lf_max', 'A_10','AoE', 'dcr', 'tp_0', 'tp_10', 'tp_90', 'tp_50', 'tp_80', 'tp_max'], 'ORSIS3302DecoderForEnergy/hit')
 
-            elif run<=117 and cal==False:
+            elif run<117 and cal==False:
                 df = lh5.load_dfs(file_list, [f'{etype}', 'bl','bl_sig','A_10','AoE', 'ts_sec', 'dcr_raw', 'dcr_ftp', 'dcr_max', 'tp_0', 'tp_10', 'tp_90', 'tp_50', 'tp_80', 'tp_max'], 'ORSIS3302DecoderForEnergy/hit')
-            elif run>117 and cal==False:
+            elif run>=117 and cal==False:
                 df = lh5.load_dfs(file_list, [f'{etype}', 'bl','bl_sig', 'bl_slope', 'lf_max', 'A_10','AoE', 'dcr', 'tp_0', 'tp_10', 'tp_90', 'tp_50', 'tp_80', 'tp_max'], 'ORSIS3302DecoderForEnergy/hit')
 
         elif hit==False:
             print('Using dsp files')
             file_list = lh5_dir + dg.fileDB['dsp_path'] + '/' + dg.fileDB['dsp_file']
-            if run<=117 and cal==True:
+            if run<117 and cal==True:
                 df = lh5.load_dfs(file_list, [f'{etype}', f'{etype_cal}', 'bl','bl_sig','A_10','AoE', 'ts_sec', 'dcr_raw', 'dcr_ftp', 'dcr_max', 'tp_0', 'tp_10', 'tp_90', 'tp_50', 'tp_80', 'tp_max'], 'ORSIS3302DecoderForEnergy/dsp')
-            elif run>117 and cal==True:
+            elif run>=117 and cal==True:
                 df = lh5.load_dfs(file_list, [f'{etype}', f'{etype_cal}', 'bl','bl_sig', 'bl_slope', 'lf_max', 'A_10','AoE', 'dcr', 'tp_0', 'tp_10', 'tp_90','tp_50', 'tp_80', 'tp_max'], 'ORSIS3302DecoderForEnergy/dsp')
 
-            elif run<=117 and cal==False:
+            elif run<117 and cal==False:
                 df = lh5.load_dfs(file_list, [f'{etype}', 'bl','bl_sig','A_10','AoE', 'ts_sec', 'dcr_raw', 'dcr_ftp', 'dcr_max', 'tp_0', 'tp_10', 'tp_90', 'tp_50', 'tp_80', 'tp_max'], 'ORSIS3302DecoderForEnergy/dsp')
-            elif run>117 and cal==False:
+            elif run>=117 and cal==False:
                 df = lh5.load_dfs(file_list, [f'{etype}', 'bl','bl_sig', 'bl_slope', 'lf_max', 'A_10','AoE', 'dcr', 'tp_0', 'tp_10', 'tp_90', 'tp_50', 'tp_80', 'tp_max'], 'ORSIS3302DecoderForEnergy/dsp')
 
         else:
@@ -501,9 +503,9 @@ def normalized_dcr_AvE(runs, user=False, hit=True, cal=True, etype='trapEmax', c
 
 
         # use baseline cut
-        if run <=117:
+        if run <117:
             bl_cut_lo, bl_cut_hi = 8500, 10000
-        if run>117:
+        if run>=117:
             bl_cut_lo, bl_cut_hi = 9700, 9760
 
         df_cut = df.query(f'bl > {bl_cut_lo} and bl < {bl_cut_hi}').copy()
@@ -513,11 +515,11 @@ def normalized_dcr_AvE(runs, user=False, hit=True, cal=True, etype='trapEmax', c
             const = 0.0555
             df_cut['dcr_linoff'] = df_cut['dcr_raw'] + const*df_cut['trapEmax']
 
-        if run>86 and run <=117:
+        if run>86 and run <117:
             const = -0.0225
             df_cut['dcr_linoff'] = df_cut['dcr_raw'] + const*df_cut['trapEmax']
 
-        if run>117:
+        if run>=117:
             const = -0.0003
             const2 = -0.0000003
             df_cut['dcr_linoff'] = df_cut['dcr'] + const*(df_cut['trapEftp']) + const2*(df_cut['trapEftp'])**2
@@ -590,7 +592,7 @@ def normalized_dcr_AvE(runs, user=False, hit=True, cal=True, etype='trapEmax', c
         alo, ahi, apb = 0.0, 0.09, 0.0001
         if run>=60:
             alo, ahi, apb = 0.005, 0.0905, 0.0001
-        if run>117:
+        if run>=117:
             alo, ahi, apb = 0.0, 0.15, 0.00015
 
         nbx = int((ehi-elo)/epb)
@@ -636,7 +638,7 @@ def normalized_dcr_AvE(runs, user=False, hit=True, cal=True, etype='trapEmax', c
 
         if run>=60 and run<117:
             dlo, dhi, dpb = -100, 300, 0.6
-        elif run>117:
+        elif run>=117:
             dlo, dhi, dpb = -20., 40, 0.1
 
         nbx = int((ehi-elo)/epb)
