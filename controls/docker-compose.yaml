@@ -22,11 +22,6 @@ services:
         environment:
           - MB_DB_FILE=/metabase-data/metabase.db
     # dragonfly service
-    cesi:
-        build: cesi
-        ports:
-          - 5000:5000
-        restart: on-failure
     dragonfly:
         build: dragonfly
         command: supervisord
