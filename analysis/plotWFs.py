@@ -86,7 +86,7 @@ def plot_wfs(run, cycle, etype, user=False, hit=True, cal=True):
     n_eranges = 10 #number of steps between lower and higher energy limits
     nwfs= 50 #number of waveforms to average for superpulse
     emin = 500 #lower energy limit
-    emax = 1000 #higher energy limit
+    emax = 15000 #higher energy limit
 
     eranges = np.linspace(emin, emax, n_eranges) #set up energy slices
     for e in eranges:
@@ -129,8 +129,8 @@ def plot_wfs(run, cycle, etype, user=False, hit=True, cal=True):
     cb.set_label("Energy", ha = 'right', va='center', rotation=270, fontsize=20)
     cb.ax.tick_params(labelsize=18)
 
-    plt.xlim(3800, 8000)
-    plt.ylim(0.4, 1.01)
+#     plt.xlim(3800, 8000)
+#     plt.ylim(0.4, 1.01)
     plt.setp(ax.get_xticklabels(), fontsize=16)
     plt.setp(ax.get_yticklabels(), fontsize=16)
     plt.title(f'Waveforms, {emin}-{emax} trapEftp, {n_eranges} steps', fontsize=20)
