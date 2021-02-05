@@ -233,9 +233,8 @@
     "228":["1888-1890", "alp", "elog 308. r=22, source at -150, IA=60, rotary -145. 1888-1889 junk"],
     "229":["1891", "alp", "elog 308. r=24, source at -150, IA=60, rotary -145"],
     "230":["1892", "alp", "elog 308. r=26, source at -150, IA=60, rotary -145"],
-    "231":["1892", "alp", "elog 308. r=26, source at -150, IA=60, rotary -145"],
-    "232":["1893", "alp", "elog 308. r=28, source at -150, IA=60, rotary -145"],
-    "233":["1894", "alp", "elog 308. r=30, source at -150, IA=60, rotary -145"],
-    "234":["1895-1905", "bkg", "elog 308. ~ 5 hour background runs, linear 11.3 mm (r=30 position for IA=60), rotary -145. ORCA crashed overnight. 1905 junk"],
-    "235":["1906-1908", "ba133", "elog 312-313.  About 10 min Ba run to end scan campaign, debug energy_cal at low E"]
+    "231":["1893", "alp", "elog 308. r=28, source at -150, IA=60, rotary -145"],
+    "232":["1894", "alp", "elog 308. r=30, source at -150, IA=60, rotary -145"],
+    "233":["1895-1905", "bkg", "elog 308. ~ 5 hour background runs, linear 11.3 mm (r=30 position for IA=60), rotary -145. ORCA crashed overnight. 1905 junk"],
+    "234":["1906-1908", "ba133", "elog 312-313.  About 10 min Ba run to end scan campaign, debug energy_cal at low E"]
 }
