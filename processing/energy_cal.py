@@ -935,18 +935,22 @@ def peakfit(df_group, config, db_ecal):
 
         # repeat the peak fit with the new 'best' energy (can affect width
         # especially if the peaks are displaced from the guessed locations)
-        fit_results = fit_peaks(epeaks, cal_pars_best, raw_data[et], runtime_min,
-                                config['fit_func'], config['verbose'],
-                                config['batch_mode'])
+#         fit_results = fit_peaks(epeaks, cal_pars_best, raw_data[et], runtime_min,
+#                                 config['fit_func'], config['verbose'],
+#                                 config['batch_mode'])
         
-        df_fits = pd.DataFrame(fit_results).T
+#         df_fits = pd.DataFrame(fit_results).T
         
         # compute the difference between lit and measured values
         pfunc = np.poly1d(cal_pars_best)
         cal_data = pfunc(raw_data[et])
         cal_peaks = pfunc(raw_peaks)
         df_fits['residual'] = true_peaks - cal_peaks
+        res_uncertainty = df_fits['mu_err']
         print(df_fits)
+        # print(df_fits['mu_err'])
+        # print(df_fits['fwhm_err'])
+        print(df_fits['fwhm_err'])
 
         # fit fwhm vs. energy
         # FWHM(E) = sqrt(A_noise^2 + A_fano^2 * E + A_qcol^2 E^2)
@@ -1006,14 +1010,14 @@ def peakfit(df_group, config, db_ecal):
             fit_label = r'$\sqrt{(%.2f)^2 + (%.3f)^2 E + (%.4f)^2  E^2}$' % (a_n, a_f, a_c)
             p1.plot(x_fit, y_fit, '-r', lw=1, label=f'fit: {fit_label}')
 
-            p1.plot(df_fits['mu'], df_fits['fwhm'], '.b')
+            p1.errorbar(df_fits['mu'], df_fits['fwhm'], yerr = df_fits.fwhm_err, marker='.', mfc='b', ls='none', )
 
             p1.set_xlabel('Energy (keV)', ha='right', x=1)
             p1.set_ylabel('FWHM (keV)', ha='right', y=1)
             p1.legend(fontsize=11)
             
             # 2. fit_mu vs. energy
-            p2.plot(df_fits.epk, df_fits.epk - df_fits.mu, '.b', 
+            p2.errorbar(df_fits.epk, df_fits.epk - df_fits.mu, yerr = df_fits.sig, marker='.', mfc='b', ls='none',  
                     label=r'$E_{true}$ - $E_{fit}$')
             p2.set_xlabel('Energy (keV)', ha='right', x=1)
             p2.set_ylabel('Residual (keV)', ha='right', y=1)
@@ -1121,11 +1125,13 @@ def fit_peaks(epeaks, cal_pars, raw_data, runtime_min, ff_name='gauss_step', sho
                                         var=hist_var, guess=p_init)
             p_err = np.sqrt(np.diag(p_cov))
             fwhm = p_fit[2] * 2.355
-            fwhm_err = p_err[2] * 2.355 * epk / p_fit[2]
+            fwhm_err = p_err[2] * 2.355
+            mu_err = p_err[1] 
 
             fit_results[ie] = {
                 'epk':epk, 'mu':p_fit[1], 'fwhm':p_fit[2]*2.355,
-                'sig':p_fit[2], 'amp':p_fit[0], 'bkg':p_fit[3]
+                'sig':p_fit[2], 'amp':p_fit[0], 'bkg':p_fit[3], 
+                'fwhm_err':fwhm_err, 'mu_err':mu_err
                 }
 
         # peakshape : mu, sigma, hstep, htail, tau, bg0, amp
@@ -1149,12 +1155,13 @@ def fit_peaks(epeaks, cal_pars, raw_data, runtime_min, ff_name='gauss_step', sho
                                         var=hist_var, guess=p_init)
             p_err = np.sqrt(np.diag(p_cov))
             fwhm = p_fit[1] * 2.355
-            fwhm_err = p_err[1] * 2.355 * epk / p_fit[1]
+            fwhm_err = p_err[1] * 2.355 
+            mu_err = p_err[0] 
             
             fit_results[ie] = {
                 'epk':epk,
                 'mu':p_fit[0], 'fwhm':p_fit[1]*2.355, 'sig':p_fit[1],
-                'amp':p_fit[6], 'bkg':p_fit[5]
+                'amp':p_fit[6], 'bkg':p_fit[5], 'fwhm_err':fwhm_err, 'mu_err':mu_err
                 }
             
         # compute goodness of fit
