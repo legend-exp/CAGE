@@ -219,7 +219,8 @@ def d2h(dg, overwrite=False, nwfs=None, verbose=False, user=False):
         dg.config['rawe'] = dg.config['rawe_default']
     dg.config['dsp_input_dir'] = dg.lh5_dir
     dg.config['hit_output_dir'] = dg.lh5_user_dir if user else dg.lh5_dir
-        
+    print('  Energy parameters to calibrate:', dg.config['rawe'])    
+
     # run dsp_to_hit (the pandas apply is more useful than a regular loop)
     dg.fileDB.apply(dsp_to_hit, axis=1, args=(dg, verbose, overwrite))    
         
