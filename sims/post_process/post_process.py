@@ -23,9 +23,13 @@ def main():
 
     # post_process(filename, processed_filename)
 
-    raw_dir = '../alpha/raw_out/oppi/'
-    processed_dir = '../alpha/processed_out/oppi/'
-    base_filenames = ['oppi_ring_y10_thetaDet45_241Am_100000000.hdf5']
+    raw_dir = '../alpha/raw_out/oppi/centering_scan/'
+    processed_dir = '../alpha/processed_out/oppi/centering_scan/'
+    base_filenames = ['y10_norm_rotary-145_241Am_100000000.hdf5', 'y10_norm_rotary-180_241Am_100000000.hdf5', 
+                      'y5_norm_rotary-145_241Am_100000000.hdf5', 'y5_norm_rotary-180_241Am_100000000.hdf5', 'y6_norm_rotary-145_241Am_100000000.hdf5',
+                      'y6_norm_rotary-180_241Am_100000000.hdf5', 'y7_norm_rotary-145_241Am_100000000.hdf5', 'y7_norm_rotary-180_241Am_100000000.hdf5',
+                      'y8_norm_rotary-145_241Am_100000000.hdf5', 'y8_norm_rotary-180_241Am_100000000.hdf5', 'y9_norm_rotary-145_241Am_100000000.hdf5',
+                      'y9_norm_rotary-180_241Am_100000000.hdf5']
     # base_filenames =['oppi_largeHole_ring_y5_norm_241Am_100000000.hdf5', 'oppi_largeHole_ring_y6_norm_241Am_100000000.hdf5', 'oppi_largeHole_ring_y7_norm_241Am_100000000.hdf5', 'oppi_largeHole_ring_y8_norm_241Am_100000000.hdf5', 'oppi_largeHole_ring_y10_norm_241Am_100000000.hdf5']
 
 
