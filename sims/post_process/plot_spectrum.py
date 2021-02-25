@@ -30,7 +30,7 @@ def main():
 	# processed_filename = '../alpha/processed_out/processed_newDet_sourceRot25_thetaDet65_y14mm_ICPC_Pb_241Am_100000000.hdf5'
 
 	# processed_filename = '../alpha/processed_out/oppi/processed_oppi_y19mm_norm_241Am_100000000.hdf5'
-	processed_filename = '../alpha/processed_out/oppi/processed_oppi_ring_y10_thetaDet45_241Am_100000000.hdf5'
+	processed_filename = '../alpha/processed_out/oppi/centering_scan/processed_test_y10_norm_rotary-145_241Am_1000000.hdf5'
 	# processed_filename = '../alpha/processed_out/oppi/processed_test_oppi_y19mm_norm_241Am_1000000.hdf5'
 
 	# processed_filename = '../alpha/processed_out/processed_newDet_sourceRotNorm_y6mm_ICPC_Pb_241Am_20000000.hdf5'
