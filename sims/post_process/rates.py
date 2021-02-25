@@ -18,6 +18,7 @@ def main():
 
     primaries = 10000000
     radius = [5, 6, 7, 8, 10] # in mm
+    rotary_angles = [-145, -180]
     elo = 0.05 # in MeV
     ehi = 0.07 # in MeV
 
@@ -50,26 +51,41 @@ def getRate(processed_filename, primaries, elo, ehi):
     rate = counts/time_seconds #(rate in counts/s)
     rate_err = np.sqrt(counts)/time_seconds
     print(f'{rate} counts/second in region {elo} to {ehi} keV')
-    
+
     return(rate, rate_err)
 
-def plotRate(radius, elo, ehi):
+def plotRate(radius, rotary_angles, rotary=False, elo, ehi):
     rates_arr = []
     rates_uncertainty = []
-    for r in radius:
-        rate, rate_err = getRate(f'../alpha/processed_out/oppi/processed_oppi_largeHole_ring_y{r}_norm_241Am_100000000.hdf5', 10000000, elo, ehi)
-        rates_arr.append(rate)
-        rates_uncertainty.append(rate_err)
-        
-    print(rates_arr)
-        
-    fig, ax = plt.subplots(figsize=(6,5))
-    plt.errorbar(radius, rates_arr, yerr=rates_uncertainty, marker = '.', ls='none')
-#     plt.plot(radius, rates_arr, '.r')
-    plt.xlabel('Radius (mm)')
-    plt.ylabel('Rate (cts/sec)')
-    plt.title(f'Rate for {elo} to {ehi} MeV \n larger than nominal hole')
-    plt.savefig(f'./rates_largeHole_{elo}_{ehi}.png')
+    radius_arr = []
+    rotary_array = []
+    names = ['radius', 'rotary', 'rate', 'rate_err']
+    # df = pd.df(columns=names)
+    # for r in radius:
+    #     rate, rate_err = getRate(f'../alpha/processed_out/oppi/processed_oppi_largeHole_ring_y{r}_norm_241Am_100000000.hdf5', 10000000, elo, ehi)
+    #     rates_arr.append(rate)
+    #     rates_uncertainty.append(rate_err)
+
+
+    if rotary==True:
+        for r, rot in zip(radius, rotary_angles):
+            print(r, rot)
+            # rate, rate_err = getRate(f'../alpha/processed_out/oppi/processed_y{r}_norm_rotary{rot}_241Am_100000000.hdf5', 10000000, elo, ehi)
+            # rates_arr.append(rate)
+            # rates_uncertainty.append(rate_err)
+            # radius_array.append(r)
+            # rotary_array.append(rot)
+
+#
+#     print(rates_arr)
+#
+#     fig, ax = plt.subplots(figsize=(6,5))
+#     plt.errorbar(radius, rates_arr, yerr=rates_uncertainty, marker = '.', ls='none')
+# #     plt.plot(radius, rates_arr, '.r')
+#     plt.xlabel('Radius (mm)')
+#     plt.ylabel('Rate (cts/sec)')
+#     plt.title(f'Rate for {elo} to {ehi} MeV \n larger than nominal hole')
+#     plt.savefig(f'./rates_largeHole_{elo}_{ehi}.png')
     #return(rate)
 
 if __name__ == '__main__':
