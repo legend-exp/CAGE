@@ -44,16 +44,15 @@
 
   * **dragonfly** : This container is a custom build of dragonfly on dripline-python.  It provides the core (non-sensor) functionality - database interaction, slack relay, and a pinger.  All these services are managed together by `supervisor` (often `supervisorctl`), necessitating the last container...
 
-  * **cesi** : This container builds CeSI for observing the status of processes across the broader controls ecosystem.  *This can eventually be deprecated in favor or a centralized container deployment like Kubernetes.*
-
+  * **cesi** : This container builds CeSI for observing the status of processes across the broader controls ecosystem.  *Not properly configured and deprecated; revert to commit 24e725e1e821f10673ae2eac66147c9ed3198948 to recover.*
 
 ### Where does the database save the data?
 
   Both `psql_db` and `metabase` use "docker volumes" so that their data is persistent across multiple cycles of the container.  This means that the containers can be restarted without losing any database information.
   The build directive of these containers tests if the volume has been configured properly for the application, and will only rebuild if this is not true.
 
-  Both dragonfly and cesi have shared files with your machine's directory structure to allow for local modifications and to preserve these in a git repo.
-  Anything that feels like a config file should have this property - cesi's server config, dragonfly's service configs, dragonfly's supervisor process configs.
+  Dragonfly has shared files with your machine's directory structure to allow for local modifications and to preserve these in a git repo.
+  Anything that feels like a config file should have this property - dragonfly's service configs, dragonfly's supervisor process configs.
 
 
 # User Guide
@@ -151,7 +150,8 @@
   Several relevant commands are given below, and must be run in the directory containing the file `docker-compose.yaml`.
 
   * `docker-compose down` Bring down an active or misbehaving system
-    * NOTE: when this is run, you will need to restart logging processes on RPi's too (`supervisorctl reload`)
+    * NOTE 1: when this is run, you will need to restart logging processes on RPi's too (`supervisorctl reload`)
+    * NOTE 2: This usually fails to kill all running containers.  To successfully restart, you will probably need to do `docker ps` after this command and then `docker kill [id]` of any remaining container.
   * `docker-compose ps`, or `docker ps` List containers, status, and the port forward structure
   * `docker-compose up -d`  Restart the container system in the background.
   * `docker-compose exec [container_name] <cmd>` Execute a bash command in a specific container.
