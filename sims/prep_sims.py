@@ -25,7 +25,7 @@ def main():
     det = 'oppi'
     primaries = 1000
     # print(f'./geometries/mothers/{det}/{run}test.gdml')
-    writeFiles(radius, source_angle, rotary, det, run, primaries, write_shell=True)
+    writeFiles(radius, source_angle, rotary, det, run, primaries, write_shell=True, run_job=True)
 
 
 def writeFiles(radius, source_angle, rotary='0', det='oppi', run = '', primaries=100000000, mac_dir = './macros/', gdml_dir = './geometries/mothers/', hdf5_dir = './alpha/raw_out/', write_shell=False, run_job=False):
