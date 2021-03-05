@@ -876,11 +876,6 @@ def peakfit(df_group, config, db_ecal):
             exit()
 
         que = f'run=={run} and cyclo=={cyclo} and cychi=={cychi}'
-        
-        print('hi clint')
-        print(df_cal.query('run==117'))
-        exit()
-        
         p1cal = df_cal.query(que)
         if len(p1cal) != 1:
             print(f"Can't load a unique set of cal constants!\n  Full cal DF, '{tb_name}':")
@@ -890,7 +885,7 @@ def peakfit(df_group, config, db_ecal):
             exit()
         cal_pars_init = [p1cal[f'pol{p}'].iloc[0] for p in range(pol, -1, -1)] # p2, p1, p0
         
-        cal_pars_init[-1] = 45 # deleteme
+        # cal_pars_init[-1] = 45 # deleteme
         
         # NOTE: polyfit reverses the coefficients, putting highest order first
         cp = [f'p{i} {cp:.4e} ' for i, cp in enumerate(cal_pars_init[::-1])]
