@@ -906,38 +906,38 @@ def peakfit(df_group, config, db_ecal):
         # print("part 1 dataframe:")
         # print(df_fits)
         
-        # # 2. the new guess of the raw peak location might still be wrong.
-        # # so float peak positions a second time, using a calibration constant
-        # # of unity.  this should give a polynomial which can be used to 
-        # # correct the first one.
-        # f2 = fit_peaks(df_fits['mu_raw'], [0, 1, 0], raw_data[et], runtime_min,
-        #                range = config['init_vals'][et]['raw_range'],
-        #                ff_name = config['fit_func'], show_plot = False, 
-        #                batch = config['batch_mode'])
-        # df2 = pd.DataFrame(f2).T
-        # pfit, pcov = np.polyfit(df2['epk'], df2['mu'], config['pol'][0], cov=True)
-        # pfunc = np.poly1d(pfit)
-        # df2['mu_new'] = pfunc(df2['mu_raw']) 
-        # 
-        # # print("part 2 constants:", pfit)
-        # # print("part 2 dataframe:")
-        # # print(df2)
-        # 
-        # # 3. using the final "best guess" locations of the raw peaks,
-        # # compute the final calibration curve, and float the peaks again
-        # # to save results on the FWHM's, etc.
-        # 
-        # pfit, pcov = np.polyfit(df2['mu_new'], df_fits['epk'], config['pol'][0], cov=True)
-        # f3 = fit_peaks(epeaks, pfit, raw_data[et], runtime_min,
-        #                ff_name = config['fit_func'], show_plot = False,
-        #                batch = config['batch_mode'])
-        # df_fit3 = pd.DataFrame(f3).T
-        # pfit, pcov = np.polyfit(df_fit3['mu_raw'], df_fits['epk'], config['pol'][0], cov=True)
-        # 
-        # print("part 3 constants:", pfit)
-        # print("part 3 dataframe:")
-        # print(df_fits)
-        # df_fits = df_fit3
+        # 2. the new guess of the raw peak location might still be wrong.
+        # so float peak positions a second time, using a calibration constant
+        # of unity.  this should give a polynomial which can be used to 
+        # correct the first one.
+        f2 = fit_peaks(df_fits['mu_raw'], [0, 1, 0], raw_data[et], runtime_min,
+                       range = config['init_vals'][et]['raw_range'],
+                       ff_name = config['fit_func'], show_plot = False, 
+                       batch = config['batch_mode'])
+        df2 = pd.DataFrame(f2).T
+        pfit, pcov = np.polyfit(df2['epk'], df2['mu'], config['pol'][0], cov=True)
+        pfunc = np.poly1d(pfit)
+        df2['mu_new'] = pfunc(df2['mu_raw']) 
+        
+        # print("part 2 constants:", pfit)
+        # print("part 2 dataframe:")
+        # print(df2)
+        
+        # 3. using the final "best guess" locations of the raw peaks,
+        # compute the final calibration curve, and float the peaks again
+        # to save results on the FWHM's, etc.
+        
+        pfit, pcov = np.polyfit(df2['mu_new'], df_fits['epk'], config['pol'][0], cov=True)
+        f3 = fit_peaks(epeaks, pfit, raw_data[et], runtime_min,
+                       ff_name = config['fit_func'], show_plot = False,
+                       batch = config['batch_mode'])
+        df_fit3 = pd.DataFrame(f3).T
+        pfit, pcov = np.polyfit(df_fit3['mu_raw'], df_fits['epk'], config['pol'][0], cov=True)
+        
+        print("part 3 constants:", pfit)
+        print("part 3 dataframe:")
+        print(df_fits)
+        df_fits = df_fit3
         
         # ---- end calibration curve calculation ----
         
