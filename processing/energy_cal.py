@@ -876,6 +876,11 @@ def peakfit(df_group, config, db_ecal):
             exit()
 
         que = f'run=={run} and cyclo=={cyclo} and cychi=={cychi}'
+        
+        print('hi clint')
+        print(df_cal.query('run==117'))
+        exit()
+        
         p1cal = df_cal.query(que)
         if len(p1cal) != 1:
             print(f"Can't load a unique set of cal constants!\n  Full cal DF, '{tb_name}':")
