@@ -27,8 +27,8 @@ This file is a "mother file" that contains everything relevant to the source: co
   <quantity name="substrate_board_thickness" type="length" value="0.5" unit="mm"/>
 
   <quantity name="world_size" type="length" value="3" unit="m"/>
-  <quantity name="vacuum_radius" type="length" value="board_length + 0.125" unit="mm"/>
-  <quantity name="vacuum_height" type="length" value="board_thickness + 2*substrate_board_thickness + 0.5" unit="mm"/> <!-- Additional 0.25 mm above and below center of vacuum volume (0.125 mm at top since lmfe_substrate is 0.125 mm above PEEK)-->
+  <quantity name="diving_board_vacuum_radius" type="length" value="62" unit="mm"/>
+  <quantity name="diving_board_vacuum_height" type="length" value="board_thickness + 2*substrate_board_thickness + 0.5" unit="mm"/> <!-- Additional 0.25 mm above and below center of vacuum volume (0.125 mm at top since lmfe_substrate is 0.125 mm above PEEK)-->
 
   <quantity name="diving_board_overhang" type="length" value="6.5" unit="mm"/> <!-- diving board extends 6.5mm over detector center-->
   <quantity name="diving_board_x" type="length" value="-(board_length/2)+diving_board_overhang" unit="mm"/> <!-- diving board x-placement. Add 6.5 mm b/c diving board extends 6.5mm over detector center-->
@@ -47,7 +47,7 @@ This file is a "mother file" that contains everything relevant to the source: co
 
 <solids>
 
-  <cone name="vacuum_cylinder" rmin1="0" rmax1="vacuum_radius" rmin2="0" rmax2="vacuum_radius" z="vacuum_height" startphi="0" deltaphi="TWOPI" aunit="rad"/>
+  <cone name="diving_board_vacuum_cylinder" rmin1="0" rmax1="diving_board_vacuum_radius" rmin2="0" rmax2="diving_board_vacuum_radius" z="diving_board_vacuum_height" startphi="0" deltaphi="TWOPI" aunit="rad"/>
 
  </solids>
 
@@ -57,7 +57,7 @@ This file is a "mother file" that contains everything relevant to the source: co
 
   <volume name="diving_board_volume">
    <materialref ref="G4_Galactic"/>
-   <solidref ref="vacuum_cylinder"/>
+   <solidref ref="diving_board_vacuum_cylinder"/>
    <positionref ref="center"/>
    <rotationref ref="identity"/>
 

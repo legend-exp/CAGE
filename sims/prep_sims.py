@@ -15,17 +15,19 @@ def main():
 
     G. Othman
     """
-    radius = [5, 10]
-    source_angle = [90.0, 45.]
-    rotary = [0, 180]
+    radius = [12]
+    source_angle = [90.0]
+    rotary = np.linspace(4, 144, 15)
+    # print(rotary)
+    # exit()
     mac_dir = './macros/'
     gdml_dir = './geometries/mothers/'
     hdf5_dir = './alpha/raw_out/'
-    run = 'test/' #ex 'centering_scan/'
+    run = 'rotary_centering_scan/' #ex 'centering_scan/'
     det = 'oppi'
-    primaries = 1000
+    primaries = 100000000
     # print(f'./geometries/mothers/{det}/{run}test.gdml')
-    writeFiles(radius, source_angle, rotary, det, run, primaries, write_shell=True, run_job=True)
+    writeFiles(radius, source_angle, rotary, det, run, primaries, write_shell=True, run_job=False)
 
 
 def writeFiles(radius, source_angle, rotary='0', det='oppi', run = '', primaries=100000000, mac_dir = './macros/', gdml_dir = './geometries/mothers/', hdf5_dir = './alpha/raw_out/', write_shell=False, run_job=False):
@@ -34,9 +36,9 @@ def writeFiles(radius, source_angle, rotary='0', det='oppi', run = '', primaries
         for theta_det in source_angle:
             for theta_rot in rotary:
                 print(f'prepping sims files for {det}: r: {r}, theta_det {theta_det}, theta_rot: {theta_rot}')
-                gdml_out_file = gdml_dir + f'{det}/{run}test_y{r}_thetaDet{int(theta_det)}_rotary{theta_rot}_241Am_{primaries}.gdml'
-                mac_out_file = mac_dir + f'{det}/{run}test_y{r}_thetaDet{int(theta_det)}_rotary{theta_rot}_241Am_{primaries}.mac'
-                hdf5_out_file = hdf5_dir+ f'{det}/{run}y{r}_thetaDet{int(theta_det)}_rotary{theta_rot}_241Am_{primaries}.hdf5'
+                gdml_out_file = gdml_dir + f'{det}/{run}y{r}_thetaDet{int(theta_det)}_rotary{int(theta_rot)}_241Am_{primaries}.gdml'
+                mac_out_file = mac_dir + f'{det}/{run}y{r}_thetaDet{int(theta_det)}_rotary{int(theta_rot)}_241Am_{primaries}.mac'
+                hdf5_out_file = hdf5_dir+ f'{det}/{run}y{r}_thetaDet{int(theta_det)}_rotary{int(theta_rot)}_241Am_{primaries}.hdf5'
 
                 #Create directory for hdf5 output if doesn't alreasy exist
                 if not os.path.isdir(hdf5_dir +f'{det}/{run}'):
@@ -53,8 +55,8 @@ def writeFiles(radius, source_angle, rotary='0', det='oppi', run = '', primaries
                     mac = file.readlines()
 
                 mac_rotation, gdml_source_center, gdml_source_rotation = positionCalc(r, theta_det)
-                gdml_divingBoard_rotation = f'     <rotation name="OPPI1_diving_board_volume_Rotation" z="(180-17.92)+{theta_rot}" unit="deg"/> <!-- diving board rotation. linear motor drive \n'
-                gdml_det_rotation = f'     <rotation name="OPPI_Rotation" x="0" y="0" z="{theta_rot}" unit="deg"/> <!--Add same additional rotation to "OPPI1_diving_board_volume_Rotation" here to simulte rotating rotary motor--> \n'
+                gdml_divingBoard_rotation = f'     <rotation name="OPPI1_diving_board_volume_Rotation" z="(180-17.92)-{theta_rot}" unit="deg"/> <!-- diving board rotation. linear motor drive \n'
+                gdml_det_rotation = f'     <rotation name="OPPI_Rotation" x="0" y="0" z="-{theta_rot}" unit="deg"/> <!--Add same additional rotation to "OPPI1_diving_board_volume_Rotation" here to simulte rotating rotary motor--> \n'
 
                 gdml[89] = gdml_source_center
                 gdml[90] = gdml_source_rotation
