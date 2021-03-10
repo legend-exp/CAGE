@@ -14,7 +14,7 @@
 /analysis/setFileName ./alpha/raw_out/oppi/rotary_centering_scan/y12_thetaDet90_rotary94_241Am_100000000.hdf5 
 
 ##Set Volume ID's for Geometry Volumes (volume.in.geometry.file_PV volID)
-/g4simple/setVolID PPM_Detector_PV 1
+/g4simple/setVolID OPPI1_Detector_PV 1
 
 ##to track all steps, including steps for which Edep=0
 #/g4simple/recordAllSteps

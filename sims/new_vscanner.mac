@@ -1,6 +1,6 @@
 # use QGSP_BERT just to have something - this one loads fast.
 /g4simple/setReferencePhysList QGSP_BERT
-/g4simple/setDetectorGDML ./geometries/mothers/oppi/rotary_centering_scan/y10_thetaDet90_rotary144_241Am_100000000.gdml false
+/g4simple/setDetectorGDML ./geometries/mothers/oppi/rotary_centering_scan/y12_thetaDet90_rotary144_241Am_100000000.gdml false
 
 /run/initialize
 
@@ -10,7 +10,7 @@
 # Camera setting
 /vis/viewer/set/style surface
 /vis/viewer/set/upVector 0 0 1
-/vis/viewer/set/viewpointThetaPhi 0 0
+/vis/viewer/set/viewpointThetaPhi 90 0
 #/vis/viewer/set/viewpointThetaPhi 90 0
 #/vis/viewer/set/viewpointThetaPhi 90 0
 /vis/viewer/set/background white 1.
