@@ -19,10 +19,10 @@ def main():
     # calculate_CollClearances()
 
     # positionCalc(y_final=31, theta_det=60., icpc=False)
-    rotaryCalc(radius=12.0, d_theta = 10.0)
+    # rotaryCalc(radius=12.0, d_theta = 10.0)
     # maxRotation(min_clearance_toLMFE=5.0, icpc=False)
     # checkRotation(theta_det=60., min_clearance_toLMFE=5.0)
-    # thetaCalc(y_final=28., icpc=False)
+    thetaCalc(y_final=12., icpc=False)
 
 def positionCalc(y_final, theta_det, icpc=True):
     theta_rot = 90.-theta_det #rotation angle of the collimator with respect to the horizontal. Used in calculations, where 0 deg theta_rot is normal incidence on the detector surface
