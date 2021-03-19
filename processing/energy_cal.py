@@ -938,6 +938,7 @@ def peakfit(df_group, config, db_ecal):
         print("part 3 dataframe:")
         print(df_fits)
         df_fits = df_fit3
+        p_err_cal = np.sqrt(np.diag(pcov))
         
         # ---- end calibration curve calculation ----
         
@@ -1055,7 +1056,7 @@ def peakfit(df_group, config, db_ecal):
             pf_results[f'{et}_cal{i}'] = p
 
         # uncertainties in cal constants
-        for i, pe in enumerate(pcov[::-1]):
+        for i, pe in enumerate(p_err_cal[::-1]):
             pf_results[f'{et}_unc{i}'] = pe
         
         # resolution curve parameters
