@@ -15,21 +15,28 @@ import os
 
 def main():
 
-    raw_dir = '../alpha/raw_out/oppi/rotary_centering_scan/'
-    processed_dir = '../alpha/processed_out/oppi/rotary_centering_scan/'
+    raw_dir = '../alpha/raw_out/oppi/source_angle_scan/'
+    processed_dir = '../alpha/processed_out/oppi/source_angle_scan/'
     base_filenames = os.listdir(raw_dir)
     # print(base_filenames)
+    # exit()
 
 
     for file in range(len(base_filenames)):
         post_process(raw_dir, processed_dir, base_filenames[file])
+        
 
 
 def post_process(raw_dir, processed_dir, base_filename, hits=False):
     filename = raw_dir+base_filename
     processed_filename = processed_dir+'processed_'+base_filename
+    #Create directory for future processed hdf5 output if doesn't alreasy exist
+    if not os.path.isdir(processed_dir):
+        print(f'Creating directory for processed hdf5 output file: {processed_dir}')
+        os.mkdir(processed_dir)
     print('Processing file: ', filename)
     # print(processed_filename)
+    # print(base_filename)
     # exit()
     if hits==True:
         procdf, pos_df = pandarize(filename, hits=True)

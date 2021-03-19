@@ -15,15 +15,16 @@ def main():
 
     G. Othman
     """
-    radius = [12]
-    source_angle = [90.0]
-    rotary = np.linspace(4, 144, 15)
+    radius = [10., 15., 18.]
+    source_angle = [90., 75., 60., 45.]
+    rotary = [0.]
+#     rotary = np.linspace(4, 144, 15)
     # print(rotary)
     # exit()
     mac_dir = './macros/'
     gdml_dir = './geometries/mothers/'
     hdf5_dir = './alpha/raw_out/'
-    run = 'rotary_centering_scan/' #ex 'centering_scan/'
+    run = 'source_angle_scan/' #ex 'centering_scan/'
     det = 'oppi'
     primaries = 100000000
     # print(f'./geometries/mothers/{det}/{run}test.gdml')
@@ -36,16 +37,15 @@ def writeFiles(radius, source_angle, rotary='0', det='oppi', run = '', primaries
         for theta_det in source_angle:
             for theta_rot in rotary:
                 print(f'prepping sims files for {det}: r: {r}, theta_det {theta_det}, theta_rot: {theta_rot}')
-                gdml_out_file = gdml_dir + f'{det}/{run}y{r}_thetaDet{int(theta_det)}_rotary{int(theta_rot)}_241Am_{primaries}.gdml'
-                mac_out_file = mac_dir + f'{det}/{run}y{r}_thetaDet{int(theta_det)}_rotary{int(theta_rot)}_241Am_{primaries}.mac'
-                hdf5_out_file = hdf5_dir+ f'{det}/{run}y{r}_thetaDet{int(theta_det)}_rotary{int(theta_rot)}_241Am_{primaries}.hdf5'
+                gdml_out_file = gdml_dir + f'{det}/{run}y{int(r)}_thetaDet{int(theta_det)}_rotary{int(theta_rot)}_241Am_{primaries}.gdml'
+                mac_out_file = mac_dir + f'{det}/{run}y{int(r)}_thetaDet{int(theta_det)}_rotary{int(theta_rot)}_241Am_{primaries}.mac'
+                hdf5_out_file = hdf5_dir+ f'{det}/{run}y{int(r)}_thetaDet{int(theta_det)}_rotary{int(theta_rot)}_241Am_{primaries}.hdf5'
 
                 #Create directory for hdf5 output if doesn't alreasy exist
                 if not os.path.isdir(hdf5_dir +f'{det}/{run}'):
                     print(f'Creating directory for hdf5 output file: {gdml_dir + det +"/"+run}')
                     os.mkdir(hdf5_dir +f'{det}/{run}')
-
-
+                    
                 with open(gdml_dir + f'{det}/template.gdml', 'r') as file:
                     # read a list of lines into data
                     gdml = file.readlines()

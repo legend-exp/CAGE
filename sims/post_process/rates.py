@@ -15,20 +15,20 @@ mpl.use('Agg')
 def main():
     base_filename = '../alpha/processed_out/oppi/'
     processed_filename = '../alpha/processed_out/oppi/rotary_centering_scan/processed_y12_thetaDet90_rotary4_241Am_100000000.hdf5'
-    run = 'rotary_centering_scan/'
+    run = 'angled_rotary_centering_scan/'
     processed_dir = f'{base_filename}{run}'
 
     primaries = 10000000
     radius = [12] # in mm
     rotary_angles = np.linspace(4, 144, 15)
-    elo = 5 # in MeV
-    ehi = 6 # in MeV
+    elo = 5.4 # in MeV
+    ehi = 5.6 # in MeV
 
     # getCounts(processed_filename) # get all counts in physical volume for this file. Useful for debugging if sim was successful
-    getCounts_cut(processed_filename, elo, ehi) # get counts within specific energy region
+    # getCounts_cut(processed_filename, elo, ehi) # get counts within specific energy region
     # getRate(processed_filename, primaries, elo, ehi) # get rate in counts/sec for specific energy region
     # plotRate(radius, rotary_angles, elo, ehi, rotary=True) # plot rates for multiple source positions (sims files) on one plot
-#     rotary_plotRate(radius, rotary_angles, elo, ehi, processed_dir) # for rotary scans, plot rates for multiple source positions (sims files) on one plot
+    rotary_plotRate(radius, rotary_angles, elo, ehi, processed_dir) # for rotary scans, plot rates for multiple source positions (sims files) on one plot
 
 def getCounts(processed_filename):
     df = pd.read_hdf(processed_filename, keys='procdf')
@@ -100,11 +100,11 @@ def rotary_plotRate(radius, rotary_angles, elo, ehi, processed_dir):
         rates_arr = []
         rates_uncertainty = []
         for rot in rotary_angles:
-            rate, rate_err = getRate(f'{processed_dir}processed_y{r}_thetaDet90_rotary{int(rot)}_241Am_100000000.hdf5', 10000000, elo, ehi)
+            rate, rate_err = getRate(f'{processed_dir}processed_y{r}_thetaDet61_rotary{int(rot)}_241Am_100000000.hdf5', 10000000, elo, ehi)
             rates_arr.append(rate)
             rates_uncertainty.append(rate_err)
                 
-        plt.errorbar(radius, rates_arr, yerr=rates_uncertainty, marker = '.', c=cmap[i], ls='none', label=f'radius: {r} mm')
+    plt.errorbar(rotary_angles, rates_arr, yerr=rates_uncertainty, marker = '.', c=cmap[i], ls='none', label=f'radius: {r} mm')
             
 #     print(rates_arr)
 
@@ -117,7 +117,7 @@ def rotary_plotRate(radius, rotary_angles, elo, ehi, processed_dir):
     plt.setp(ax.get_xticklabels(), fontsize=14)
     plt.setp(ax.get_yticklabels(), fontsize=14)
     plt.legend()
-    plt.savefig(f'./rates_rotary_centering_{elo}_{ehi}.png',  dpi=200)
+    plt.savefig(f'./rates_angled_rotary_centering_{elo}_{ehi}.png',  dpi=200)
     return(rate)
 
 if __name__ == '__main__':
