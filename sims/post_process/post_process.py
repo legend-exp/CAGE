@@ -9,28 +9,16 @@ import h5py
 import pandas as pd
 #import ROOT
 import sys
+import os
 #from particle import PDGID
 #matplotlib.rcParams['text.usetex'] = True
 
 def main():
 
-    # filename = '../alpha/raw_out/newDet_sourceRot25_thetaDet65_y14mm_ICPC_Pb_241Am_100000000.hdf5'
-    # processed_filename = '../alpha/processed_out/processed_newDet_sourceRot25_thetaDet65_y14mm_ICPC_Pb_241Am_100000000.hdf5'
-
-    # raw_dir = '../alpha/raw_out/'
-    # processed_dir = '../alpha/processed_out/'
-    # base_filenames = ['test_newDet_sourceRotNorm_y6mm_ICPC_Pb_241Am_100000.hdf5']
-
-    # post_process(filename, processed_filename)
-
-    raw_dir = '../alpha/raw_out/oppi/centering_scan/'
-    processed_dir = '../alpha/processed_out/oppi/centering_scan/'
-    base_filenames = ['y10_norm_rotary-145_241Am_100000000.hdf5', 'y10_norm_rotary-180_241Am_100000000.hdf5', 
-                      'y5_norm_rotary-145_241Am_100000000.hdf5', 'y5_norm_rotary-180_241Am_100000000.hdf5', 'y6_norm_rotary-145_241Am_100000000.hdf5',
-                      'y6_norm_rotary-180_241Am_100000000.hdf5', 'y7_norm_rotary-145_241Am_100000000.hdf5', 'y7_norm_rotary-180_241Am_100000000.hdf5',
-                      'y8_norm_rotary-145_241Am_100000000.hdf5', 'y8_norm_rotary-180_241Am_100000000.hdf5', 'y9_norm_rotary-145_241Am_100000000.hdf5',
-                      'y9_norm_rotary-180_241Am_100000000.hdf5']
-    # base_filenames =['oppi_largeHole_ring_y5_norm_241Am_100000000.hdf5', 'oppi_largeHole_ring_y6_norm_241Am_100000000.hdf5', 'oppi_largeHole_ring_y7_norm_241Am_100000000.hdf5', 'oppi_largeHole_ring_y8_norm_241Am_100000000.hdf5', 'oppi_largeHole_ring_y10_norm_241Am_100000000.hdf5']
+    raw_dir = '../alpha/raw_out/oppi/rotary_centering_scan/'
+    processed_dir = '../alpha/processed_out/oppi/rotary_centering_scan/'
+    base_filenames = os.listdir(raw_dir)
+    # print(base_filenames)
 
 
     for file in range(len(base_filenames)):
