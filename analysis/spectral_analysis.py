@@ -23,7 +23,7 @@ import pygama.analysis.peak_fitting as pgf
 mpl.use('Agg')
 
 def main():
-    runs = [130, 133, 136]
+    runs = [118, 119, 122, 127, 130, 133, 136, 160, 171, 180] #, 190, 197, 203, 210, 218, 233
     plot_spectra(runs, show=False, save=True)
 
 def get_hists(runs, user=False, hit=True, cal=True, etype='trapEftp', bl_cut=True):
@@ -124,6 +124,8 @@ def get_hists(runs, user=False, hit=True, cal=True, etype='trapEftp', bl_cut=Tru
             elo, ehi, epb = 0, 6000, 5
             etype=etype_cal
             e_unit = ' (keV)'
+            
+        nbx = int((ehi-elo)/epb)
 
         # create energy histograms
         ene_hist, bins = np.histogram(df_cut[etype], bins=nbx, range=([elo, ehi]))
@@ -142,7 +144,7 @@ def plot_spectra(runs, show=False, save=True):
     cmap = plt.cm.get_cmap('jet', len(hists))
 
     for hist, run, i in zip(hists, runs, range(len(hists))):
-        plt.semilogy(bins[1:], hist, ds='steps', c=cmap(i), lw=1,
+        plt.semilogy(bins[1:], hist, ds='steps', c=cmap(i), lw=0.5,
             label=f'Run {run}')
 
     plt.xlabel('Energy (keV)', fontsize=16)
