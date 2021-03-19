@@ -18,10 +18,11 @@ def main():
 
     # calculate_CollClearances()
 
-    positionCalc(y_final=31, theta_det=60., icpc=False)
+    # positionCalc(y_final=31, theta_det=60., icpc=False)
+    # rotaryCalc(radius=12.0, d_theta = 10.0)
     # maxRotation(min_clearance_toLMFE=5.0, icpc=False)
     # checkRotation(theta_det=60., min_clearance_toLMFE=5.0)
-    # thetaCalc(y_final=28., icpc=False)
+    thetaCalc(y_final=12., icpc=False)
 
 def positionCalc(y_final, theta_det, icpc=True):
     theta_rot = 90.-theta_det #rotation angle of the collimator with respect to the horizontal. Used in calculations, where 0 deg theta_rot is normal incidence on the detector surface
@@ -142,6 +143,27 @@ def thetaCalc(y_final, icpc=True):
     print('Source activity in the run macro should be rotated to and centered according to: \n/gps/pos/rot1 1 0 0 \n/gps/pos/rot2 0 %.5f %.5f' %(rotUnitVec_y, rotUnitVec_z))
     print('/gps/pos/centre 0.0 %.3f %.3f mm \n' %( source_yPos, source_zPos))
     print('Position of the source ("sourceRotationVolume") in the mother GDML file, should be placed at: \n<position name= "source_center" x="0.0" y="0.0" z="0.0" unit="mm"/> \n<rotation name="source%.0f" x="-%.2f" unit="deg"/>' %(theta_rot, theta_rot))
+
+def rotaryCalc(radius=1.0, d_theta = 2.):
+    rad_to_deg = 180/np.pi
+    deg_to_rad = np.pi/180
+    board_width = 12.52 # in mm
+    theta_tot = (2*np.arctan((board_width/2)/radius))*rad_to_deg
+    # d_theta = (d_s/radius)*rad_to_deg
+    d_s = (d_theta*deg_to_rad)*radius
+
+    if d_theta >= 10:
+        theta_min = 72.08-(theta_tot)/2-2*d_theta
+        theta_max = 72.08+(theta_tot)/2+2*d_theta
+    else:
+        theta_min = 72.08-(theta_tot)/2-20
+        theta_max = 72.08+(theta_tot)/2+20
+
+
+
+    scan_points = (theta_max - theta_min)/d_theta
+    print(f'for r={radius}: \ntheta_tot = {theta_tot} \nd_s = {d_s} \nd_theta = {d_theta} \ntheta_min = {theta_min} \ntheta_max = {theta_max} \nscan points = {scan_points}')
+
 
 
 

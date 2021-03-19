@@ -126,10 +126,9 @@ def r2d(dg, overwrite=False, nwfs=None, verbose=False, user=False):
     """
     $ ./processing.py -q 'run==[something]' --r2d
     """
-    # print(dg.fileDB)
-    # print(dg.fileDB.columns)
-
-    with open(os.path.expandvars('$CAGE_SW/processing/metadata/config_dsp.json')) as f:
+    # load default DSP config file
+    dsp_dir = os.path.expandvars('$CAGE_SW/processing/metadata')
+    with open(dsp_dir + '/config_dsp.json') as f:
         dsp_config = json.load(f, object_pairs_hook=OrderedDict)
 
     for i, row in dg.fileDB.iterrows():
@@ -151,6 +150,11 @@ def r2d(dg, overwrite=False, nwfs=None, verbose=False, user=False):
         if row.skip:
             print(f'Cycle {cyc} has been marked junk, will not process.')
             continue
+        
+        # load updated dsp config file (optional)
+        if row.dsp_id > 0:
+            with open(dsp_dir + f'/dsp/dsp_{row.dsp_id:02d}.json') as f:
+                dsp_config = json.load(f, object_pairs_hook=OrderedDict)
 
         print(f'Processing cycle {cyc}')
         raw_to_dsp(f_raw, f_dsp, dsp_config, n_max=nwfs, verbose=verbose,
