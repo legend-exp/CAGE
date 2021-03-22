@@ -8,6 +8,7 @@ from pygama.dsp.dsp_optimize import *
 from pygama import lh5
 import pygama.analysis.histograms as pgh
 from energy_selector import select_energies
+import os
 
 
 if len(sys.argv) < 2:
@@ -16,23 +17,24 @@ if len(sys.argv) < 2:
 
 # get input file, dsp_config, and apdb
 filenames = sys.argv[1:]
-with open('../config_dsp.json') as f: dsp_config = json.load(f, object_pairs_hook=OrderedDict)
+dsp_id = '01'
+with open(os.path.expandvars(f'$CAGE_SW/processing/metadata/dsp/dsp_{dsp_id}.json')) as f: dsp_config = json.load(f, object_pairs_hook=OrderedDict)
 with open('oppi_apdb.json') as f: apdb = json.load(f, object_pairs_hook=OrderedDict)
 
 # Override dsp_config['outputs'] to contain only what we need for optimization
-dsp_config['outputs'] = ['trapEftp2', 'ct_corr']
+dsp_config['outputs'] = ['trapEftp', 'ct_corr']
 
 # build a parameter grid for the dsp of choice
 trap_grid = ParGrid()
 
-ramp_values = np.linspace(4, 8, 5)
+ramp_values = np.linspace(1, 5, 5)
 ramp_values = [ f'{ramp:.2f}*us' for ramp in ramp_values]
 ftp_values = [ f'tp_0+({ramp}+2.5*us)' for ramp in ramp_values]
-trap_grid.add_dimension('wf_trap2', 1, ramp_values, companions=[('trapEftp2', 1, ftp_values)])
+trap_grid.add_dimension('wf_trap', 1, ramp_values, companions=[('trapEftp', 1, ftp_values)])
 
 # set up the figure-of-merit to be computed at each grid point
 def ct_corr_E_var(tb_out, verbosity):
-    EE = tb_out['trapEftp2'].nda
+    EE = tb_out['trapEftp'].nda
     cc = tb_out['ct_corr'].nda / EE
 
     # bad gretina waveforms: need to cull them
@@ -99,7 +101,7 @@ energy_name = 'energy'
 range_name = '40K_1460'
 
 # loop over detectors 
-detectors = [ 'oppi' ]
+detectors = [f'oppi_{dsp_id}']
 store = lh5.Store()
 for detector in detectors:
     # get indices for just a selected energy range
