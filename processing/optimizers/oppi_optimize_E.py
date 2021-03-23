@@ -27,7 +27,7 @@ dsp_config['outputs'] = ['trapEftp', 'ct_corr']
 # build a parameter grid for the dsp of choice
 trap_grid = ParGrid()
 
-ramp_values = np.linspace(1, 5, 5)
+ramp_values = np.linspace(1., 4., 5)
 ramp_values = [ f'{ramp:.2f}*us' for ramp in ramp_values]
 ftp_values = [ f'tp_0+({ramp}+2.5*us)' for ramp in ramp_values]
 trap_grid.add_dimension('wf_trap', 1, ramp_values, companions=[('trapEftp', 1, ftp_values)])
