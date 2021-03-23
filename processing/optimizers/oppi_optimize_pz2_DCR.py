@@ -21,15 +21,15 @@ dsp_config['outputs'] = ['fltpDCR_sig']
 # build a parameter grid for the dsp of choice
 pz2_grid = ParGrid()
 
-tau1_values = np.linspace(210, 220, 5)
+tau1_values = np.linspace(211, 213, 4)
 tau1_values = [ f'{tau:.2f}*us' for tau in tau1_values]
 pz2_grid.add_dimension('wf_pzDCR', 1, tau1_values)
 
-tau2_values = np.linspace(3., 5., 4)
+tau2_values = np.linspace(4., 6., 4)
 tau2_values = [ f'{tau:.2f}*us' for tau in tau2_values]
 pz2_grid.add_dimension('wf_pzDCR', 2, tau2_values)
 
-frac_values = np.linspace(0.035, 0.055, 3)
+frac_values = np.linspace(0.0435, 0.0455, 3) # 0.035, 0.055, 3
 frac_values = [ f'{frac:.3f}' for frac in frac_values]
 pz2_grid.add_dimension('wf_pzDCR', 3, frac_values)
 
