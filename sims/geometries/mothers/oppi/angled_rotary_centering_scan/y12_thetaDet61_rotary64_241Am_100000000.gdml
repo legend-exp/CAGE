@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<gdml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://service-spi.web.cern.ch/service-spi/app/releases/GDML/schema/gdml.xsd">
+
+##########################################
+
+This file is a "mother file" to insert other gdml file geometries into.
+This file itself contains a vacuum inside of a larger world. GDML Modules are inserted as physical volumes
+in the vacuum logical volume. See 'structure' section of this file to insert other geometries.
+
+As written here, the origin of the simulation (0, 0, 0) is identical to the rotation axis of the collimator in real life. This means the rotation angle in the simulation is identical to the rotation angle of the source in real life. The collimator is placed inside the volume "sourceRotationVolume," so that it can be rotated independently
+of the rest of the geometry to simulate different positions of the source, as will be in the case in the CAGE scanner.
+
+In the simulations, the rotation axis of the source is the 'x-axis'. Depending on the rotation angle of the collimator and the point on the surface we want to scan, both the y-position of the "sourceRotationVolume" and it's rotation angle need to be changed in this gdml file. The position and rotation angle of the activity in the run macro must also be changed accordingly. Run '../source_placement.py' to determine both of these values.
+
+See these elogs for more diagrams and information: https://elog.legend-exp.org/UWScanner/159; https://elog.legend-exp.org/UWScanner/182
+
+##########################################
+
+ <define>
+
+  <constant name="HALFPI" value="pi/2."/>
+  <constant name="PI" value="1.*pi"/>
+  <constant name="TWOPI" value="2.*pi"/>
+
+  <position name="center" x="0" y="0" z="0"/>
+  <rotation name="identity" x="0" y="0" z="0"/>
+
+  <quantity name="world_size" type="length" value="3" unit="m"/>
+  <quantity name="vacuum_radius" type="length" value="1" unit="m"/>
+  <quantity name="vacuum_height" type="length" value="2" unit="m"/>
+
+  <quantity name="rotAxis_to_detSurface_oppi" type="length" value="22.0" unit="mm"/>
+
+  <!-- Dimenstions relevant to diving board (peek part only, not LMFE) -->
+  <quantity name="board_width" type="length" value="12.52" unit="mm"/>
+  <quantity name="board_length" type="length" value="35.5+6.5" unit="mm"/> <!-- extends 6.5 mm over PC -->
+  <quantity name="board_thickness" type="length" value="1.5" unit="mm"/>
+
+  <!-- LMFE substrate board dimensions for reference -->
+  <quantity name="substrate_board_thickness" type="length" value="0.5" unit="mm"/>
+
+  <!-- Dimenstions relevant to ring and diving board -->
+  <quantity name="cone_height" type="length" value="6.0" unit="mm"/> <!-- see OPPI1_ring.gdml -->
+  <quantity name="ring_height" type="length" value="-(rotAxis_to_detSurface_oppi + cone_height/2)" unit="mm"/> <!-- the vertical distance the diving board is off from the  ring-->
+
+  <quantity name="joiner_thickness" type="length" value="1.51" unit="mm"/> <!-- the vertical distance the diving board is off from the  ring-->
+  <quantity name="diving_board_vacuum_vol_height" type="length" value="board_thickness + 2*substrate_board_thickness + 0.5" unit="mm"/> <!-- the vacuum volume where the diving board and LMFE are placed in extends 0.125 mm on all sides, seen as 0.25 mm in dims in OPPI1_diving_board_volume.gdml-->
+
+  <quantity name="OPPI1_diving_board_height" type="length" value="diving_board_vacuum_vol_height/2 + board_thickness/2 + joiner_thickness" unit="mm"/> <!-- diving board z-placement. the vertical distance the diving board is off from the  ring with offsets accounted for-->
+
+
+
+
+
+ </define>
+
+##########################################
+
+ <materials>
+
+  <element name="hydrogen" formula="H"  Z="1.">  <atom value="1.008"/>  </element>
+
+  <material name="vacuum">
+   <D value="1.e-22" unit="mg/cm3"/>
+   <fraction n="1.0" ref="hydrogen"/>
+  </material>
+
+ </materials>
+
+##########################################
+
+<solids>
+
+  <box name="world_box" x="world_size" y="world_size" z="world_size"/>
+
+  <cone name="mother_vacuum_cylinder" rmin1="0" rmax1="vacuum_radius" rmin2="0" rmax2="vacuum_radius" z="vacuum_height" startphi="0" deltaphi="TWOPI" aunit="rad"/>
+
+ </solids>
+
+##########################################
+
+ <structure>
+
+  <volume name="mother_vacuum_volume">
+   <materialref ref="G4_Galactic"/>
+   <solidref ref="mother_vacuum_cylinder"/>
+
+   <physvol>
+     <file name="./geometries/sourceRotationVolume.gdml"/>
+     <position name= "source_center" x="0.0" y="-0.195" z="0.0" unit="mm"/>
+     <rotation name="source29" x="-29.00" unit="deg"/>
+   </physvol>
+
+   <physvol>
+     <file name="./geometries/OPPI1_ring_new.gdml"/>
+     <position name= "ring_center" x="0.0" y="0.0" z="ring_height" unit="mm"/>
+     <rotation name="OPPI1_ring_Rotation" z="0" unit="deg"/>
+   </physvol>
+
+   <physvol>
+     <file name="./geometries/OPPI1_diving_board_volume.gdml"/>
+     <position name= "LMFE_center" x="0." y="0." z="ring_height + cone_height/2 + OPPI1_diving_board_height" unit="mm"/>
+     <rotation name="OPPI1_diving_board_volume_Rotation" z="(180-17.92)-64.0" unit="deg"/> <!-- diving board rotation. linear motor drive 
+     is not perpendiculat to LMFE diving board in real life, (180-17.92) ccount for this. Additional rotation is to simulate rotating rotary motor -->
+   </physvol>
+
+   <physvol>
+     <file name="./geometries/OPPI1_Detector.gdml"/>
+     <position name= "OPPI_center" x="0" y="0" z="-50.5" unit="mm"/>
+     <rotation name="OPPI_Rotation" x="0" y="0" z="-64.0" unit="deg"/> <!--Add same additional rotation to "OPPI1_diving_board_volume_Rotation" here to simulte rotating rotary motor--> 
+   </physvol>
+
+   <physvol>
+     <file name="./geometries/Outer_Vessel.gdml"/>
+     <position name="Outer_Vessel_Position" x="0" y="0" z="0" unit="mm"/>
+     <rotationref ref="identity"/>
+   </physvol>
+
+   <physvol>
+     <file name="./geometries/Cold_Plate.gdml"/>
+     <position name="Cold_Plate_Position" x="0" y="0" z="-85.7" unit="mm"/>
+     <rotationref ref="identity"/>
+   </physvol>
+   <!-- <physvol>
+     <file name="./geometries/Copper_Finger.gdml"/>
+     <position name="Copper_Finger_Position" x="0" y="0" z="-314.45" unit="mm"/>
+     <rotationref ref="identity"/>
+   </physvol> -->
+   <physvol>
+     <file name="./geometries/Top_Hat.gdml"/>
+     <position name="Top_Hat_Position" x="0" y="0" z="9.55" unit="mm"/>
+     <rotationref ref="identity"/>
+   </physvol>
+   <!-- <physvol>
+     <file name="./geometries/Feedthrough.gdml"/>
+     <position name="Feedthrough_Position" x="0" y="0" z="-178.5" unit="mm"/>
+     <rotationref ref="identity"/>
+   </physvol> -->
+   <!-- <physvol> -->
+     <!-- <file name="./geometries/Detector_Rest.gdml"/>
+     <position name="Detector_Rest_Position" x="0" y="0" z="-55.6" unit="mm"/>
+     <rotationref ref="identity"/>
+   </physvol> -->
+   <!-- <physvol>
+     <file name="./geometries/LN_Dewar.gdml"/>
+     <position name="LN_Dewar_Position" x="0" y="0" z="-567.5" unit="mm"/>
+     <rotationref ref="identity"/>
+   </physvol> -->
+   <!-- <physvol> --> -->
+     <!-- <file name="./geometries/Muon_Veto_02.gdml"/> -->
+     <!-- <position name="Muon_Veto_01_Position" x="0" y="0" z="352" unit="mm"/> -->
+     <!-- <rotationref ref="identity"/> -->
+   <!-- </physvol> -->
+   <!-- <physvol>
+     <file name="./geometries/Vertical_Motion.gdml"/>
+     <position name="Vertical_Motion_Position" x="0" y="0" z="597.1" unit="mm"/>
+     <rotationref ref="identity"/>
+   </physvol> -->
+  </volume>
+
+  <volume name="world">
+   <materialref ref="G4_Galactic"/>
+   <solidref ref="world_box"/>
+   <physvol>
+     <volumeref ref="mother_vacuum_volume"/>
+     <positionref ref="center"/>
+     <rotationref ref="identity"/>
+   </physvol>
+  </volume>
+
+ </structure>
+
+##########################################
+
+ <setup name="Default" version="1.0">
+  <world ref="world"/>
+ </setup>
+</gdml>
