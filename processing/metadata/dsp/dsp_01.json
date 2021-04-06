@@ -65,7 +65,7 @@
       "args": ["wf_blsub", "db.pz2.tau1", "db.pz2.tau2",  "db.pz2.frac", "wf_pzDCR"],
       "prereqs": ["wf_blsub"],
       "unit": "ADC",
-      "defaults": { "db.pz2.tau1":"212.5*us", "db.pz2.tau2":"4.33*us", "db.pz2.frac":"0.045" }
+      "defaults": { "db.pz2.tau1":"213.*us", "db.pz2.tau2":"5.33*us", "db.pz2.frac":"0.043" }
     },
     "fltpDCR, fltpDCR_sig":{
         "function": "mean_stdev",
