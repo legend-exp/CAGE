@@ -16,7 +16,7 @@
     },
     "trapEftp" : {
       "raw_range":[0, 10000, 5],
-      "peakdet_thresh": 0.025,
+      "peakdet_thresh": 0.020,
       "lowe_cut": 500
     }
   },

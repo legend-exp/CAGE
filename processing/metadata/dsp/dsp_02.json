@@ -196,16 +196,24 @@
     "dcr": {
       "function": "fixed_time_pickoff",
       "module": "pygama.dsp.processors",
-      "args": ["dcr_trap", "tp_max +(30*us)", "dcr"],
+      "args": ["dcr_trap", "79*us", "dcr"],
       "unit": "ADC",
-      "prereqs": ["dcr_trap", "tp_max"]
+      "prereqs": ["dcr_trap", "dcr_trap_max"]
     },
     "dcr_trap": {
       "function": "trap_norm",
       "module": "pygama.dsp.processors",
-      "args": ["wf_pzDCR", 1000, 300, "dcr_trap"],
+      "args": ["wf_pzDCR", 750, 2250, "dcr_trap"],
       "unit": "ADC",
       "prereqs": ["wf_pzDCR"]
+    },
+    "dcr_trap_max": {
+      "function": "argmax",
+      "module": "numpy",
+      "args": ["dcr_trap", 1, "dcr_trap_max"],
+      "kwargs": {"signature":"(n),()->()", "types":["fi->i"]},
+      "unit": "ns",
+      "prereqs": ["dcr_trap"]
     },
     "curr_psd": {
       "function": "psd",
