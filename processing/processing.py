@@ -155,6 +155,7 @@ def r2d(dg, overwrite=False, nwfs=None, verbose=False, user=False):
         if row.dsp_id > 0:
             with open(dsp_dir + f'/dsp/dsp_{row.dsp_id:02d}.json') as f:
                 dsp_config = json.load(f, object_pairs_hook=OrderedDict)
+            print(f'Using DSP config: {dsp_dir}' + f'/dsp/dsp_{row.dsp_id:02d}.json')
 
         print(f'Processing cycle {cyc}')
         raw_to_dsp(f_raw, f_dsp, dsp_config, n_max=nwfs, verbose=verbose,

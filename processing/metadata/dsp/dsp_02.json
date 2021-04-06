@@ -196,14 +196,14 @@
     "dcr": {
       "function": "fixed_time_pickoff",
       "module": "pygama.dsp.processors",
-      "args": ["dcr_trap", "dcr_trap_max + (29*us)", "dcr"],
+      "args": ["dcr_trap", "79*us", "dcr"],
       "unit": "ADC",
       "prereqs": ["dcr_trap", "dcr_trap_max"]
     },
     "dcr_trap": {
       "function": "trap_norm",
       "module": "pygama.dsp.processors",
-      "args": ["wf_pzDCR", 800, 2000, "dcr_trap"],
+      "args": ["wf_pzDCR", 750, 2250, "dcr_trap"],
       "unit": "ADC",
       "prereqs": ["wf_pzDCR"]
     },
