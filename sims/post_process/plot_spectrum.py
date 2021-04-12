@@ -28,7 +28,7 @@ def main():
 	# plotSpot(processed_filename, source=False, plot_title = 'Spot Size from $^{241}$Am (10$^8$ Primaries) \n90 deg at 15 mm', particle = 'all')
 	# ZplotSpot(filename)
 	# spot_curve()
-	plot1DSpot(processed_filename, axis='y', particle='all')
+	plot1DSpot(processed_filename, axis='y', particle='alpha')
 	# plot2Dhist(processed_filename, nbins=500, plot_title = 'Spot Size from $^{241}$Am (10$^8$ Primaries) \nalphas only; 90 deg at 15 mm', source=False, particle = 'alpha')
 	# plotDepth(processed_filename, source=False, particle = 'all', plot_title='65 deg, 14mm, $10^8$ primaries')
 	# plotContour(processed_filename, source=False, particle = 'all')
@@ -736,7 +736,7 @@ def plot1DSpot(filename, axis='x', particle = 'all', fit=True):
 	fig, ax = plt.subplots(figsize=(10,8))
 	# ax.figure(figsize=(10,10))
 
-	ax.hist(x, bins = 200, density=True, color='grey', alpha=0.75, label = 'Normalized histogram \nof data: %.f entries \n200 bins' % len(x))
+	ax.hist(x, bins = 10, density=True, color='grey', alpha=0.75, label = 'Normalized histogram \nof data: %.f entries \n10 bins' % len(x))
 	# ax.hist(xfit, bins = bins, label = 'Data: %.f entries \n 0.25 mm bins' % len(xfit))
 
 	# ax.plot(x1, y1, 'k-', linewidth=3, label='Gaussian KDE of data: %.2f bandwidth' % bw)
@@ -755,7 +755,7 @@ def plot1DSpot(filename, axis='x', particle = 'all', fit=True):
 	plt.xlim(11,21)
 
 	# plt.title('Y-axis projection of spot-size. Gaussian KDE, %.2f bandwidth' % bw, fontsize=16)
-	plt.title('Y-axis projection of spot-size with Gaussian fit \nall particles; 90 deg at 15 mm', fontsize=25)
+	plt.title('Y-axis projection of spot-size with Gaussian fit \nalphas only; 90 deg at 15 mm', fontsize=25)
 
 	plt.show()
 
