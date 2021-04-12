@@ -23,23 +23,25 @@ import pygama.analysis.peak_fitting as pgf
 mpl.use('Agg')
 
 def main():
-#     runs = [60, 42, 64, 44, 66, 48, 70, 50, 72, 54]
+    runs = [38, 60, 42, 64, 44, 66, 48, 70, 50, 72, 54]
     # runs = [120, 121, 123, 124, 126, 128, 129, 131, 132, 134, 135, 137, 143]
-    runs = [117]
+#     runs = [60, 64, 66, 70, 72]
+#     runs = [60, 38]
 #     alp_runs = [137, 143]
 #     bkg_runs = [136, 136]
+    campaign = 'normScan/'
 
-    user = False
+    user = True
     hit = True
     cal = True
     etype = 'trapEftp'
 
 #     plot_energy(runs)
     # dcr_AvE(runs, user, hit, cal, etype, cut=False)
-    normalized_dcr_AvE(runs, user, hit, cal, etype, cut=False)
+    normalized_dcr_AvE(runs, user, hit, cal, etype, cut=False, campaign=campaign)
 #     bkg_sub_dcr_AvE(alp_runs, bkg_runs, user, hit, cal, etype, cut=False)
 
-def bkg_sub_dcr_AvE(alp_runs, bkg_runs, user=False, hit=True, cal=True, etype='trapEmax', cut=True):
+def bkg_sub_dcr_AvE(alp_runs, bkg_runs, user=False, hit=True, cal=True, etype='trapEmax', cut=True, campaign=''):
 
     if cal==True:
         etype_cal = etype+'_cal'
@@ -145,7 +147,9 @@ def bkg_sub_dcr_AvE(alp_runs, bkg_runs, user=False, hit=True, cal=True, etype='t
 
 
         # use baseline cut
-        if run <117:
+        if run <79:
+            bl_cut_lo, bl_cut_hi = 9150,9320
+        if run>79 and run <117:
             bl_cut_lo, bl_cut_hi = 8500, 10000
         if run>=117:
             bl_cut_lo, bl_cut_hi = 9700, 9760
@@ -155,9 +159,9 @@ def bkg_sub_dcr_AvE(alp_runs, bkg_runs, user=False, hit=True, cal=True, etype='t
 
         #creat new DCR
         if run <= 86:
-            const = 0.0555
-            bkg_df_cut['dcr_corr'] = bkg_df_cut['dcr_raw'] + const*bkg_df_cut['trapEmax']
-            alp_df_cut['dcr_corr'] = alp_df_cut['dcr_raw'] + const*alp_df_cut['trapEmax']
+            const = 0.0002
+            bkg_df_cut['dcr_corr'] = bkg_df_cut['dcr'] + const*bkg_df_cut['trapEftp']
+            alp_df_cut['dcr_corr'] = alp_df_cut['dcr'] + const*alp_df_cut['trapEftp']
 
         if run>86 and run <117:
             const = -0.0225
@@ -425,7 +429,7 @@ def bkg_sub_dcr_AvE(alp_runs, bkg_runs, user=False, hit=True, cal=True, etype='t
         plt.clf()
         plt.close()
 
-def normalized_dcr_AvE(runs, user=False, hit=True, cal=True, etype='trapEmax', cut=True):
+def normalized_dcr_AvE(runs, user=False, hit=True, cal=True, etype='trapEmax', cut=True, campaign=''):
 
     if cal==True:
             etype_cal = etype+'_cal'
@@ -451,7 +455,7 @@ def normalized_dcr_AvE(runs, user=False, hit=True, cal=True, etype='trapEmax', c
             radius = np.array(scan_pos['radius'])[0]
             angle = np.array(scan_pos['source'])[0]
             rotary = np.array(scan_pos['rotary'])[0]
-            radius = int(radius)
+            #radius = int(radius)
             angle_det = int((-1*angle) - 90)
             if rotary <0:
                 angle_det = int(angle + 270)
@@ -474,7 +478,9 @@ def normalized_dcr_AvE(runs, user=False, hit=True, cal=True, etype='trapEmax', c
         if hit==True:
             print('Using hit files')
             file_list = lh5_dir + dg.fileDB['hit_path'] + '/' + dg.fileDB['hit_file']
-            if run<117 and cal==True:
+            if run<79 and cal==True:
+                df = lh5.load_dfs(file_list, ['energy', 'trapEmax', 'trapEftp', 'trapEftp_cal', 'bl','bl_sig', 'bl_slope', 'lf_max', 'A_10','AoE', 'dcr', 'tp_0', 'tp_10', 'tp_90', 'tp_50', 'tp_80', 'tp_max'], 'ORSIS3302DecoderForEnergy/hit')
+            elif run>79 and run <117 and cal==True:
                 df = lh5.load_dfs(file_list, ['energy', 'trapEmax', 'trapEmax_cal', 'bl','bl_sig','A_10','AoE', 'ts_sec', 'dcr_raw', 'dcr_ftp', 'dcr_max', 'tp_0','tp_10', 'tp_90', 'tp_50', 'tp_80', 'tp_max'], 'ORSIS3302DecoderForEnergy/hit')
             elif run>=117 and cal==True:
                 df = lh5.load_dfs(file_list, ['energy', 'trapEmax', 'trapEftp', 'trapEmax_cal', 'trapEftp_cal', 'bl','bl_sig', 'bl_slope', 'lf_max', 'A_10','AoE', 'dcr', 'tp_0', 'tp_10', 'tp_90', 'tp_50', 'tp_80', 'tp_max'], 'ORSIS3302DecoderForEnergy/hit')
@@ -503,7 +509,9 @@ def normalized_dcr_AvE(runs, user=False, hit=True, cal=True, etype='trapEmax', c
 
 
         # use baseline cut
-        if run <117:
+        if run <79:
+            bl_cut_lo, bl_cut_hi = 9150,9320
+        if run>79 and run <117:
             bl_cut_lo, bl_cut_hi = 8500, 10000
         if run>=117:
             bl_cut_lo, bl_cut_hi = 9700, 9760
@@ -511,7 +519,13 @@ def normalized_dcr_AvE(runs, user=False, hit=True, cal=True, etype='trapEmax', c
         df_cut = df.query(f'bl > {bl_cut_lo} and bl < {bl_cut_hi}').copy()
 
         #creat new DCR
-        if run <= 86:
+        if run>35 and run<=56:
+            const = const = 0.0011
+            df_cut['dcr_linoff'] = df_cut['dcr'] + const*df_cut['trapEftp']
+        if run>56 and run< 79:
+            const = 0.0002
+            df_cut['dcr_linoff'] = df_cut['dcr'] + const*df_cut['trapEftp']
+        if run>79 and run <= 86:
             const = 0.0555
             df_cut['dcr_linoff'] = df_cut['dcr_raw'] + const*df_cut['trapEmax']
 
@@ -548,7 +562,7 @@ def normalized_dcr_AvE(runs, user=False, hit=True, cal=True, etype='trapEmax', c
             elo, ehi, epb = 0, 10000, 10 #entire enerty range trapEftp
             e_unit = ' (uncal)'
         elif cal==True:
-            elo, ehi, epb = 0, 6000, 5
+            elo, ehi, epb = 0, 6000, 2
             etype=etype_cal
             e_unit = ' (keV)'
 
@@ -567,7 +581,8 @@ def normalized_dcr_AvE(runs, user=False, hit=True, cal=True, etype='trapEmax', c
 
         ax.set_xlabel(f'{etype+e_unit}', fontsize=16)
         ax.set_ylabel('counts/sec', fontsize=16)
-        plt.ylim(0.0001,5)
+        plt.ylim(0.0001,2)
+        plt.xlim(10., ehi)
         plt.setp(ax.get_xticklabels(), fontsize=14)
         plt.setp(ax.get_yticklabels(), fontsize=14)
 
@@ -579,9 +594,18 @@ def normalized_dcr_AvE(runs, user=False, hit=True, cal=True, etype='trapEmax', c
         plt.tight_layout()
         # plt.savefig(f'./plots/normScan/cal_normScan/{runtype}_energy_run{run}.png', dpi=200)
         if runtype=='alp':
-            plt.savefig(f'./plots/angleScan/normalized_{runtype}_energy_{radius}mm_{angle_det}deg_run{run}.png', dpi=200)
+            plt.savefig(f'./plots/{campaign}normalized_{runtype}_energy_{radius}mm_{angle_det}deg_run{run}.png', dpi=200)
         elif runtype=='bkg':
-            plt.savefig(f'./plots/angleScan/normalized_{runtype}_energy_run{run}.png', dpi=200)
+            plt.savefig(f'./plots/{campaign}normalized_{runtype}_energy_run{run}.png', dpi=200)
+        
+        #now zoom into 60 keV
+        plt.xlim(40, 80)
+        plt.ylim(0.1, 1)
+        
+        if runtype=='alp':
+            plt.savefig(f'./plots/{campaign}normalized_{runtype}_energy_60keV_{radius}mm_{angle_det}deg_run{run}.png', dpi=200)
+        elif runtype=='bkg':
+            plt.savefig(f'./plots/{campaign}normalized_{runtype}_energy_60keV_run{run}.png', dpi=200)
         plt.clf()
         plt.close()
 
@@ -590,8 +614,8 @@ def normalized_dcr_AvE(runs, user=False, hit=True, cal=True, etype='trapEmax', c
         # normalized by runtime
         fig, ax = plt.subplots()
         alo, ahi, apb = 0.0, 0.09, 0.0001
-        if run>=60:
-            alo, ahi, apb = 0.005, 0.0905, 0.0001
+        if run>=36:
+            alo, ahi, apb = 0.005, 0.075, 0.0001
         if run>=117:
             alo, ahi, apb = 0.0, 0.15, 0.00015
 
@@ -624,9 +648,9 @@ def normalized_dcr_AvE(runs, user=False, hit=True, cal=True, etype='trapEmax', c
         plt.tight_layout()
         # plt.savefig(f'./plots/normScan/cal_normScan/{runtype}_AoE_run{run}.png', dpi=200)
         if runtype=='alp':
-            plt.savefig(f'./plots/angleScan/normalized_{runtype}_AoE_{radius}mm_{angle_det}deg_run{run}.png', dpi=200)
+            plt.savefig(f'./plots/{campaign}normalized_{runtype}_AoE_{radius}mm_{angle_det}deg_run{run}.png', dpi=200)
         elif runtype=='bkg':
-            plt.savefig(f'./plots/angleScan/normalized_{runtype}_normalized_AoE_run{run}.png', dpi=200)
+            plt.savefig(f'./plots/{campaign}normalized_{runtype}_normalized_AoE_run{run}.png', dpi=200)
         # plt.show()
 
         plt.clf()
@@ -636,8 +660,8 @@ def normalized_dcr_AvE(runs, user=False, hit=True, cal=True, etype='trapEmax', c
 
         fig, ax = plt.subplots()
 
-        if run>=60 and run<117:
-            dlo, dhi, dpb = -100, 300, 0.6
+        if run>=36 and run<117:
+            dlo, dhi, dpb = -20., 60, 0.1
         elif run>=117:
             dlo, dhi, dpb = -20., 40, 0.1
 
@@ -670,9 +694,9 @@ def normalized_dcr_AvE(runs, user=False, hit=True, cal=True, etype='trapEmax', c
         plt.tight_layout()
         # plt.savefig(f'./plots/normScan/cal_normScan/{runtype}_dcr_run{run}.png', dpi=200)
         if runtype=='alp':
-            plt.savefig(f'./plots/angleScan/normalized_{runtype}_DCR_{radius}mm_{angle_det}deg_run{run}.png', dpi=200)
+            plt.savefig(f'./plots/{campaign}normalized_{runtype}_DCR_{radius}mm_{angle_det}deg_run{run}.png', dpi=200)
         elif runtype=='bkg':
-            plt.savefig(f'./plots/angleScan/normalized_{runtype}_DCR_run{run}.png', dpi=200)
+            plt.savefig(f'./plots/{campaign}normalized_{runtype}_DCR_run{run}.png', dpi=200)
         # plt.show()
         plt.clf()
         plt.close()
@@ -708,9 +732,9 @@ def normalized_dcr_AvE(runs, user=False, hit=True, cal=True, etype='trapEmax', c
         plt.tight_layout()
         # plt.savefig(f'./plots/normScan/cal_normScan/{runtype}_AoE_vs_dcr_run{run}.png', dpi=200)
         if runtype=='alp':
-            plt.savefig(f'./plots/angleScan/normalized_{runtype}_AoEvDCR_{radius}mm_{angle_det}deg_run{run}.png', dpi=200)
+            plt.savefig(f'./plots/{campaign}normalized_{runtype}_AoEvDCR_{radius}mm_{angle_det}deg_run{run}.png', dpi=200)
         elif runtype=='bkg':
-            plt.savefig(f'./plots/angleScan/normalized_{runtype}_AoEvDCR_run{run}.png', dpi=200)
+            plt.savefig(f'./plots/{campaign}normalized_{runtype}_AoEvDCR_run{run}.png', dpi=200)
         # plt.show()
         plt.clf()
         plt.close()
@@ -748,9 +772,9 @@ def normalized_dcr_AvE(runs, user=False, hit=True, cal=True, etype='trapEmax', c
         plt.tight_layout()
         # plt.savefig(f'./plots/normScan/cal_normScan/{runtype}_dcr_vs_tp0_50_run{run}.png', dpi=200)
         if runtype=='alp':
-            plt.savefig(f'./plots/angleScan/normalized_{runtype}_DCRvTp050_{radius}mm_{angle_det}deg_run{run}.png', dpi=200)
+            plt.savefig(f'./plots/{campaign}normalized_{runtype}_DCRvTp050_{radius}mm_{angle_det}deg_run{run}.png', dpi=200)
         elif runtype=='bkg':
-            plt.savefig(f'./plots/angleScan/normalized_{runtype}_DCRvTp050_run{run}.png', dpi=200)
+            plt.savefig(f'./plots/{campaign}normalized_{runtype}_DCRvTp050_run{run}.png', dpi=200)
         # plt.show()
         plt.clf()
         plt.close()
