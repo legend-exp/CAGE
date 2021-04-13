@@ -15,6 +15,9 @@ from matplotlib.colors import LogNorm
 # import boost_histogram as bh
 # import pickle as pl
 
+import scipy.stats as stats
+
+import pygama
 from pygama import DataGroup
 import pygama.lh5 as lh5
 import pygama.analysis.histograms as pgh
@@ -29,7 +32,7 @@ def main():
     runs = [60, 38]
 #     alp_runs = [137, 143]
 #     bkg_runs = [136, 136]
-    campaign = 'normScan/'
+    campaign = 'new_normScan/'
 
     user = True
     hit = True
@@ -38,7 +41,7 @@ def main():
 
 #     plot_energy(runs)
     # dcr_AvE(runs, user, hit, cal, etype, cut=False)
-    normalized_dcr_AvE(runs, user, hit, cal, etype, cut=False, campaign=campaign)
+    normalized_dcr_AvE(runs, user, hit, cal, etype, norm=True, corr_DCR=True, cut=False, campaign=campaign)
 #     bkg_sub_dcr_AvE(alp_runs, bkg_runs, user, hit, cal, etype, cut=False)
 
 def bkg_sub_dcr_AvE(alp_runs, bkg_runs, user=False, hit=True, cal=True, etype='trapEmax', cut=True, campaign=''):
@@ -429,14 +432,15 @@ def bkg_sub_dcr_AvE(alp_runs, bkg_runs, user=False, hit=True, cal=True, etype='t
         plt.clf()
         plt.close()
 
-def normalized_dcr_AvE(runs, user=False, hit=True, cal=True, etype='trapEmax', cut=True, campaign=''):
+def normalized_dcr_AvE(runs, corr_DCR=True, norm=True, user=False, hit=True, cal=True, etype='trapEftp', cut=True, campaign=''):
 
     if cal==True:
-            etype_cal = etype+'_cal'
-    
+            #etype_cal = etype+'_cal'
+            etype+='_cal'
+
     for run in runs:
 
-        df, runtype, rt_min, radius, angle_det, rotary = getDataFrame(run, user=True, hit=True, cal=True)
+        df, runtype, rt_min, radius, angle_det, rotary = getDataFrame(run, user=user, hit=hit, cal=cal)
 
         # use baseline cut
         if run <79:
@@ -448,30 +452,40 @@ def normalized_dcr_AvE(runs, user=False, hit=True, cal=True, etype='trapEmax', c
 
         df_cut = df.query(f'bl > {bl_cut_lo} and bl < {bl_cut_hi}').copy()
 
+
+
         #creat new DCR
-        if run>35 and run<=56:
-            const = const = 0.0011
-            df_cut['dcr_linoff'] = df_cut['dcr'] + const*df_cut['trapEftp']
-        if run>56 and run< 79:
-            const = 0.0002
-            df_cut['dcr_linoff'] = df_cut['dcr'] + const*df_cut['trapEftp']
-        if run>79 and run <= 86:
-            const = 0.0555
-            df_cut['dcr_linoff'] = df_cut['dcr_raw'] + const*df_cut['trapEmax']
-
-        if run>86 and run <117:
-            const = -0.0225
-            df_cut['dcr_linoff'] = df_cut['dcr_raw'] + const*df_cut['trapEmax']
-
-        if run>=117:
-            const = -0.0003
-            const2 = -0.0000003
-            df_cut['dcr_linoff'] = df_cut['dcr'] + const*(df_cut['trapEftp']) + const2*(df_cut['trapEftp'])**2
+        # if run>35 and run<=56:
+        #     const = const = 0.0011
+        #     df_cut['dcr_linoff'] = df_cut['dcr'] + const*df_cut['trapEftp']
+        # if run>56 and run< 79:
+        #     const = 0.0002
+        #     df_cut['dcr_linoff'] = df_cut['dcr'] + const*df_cut['trapEftp']
+        # if run>79 and run <= 86:
+        #     const = 0.0555
+        #     df_cut['dcr_linoff'] = df_cut['dcr_raw'] + const*df_cut['trapEmax']
+        #
+        # if run>86 and run <117:
+        #     const = -0.0225
+        #     df_cut['dcr_linoff'] = df_cut['dcr_raw'] + const*df_cut['trapEmax']
+        #
+        # if run>=117:
+        #     const = -0.0003
+        #     const2 = -0.0000003
+        #     df_cut['dcr_linoff'] = df_cut['dcr'] + const*(df_cut['trapEftp']) + const2*(df_cut['trapEftp'])**2
             # if cal==True:
             #     #creat new DCR
             #     const = -0.0015
             #     const2 = -0.0000015
             #     df_cut['dcr_linoff'] = df_cut['dcr'] + const*(df_cut['trapEftp_cal']) + const2*(df_cut['trapEftp_cal'])**2
+
+        # create new new DCR
+
+        if corr_DCR=True:
+            const, offset = corrDCR(df_cut, etype, e_bins=300, elo=0, ehi=6000, dcr_fit_lo=-30, dcr_fit_hi=30)
+            df_cut['dcr_plot'] = df_cut['dcr']-offset + ((-1*const))*df_cut[etype]
+        else:
+            df_cut['dcr_plot'] = df_cut['dcr']
 
 
 
@@ -493,8 +507,15 @@ def normalized_dcr_AvE(runs, user=False, hit=True, cal=True, etype='trapEmax', c
             e_unit = ' (uncal)'
         elif cal==True:
             elo, ehi, epb = 0, 6000, 2
-            etype=etype_cal
+            # etype=etype_cal
             e_unit = ' (keV)'
+
+        if norm=True:
+            rt = np.array([(1/rt_min)])
+            wts = np.repeat(rt, len(df_cut[etype]))
+        else:
+            rt = np.array([(1/1.)])
+            wts = np.repeat(rt, len(df_cut[etype]))
 
         # Make (calibrated) energy spectrum_________
 
@@ -503,11 +524,11 @@ def normalized_dcr_AvE(runs, user=False, hit=True, cal=True, etype='trapEmax', c
 
         nbx = int((ehi-elo)/epb)
 
-        energy_hist, bins = np.histogram(df_cut[etype], bins=nbx,
-                range=[elo, ehi])
-        energy_rt = np.divide(energy_hist, rt_min * 60)
+        energy_hist_norm, bins = np.histogram(df_cut[etype], bins=nbx,
+                range=[elo, ehi], weights=wts)
+        # energy_rt = np.divide(energy_hist, rt_min * 60)
 
-        plt.semilogy(bins[1:], energy_rt, ds='steps', c='b', lw=1) #, label=f'{etype}'
+        plt.semilogy(bins[1:], energy_hist_norm, ds='steps', c='b', lw=1) #, label=f'{etype}'
 
         ax.set_xlabel(f'{etype+e_unit}', fontsize=16)
         ax.set_ylabel('counts/sec', fontsize=16)
@@ -590,20 +611,26 @@ def normalized_dcr_AvE(runs, user=False, hit=True, cal=True, etype='trapEmax', c
 
         fig, ax = plt.subplots()
 
-        if run>=36 and run<117:
-            dlo, dhi, dpb = -20., 60, 0.1
-        elif run>=117:
-            dlo, dhi, dpb = -20., 40, 0.1
 
-        nbx = int((ehi-elo)/epb)
-        nby = int((dhi-dlo)/dpb)
+
+        if run>=36 and run<117:
+            dlo, dhi = -40, 170
+            d_bins = 200
+        elif run>=117:
+            # dlo, dhi, dpb = -20., 40, 0.1
+            dlo, dhi = -40, 170
+            d_bins = 200
+
+        elo_dcr, ehi_dcr, epb_dcr = 50, 6000, 10
+
+        dcr_nbx = int((ehi_dcr-elo_dcr)/epb_dcr)
 
         fig.suptitle(f'DCR vs Energy', horizontalalignment='center', fontsize=16)
 
-        dcr_hist, xedges, yedges = np.histogram2d(df_cut[etype], df_cut['dcr_linoff'], bins=[nbx, nby], range=([elo, ehi], [dlo, dhi]))
-        X, Y = np.mgrid[elo:ehi:nbx*1j, dlo:dhi:nby*1j]
+        dcr_hist_norm, xedges, yedges = np.histogram2d(df_cut[etype], df_cut['dcr_plot'], bins=[dcr_nbx, d_bins], range=([elo_dcr, ehi_dcr], [dlo, dhi]), weights=wts)
+        X, Y = np.mgrid[elo_dcr:ehi_dcr:dcr_nbx*1j, dlo:dhi:d_bins*1j]
 
-        dcr_hist_norm = np.divide(dcr_hist, (rt_min))
+        # dcr_hist_norm = np.divide(dcr_hist, (rt_min))
 
         pcm = plt.pcolormesh(X, Y, dcr_hist_norm, norm=LogNorm(0.002, 0.2))
 
@@ -634,13 +661,22 @@ def normalized_dcr_AvE(runs, user=False, hit=True, cal=True, etype='trapEmax', c
         # DCR vs A/E___________
 
         fig, ax = plt.subplots()
+
+        if run>=36 and run<117:
+            dlo, dhi = -40, 170
+            d_bins = 200
+        elif run>=117:
+            # dlo, dhi, dpb = -20., 40, 0.1
+            dlo, dhi = -40, 170
+            d_bins = 200
+
         nbx = int((ahi-alo)/apb)
-        nby = int((dhi-dlo)/dpb)
+        #nby = int((dhi-dlo)/dpb)
 
         fig.suptitle(f'A/E vs DCR', horizontalalignment='center', fontsize=16)
 
-        aoeVdcr_hist, xedges, yedges = np.histogram2d(df_cut['AoE'], df_cut['dcr_linoff'], bins=[nbx, nby], range=([alo, ahi], [dlo, dhi]))
-        X, Y = np.mgrid[alo:ahi:nbx*1j, dlo:dhi:nby*1j]
+        aoeVdcr_hist_norm, xedges, yedges = np.histogram2d(df_cut['AoE'], df_cut['dcr_plot'], bins=[nbx, d_bins], range=([alo, ahi], [dlo, dhi]))
+        X, Y = np.mgrid[alo:ahi:nbx*1j, dlo:dhi:d_bins*1j]
 
         aoeVdcr_hist_norm = np.divide(aoeVdcr_hist, (rt_min))
 
@@ -1513,6 +1549,23 @@ def getDataFrame(run, user=True, hit=True, cal=True):
         print('dont know what to do here! need to specify if working with calibrated/uncalibrated data, or dsp/hit files')
 
     return(df, runtype, rt_min, radius, angle_det, rotary)
+
+def corrDCR(df, etype, e_bins=300, elo=0, ehi=6000, dcr_fit_lo=-30, dcr_fit_hi=30):
+
+    df_dcr_cut = df.query(f'dcr >{dcr_fit_lo} and dcr < {dcr_fit_hi}').copy()
+
+    median, xedges, binnumber = stats.binned_statistic(df_dcr_cut[etype], df_dcr_cut['dcr], statistic = "median", bins = e_bins)
+
+    raw_en_bin_centers = pgh.get_bin_centers(xedges)
+    fit_raw = np.polyfit(raw_en_bin_centers, median, deg=1)
+
+    const = fit_raw[0]
+    offset = fit_raw[1]
+
+    print(f'Fit results\n slope: {const}\n offset: {offset}')
+    return(const, offset)
+
+
 
 
 if __name__=="__main__":
