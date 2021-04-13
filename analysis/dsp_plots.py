@@ -23,10 +23,10 @@ import pygama.analysis.peak_fitting as pgf
 mpl.use('Agg')
 
 def main():
-    runs = [38, 60, 42, 64, 44, 66, 48, 70, 50, 72, 54]
+#     runs = [38, 60, 42, 64, 44, 66, 48, 70, 50, 72, 54]
     # runs = [120, 121, 123, 124, 126, 128, 129, 131, 132, 134, 135, 137, 143]
 #     runs = [60, 64, 66, 70, 72]
-#     runs = [60, 38]
+    runs = [60, 38]
 #     alp_runs = [137, 143]
 #     bkg_runs = [136, 136]
     campaign = 'normScan/'
@@ -431,84 +431,12 @@ def bkg_sub_dcr_AvE(alp_runs, bkg_runs, user=False, hit=True, cal=True, etype='t
 
 def normalized_dcr_AvE(runs, user=False, hit=True, cal=True, etype='trapEmax', cut=True, campaign=''):
 
-    # if cal==True:
-    #         etype_cal = etype+'_cal'
-    #
+    if cal==True:
+            etype_cal = etype+'_cal'
+    
     for run in runs:
-    #     # get run files
-    #     dg = DataGroup('$CAGE_SW/processing/cage.json', load=True)
-    #     str_query = f'run=={run} and skip==False'
-    #     dg.fileDB.query(str_query, inplace=True)
-    #
-    #     #get runtime, startime, runtype
-    #     runtype_list = np.array(dg.fileDB['runtype'])
-    #     runtype = runtype_list[0]
-    #     rt_min = dg.fileDB['runtime'].sum()
-    #     u_start = dg.fileDB.iloc[0]['startTime']
-    #     t_start = pd.to_datetime(u_start, unit='s')
-    #
-    #     # get scan position
-    #
-    #     if runtype == 'alp':
-    #         alphaDB = pd.read_hdf(os.path.expandvars('$CAGE_SW/processing/alphaDB.h5'))
-    #         scan_pos = alphaDB.loc[alphaDB['run']==run]
-    #         radius = np.array(scan_pos['radius'])[0]
-    #         angle = np.array(scan_pos['source'])[0]
-    #         rotary = np.array(scan_pos['rotary'])[0]
-    #         #radius = int(radius)
-    #         angle_det = int((-1*angle) - 90)
-    #         if rotary <0:
-    #             angle_det = int(angle + 270)
-    #         print(f'Radius: {radius}; Angle: {angle_det}')
-    #
-    #     else:
-    #         radius = 'n/a'
-    #         angle = 'n/a'
-    #         angle_det = 'n/a'
-    #
-    #
-    #     # print(etype, etype_cal, run)
-    #     # exit()
-    #
-    #
-    #
-    #     # get data and load into df
-    #     lh5_dir = dg.lh5_user_dir if user else dg.lh5_dir
-    #
-    #     if hit==True:
-    #         print('Using hit files')
-    #         file_list = lh5_dir + dg.fileDB['hit_path'] + '/' + dg.fileDB['hit_file']
-    #         if run<79 and cal==True:
-    #             df = lh5.load_dfs(file_list, ['energy', 'trapEmax', 'trapEftp', 'trapEftp_cal', 'bl','bl_sig', 'bl_slope', 'lf_max', 'A_10','AoE', 'dcr', 'tp_0', 'tp_10', 'tp_90', 'tp_50', 'tp_80', 'tp_max'], 'ORSIS3302DecoderForEnergy/hit')
-    #         elif run>79 and run <117 and cal==True:
-    #             df = lh5.load_dfs(file_list, ['energy', 'trapEmax', 'trapEmax_cal', 'bl','bl_sig','A_10','AoE', 'ts_sec', 'dcr_raw', 'dcr_ftp', 'dcr_max', 'tp_0','tp_10', 'tp_90', 'tp_50', 'tp_80', 'tp_max'], 'ORSIS3302DecoderForEnergy/hit')
-    #         elif run>=117 and cal==True:
-    #             df = lh5.load_dfs(file_list, ['energy', 'trapEmax', 'trapEftp', 'trapEmax_cal', 'trapEftp_cal', 'bl','bl_sig', 'bl_slope', 'lf_max', 'A_10','AoE', 'dcr', 'tp_0', 'tp_10', 'tp_90', 'tp_50', 'tp_80', 'tp_max'], 'ORSIS3302DecoderForEnergy/hit')
-    #
-    #         elif run<117 and cal==False:
-    #             df = lh5.load_dfs(file_list, [f'{etype}', 'bl','bl_sig','A_10','AoE', 'ts_sec', 'dcr_raw', 'dcr_ftp', 'dcr_max', 'tp_0', 'tp_10', 'tp_90', 'tp_50', 'tp_80', 'tp_max'], 'ORSIS3302DecoderForEnergy/hit')
-    #         elif run>=117 and cal==False:
-    #             df = lh5.load_dfs(file_list, [f'{etype}', 'bl','bl_sig', 'bl_slope', 'lf_max', 'A_10','AoE', 'dcr', 'tp_0', 'tp_10', 'tp_90', 'tp_50', 'tp_80', 'tp_max'], 'ORSIS3302DecoderForEnergy/hit')
-    #
-    #     elif hit==False:
-    #         print('Using dsp files')
-    #         file_list = lh5_dir + dg.fileDB['dsp_path'] + '/' + dg.fileDB['dsp_file']
-    #         if run<117 and cal==True:
-    #             df = lh5.load_dfs(file_list, [f'{etype}', f'{etype_cal}', 'bl','bl_sig','A_10','AoE', 'ts_sec', 'dcr_raw', 'dcr_ftp', 'dcr_max', 'tp_0', 'tp_10', 'tp_90', 'tp_50', 'tp_80', 'tp_max'], 'ORSIS3302DecoderForEnergy/dsp')
-    #         elif run>=117 and cal==True:
-    #             df = lh5.load_dfs(file_list, [f'{etype}', f'{etype_cal}', 'bl','bl_sig', 'bl_slope', 'lf_max', 'A_10','AoE', 'dcr', 'tp_0', 'tp_10', 'tp_90','tp_50', 'tp_80', 'tp_max'], 'ORSIS3302DecoderForEnergy/dsp')
-    #
-    #         elif run<117 and cal==False:
-    #             df = lh5.load_dfs(file_list, [f'{etype}', 'bl','bl_sig','A_10','AoE', 'ts_sec', 'dcr_raw', 'dcr_ftp', 'dcr_max', 'tp_0', 'tp_10', 'tp_90', 'tp_50', 'tp_80', 'tp_max'], 'ORSIS3302DecoderForEnergy/dsp')
-    #         elif run>=117 and cal==False:
-    #             df = lh5.load_dfs(file_list, [f'{etype}', 'bl','bl_sig', 'bl_slope', 'lf_max', 'A_10','AoE', 'dcr', 'tp_0', 'tp_10', 'tp_90', 'tp_50', 'tp_80', 'tp_max'], 'ORSIS3302DecoderForEnergy/dsp')
-    #
-    #     else:
-    #         print('dont know what to do here! need to specify if working with calibrated/uncalibrated data, or dsp/hit files')
 
-        df, runtype, rt_min, radius, angle_det, rotary = getDataFrame(run, hit=True, cal=True)
-
-    exit()
+        df, runtype, rt_min, radius, angle_det, rotary = getDataFrame(run, user=True, hit=True, cal=True)
 
         # use baseline cut
         if run <79:
@@ -1520,7 +1448,7 @@ def plot_energy(runs):
 #     plt.savefig('./plots/normScan/counts_alpha.png', dpi=200)
 #     print(len(count_arr), len(radius_arr))
 
-def getDataFrame(run, hit=True, cal=True):
+def getDataFrame(run, user=True, hit=True, cal=True):
     # get run files
     dg = DataGroup('$CAGE_SW/processing/cage.json', load=True)
     str_query = f'run=={run} and skip==False'
