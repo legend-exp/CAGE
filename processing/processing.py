@@ -222,7 +222,7 @@ def d2h(dg, overwrite=False, nwfs=None, verbose=False, user=False):
     # set additional options
     if 'rawe' not in dg.config:
         dg.config['rawe'] = dg.config['rawe_default']
-    dg.config['dsp_input_dir'] = dg.lh5_dir
+    dg.config['dsp_input_dir'] = dg.lh5_user_dir # if user else dg.lh5_dir # <-- comment in if running r2d in user
     dg.config['hit_output_dir'] = dg.lh5_user_dir if user else dg.lh5_dir
     print('  Energy parameters to calibrate:', dg.config['rawe'])    
 
