@@ -21,8 +21,8 @@ def main():
     # positionCalc(y_final=31, theta_det=60., icpc=False)
     # rotaryCalc(radius=12.0, d_theta = 10.0)
     # maxRotation(min_clearance_toLMFE=5.0, icpc=False)
-    # checkRotation(theta_det=60., min_clearance_toLMFE=5.0)
-    thetaCalc(y_final=12., icpc=False)
+    checkRotation(theta_det=45., min_clearance_toLMFE=4.0)
+    # thetaCalc(y_final=12., icpc=False)
 
 def positionCalc(y_final, theta_det, icpc=True):
     theta_rot = 90.-theta_det #rotation angle of the collimator with respect to the horizontal. Used in calculations, where 0 deg theta_rot is normal incidence on the detector surface
@@ -177,12 +177,12 @@ def maxRotation(min_clearance_toLMFE=5.0, icpc=False):
         print('Calculating maximum ratoation angle for ICPC')
     else:
         rotAxis_height = 22.0 # height in mm from top of detector to rotation axis, which is (0, 0, 0) in the mother geometry of the simulation
-        height_det_to_LMFE = 6.0 # height in mm between hieghest point of LMFE and detector surface
+        height_det_to_LMFE = 8.0 # height in mm between hieghest point of LMFE and detector surface. Jason estimated 7.89 ± 0.26 mm in elog 324
         print('Calculating maximum rotation angle for OPPI')
 
     height_LMFE_to_ax = rotAxis_height - height_det_to_LMFE # height in mm between top of LMFE and rotation axis
     #min_clearance_toLMFE = 5. # minimum height in mm to maintain of collimator above LMFE
-    coll_Radius = 16 # mm
+    coll_Radius =  16 # mm
     coll_eff_Radius = np.sqrt(coll_Radius**2+1.0**2) # in mm. since G10 shaft, hence rotation axis, is actually about 1 mm below lower part of "attenuator" part of collimator, offset by 1 mm, get the hypotenuse for "effective radius"
     print(coll_eff_Radius)
 
@@ -208,13 +208,13 @@ def checkRotation(theta_det, min_clearance_toLMFE=5.0, icpc=False):
         print('Calculating maximum ratoation angle for ICPC')
     else:
         rotAxis_height = 22.0 # height in mm from top of detector to rotation axis, which is (0, 0, 0) in the mother geometry of the simulation
-        height_det_to_LMFE = 6.0 # height in mm between hieghest point of LMFE and detector surface
+        height_det_to_LMFE = 8.0 # height in mm between hieghest point of LMFE and detector surface. Jason estimated 7.89 ± 0.26 mm in elog 324
         print('Calculating maximum rotation angle for OPPI')
 
     height_LMFE_to_ax = rotAxis_height - height_det_to_LMFE # height in mm between top of LMFE and rotation axis
     #min_clearance_toLMFE = 5. # minimum height in mm to maintain of collimator above LMFE
 
-    coll_Radius = 16 # mm
+    coll_Radius = 16 # mm 17.5 with copper thermal ring
     coll_eff_Radius = np.sqrt(coll_Radius**2+1.0**2) # in mm. since G10 shaft, hence rotation axis, is actually about 1 mm below lower part of "attenuator" part of collimator, offset by 1 mm, get the hypotenuse for "effective radius"
     delta_z = coll_eff_Radius*math.sin(theta_rot*deg_to_rad) # z-distance in mm the bottom edge of the (attenuator part of the) collimator moves downward due to rotation
     z_final = rotAxis_height - delta_z # final z-distance in mm between the top of the detector and the bottom edge of the (attenuator part of the) collimator
