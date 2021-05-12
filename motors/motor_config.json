@@ -3,7 +3,7 @@
 
   "mconf":{
     "source": {
-      "rpi_pin":13, "axis":"A", "motor_spd":2500, "constraint":-300,
+      "rpi_pin":13, "axis":"A", "motor_spd":30000, "constraint":-300,
       "enc_slip":100
     },
     "linear": {
@@ -22,6 +22,7 @@
     "3":["pre_oppi2_updates"],
     "4":["OPPI_Commissioning"],
     "5":["OPPI_biased_motor_test_runs"],
-    "6":["OPPI_spot_scans"]
+    "6":["OPPI_spot_scans"],
+    "7":["OPPI_Campaign2"]
   }
 }

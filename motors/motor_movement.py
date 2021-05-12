@@ -33,8 +33,8 @@ def main():
     mconf = motorDB["mconf"]
     rpins = {key['rpi_pin'] : name for name, key in mconf.items()}
 
-    # TODO: change this when we want to do a new campaign
-    campaign_number = "6"
+    # TODO: change this when we want to do a new campaign (see motor_config.json)
+    campaign_number = "7"
 
     # parse user args
     par = argparse.ArgumentParser(description=doc, formatter_class=rthf)
@@ -44,7 +44,7 @@ def main():
     arg('--steps', nargs='*', help="get steps to move [motor_name] a [value]")
     arg('--zero', nargs=1, type=str, help="zero motor: [source,linear,rotary]")
     arg("--move", nargs='*', help="move [motor_name] a distance [value]")
-    arg("--beam_pos_move", nargs=1, help="Use source_placement.py to calculate motor movements for [oppi] or[icpc]")
+    arg("--beam_pos_move", nargs=1, help="Use source_placement.py to calculate motor movements for [oppi] or [icpc]")
     arg("--center", nargs='*', help="center source or linear motor")
 
     # encoder functions & settings
@@ -145,6 +145,14 @@ def main():
         approve_move(history_df, motor_name, input_val, False, constraints)
         move_motor(motor_name, input_val, history_df, angle_check, constraints, verbose)
 
+    if args['zero']:
+        motor_name = args['zero'][0]
+        zero_motor(motor_name, angle_check, history_df, verbose, constraints)
+
+    if args['center']:
+        motor_name = args['center'][0]
+        approve_move(history_df, motor_name, 0, True, constraints)
+        center_motor(motor_name, angle_check, history_df, verbose, constraints)
 
     # incorporating Joule's source placement code--TEST
     if args['beam_pos_move']:
@@ -157,16 +165,6 @@ def main():
         move_motor('source', -1*source_amount, history_df, angle_check, constraints, verbose)
         exit()
 
-
-
-    if args['zero']:
-        motor_name = args['zero'][0]
-        zero_motor(motor_name, angle_check, history_df, verbose, constraints)
-
-    if args['center']:
-        motor_name = args['center'][0]
-        approve_move(history_df, motor_name, 0, True, constraints)
-        center_motor(motor_name, angle_check, history_df, verbose, constraints)
 
 def show_history(f_history):
     """
@@ -478,6 +476,22 @@ def move_motor(motor_name, input_val, history_df, angle_check=180, constraints=T
         print("gclib error: The limit switch is engaged.")
         # NOTE: this creates two "False" rows in the DataFrame.  which is OK.
         move_completed = False
+        gp.GMotionComplete(axis)
+
+    except KeyboardInterrupt:
+        print('Sending emergency stop signal!')
+        res = gc(f'ST{axis}')
+        success = res is not None
+        print('Did we succeed at stopping the motion?', success)
+        move_completed = False
+        gp.GMotionComplete(axis)
+
+        time.sleep(.1)
+        # take current reading of encoder position (quiet)
+        enc_pos = int(query_encoder(mconf[motor_name]['rpi_pin'],
+                                    mconf['t_sleep'], mconf['com_spd'],
+                                    verbose=False).rstrip())
+        print(f"emergency stop move: encoder: {enc_pos:6}  actual pos: XX {steps['move_type']}")
 
     # convert back to physical units
     if motor_name == "source":
