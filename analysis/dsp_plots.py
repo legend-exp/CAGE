@@ -28,14 +28,16 @@ import cage_utils
 mpl.use('Agg')
 
 def main():
-    # runs = [38, 60, 42, 64, 44, 66, 48, 70, 50, 72, 54]
-    runs = [120, 121, 123, 124, 126, 128, 129, 131, 132, 134, 135, 137, 143]
+    # runs = [38]
+    runs = [38, 60, 42, 64, 44, 66, 48, 70, 50, 72, 54]
+    # runs = [120, 121, 123, 124, 126, 128, 129, 131, 132, 134, 135, 137, 143]
     # runs = [60, 64, 66, 70, 72] # alpha runs for dsp_id = 2
 #     runs = [62, 68, 74] #bkg runs for dsp_id = 2
 #     runs = [50]
 #     alp_runs = [137, 143]
 #     bkg_runs = [136, 136]
-    campaign = 'angleScan/'
+    # campaign = 'angleScan/'
+    campaign = 'new_normScan/'
 
     user = False
     hit = True
@@ -43,17 +45,16 @@ def main():
     etype = 'trapEftp'
 
     test_list = ['test']
-    plot_list = ['energy', 'energy_60', 'AoE', 'dcr', 'ToE', 'AoE_v_DCR', 'tp050_v_DCR', 'ToE_v_DCR']
-
-    cage_utils.testFunc(test_list)
+    # plot_list = ['energy', 'energy_60', 'AoE', 'dcr', 'ToE', 'AoE_v_DCR', 'tp050_v_DCR', 'ToE_v_DCR']
+    plot_list = ['ToE', 'ToE_60', 'ToE_v_DCR']
+    
 
 
     # plot_dcr_slope(runs, corr_DCR=True, user=False, hit=True, cal=True, etype=etype, cut=True, campaign=campaign)
 
     # plot_energy(runs, etype=etype, corr_DCR=True, corr_AoE=True, user=True, hit=True, cal=True)
     # dcr_AvE(runs, user, hit, cal, etype, cut=False)
-    # normalized_dcr_AvE(runs, user, cal=True, etype, cut=False, campaign=campaign)
-    # normalized_dcr_AvE(runs, corr_DCR=True, corr_AoE=True, norm=True, user=True, hit=True, cal=True, etype=etype, cut=True, campaign=campaign)
+    normalized_dcr_AvE(runs, plot_list, corr_DCR=True, corr_AoE=True, corr_ToE=True, norm=True, user=user, hit=hit, cal=cal, etype=etype, cut=False, campaign=campaign)
     # bkg_sub_dcr_AvE(alp_runs, bkg_runs, user, hit, cal, etype, cut=False)
 
 def plot_dcr_slope(runs, corr_DCR=True, user=False, hit=True, cal=True, etype='trapEftp', cut=True, campaign=''):
@@ -517,7 +518,7 @@ def bkg_sub_dcr_AvE(alp_runs, bkg_runs, user=False, hit=True, cal=True, etype='t
         plt.clf()
         plt.close()
 
-def normalized_dcr_AvE(runs, corr_DCR=True, corr_AoE=True, norm=True, user=False, hit=True, cal=True, etype='trapEftp', cut=True, cut_str = '', campaign=''):
+def normalized_dcr_AvE(runs, plot_list=[], corr_DCR=True, corr_AoE=True, corr_ToE=True, norm=True, user=False, hit=True, cal=True, etype='trapEftp', cut=True, cut_str = '', campaign=''):
 
     if cal==True:
             #etype_cal = etype+'_cal'
@@ -543,8 +544,8 @@ def normalized_dcr_AvE(runs, corr_DCR=True, corr_AoE=True, norm=True, user=False
         df = df_raw.query(f'bl > {bl_cut_lo} and bl < {bl_cut_hi}').copy()
 
         if corr_DCR==True and run>57:
-            const, offset = cage_utils.corrDCR(df, etype, e_bins=300, elo=0, ehi=6000, dcr_fit_lo=-30, dcr_fit_hi=40)
-            df['dcr_plot'] = df_cut['dcr']-offset + ((-1*const))*df_cut[etype]
+            const, offset, err = cage_utils.corrDCR(df, etype, e_bins=300, elo=0, ehi=6000, dcr_fit_lo=-30, dcr_fit_hi=40)
+            df['dcr_plot'] = df['dcr']-offset + ((-1*const))*df[etype]
         elif corr_DCR==True and run<57:
             const = const = 0.0011
             df['dcr_plot'] = df['dcr'] - const*df['trapEftp']
@@ -559,7 +560,7 @@ def normalized_dcr_AvE(runs, corr_DCR=True, corr_AoE=True, norm=True, user=False
             df['AoE_plot'] = df['AoE']
 
         if corr_ToE==True:
-            ToE_mode = cage_utils.mode_hist(df, param='ToE', a_bins=1000, alo=0.375, ahi=0.425, cut=False, cut_str='')
+            ToE_mode = cage_utils.mode_hist(df, param='ToE', a_bins=1000, alo=0.30, ahi=0.45, cut=False, cut_str='')
             df['ToE_plot'] = df['ToE'] - ToE_mode
         else:
             df['ToE_plot'] = df['ToE']
@@ -587,7 +588,7 @@ def normalized_dcr_AvE(runs, corr_DCR=True, corr_AoE=True, norm=True, user=False
             elo, ehi, epb = 0, 10000, 10 #entire enerty range trapEftp
             e_unit = ' (uncal)'
         elif cal==True:
-            elo, ehi, epb = 0, 6000, 2
+            elo, ehi, epb = 0, 6000, 1
             # etype=etype_cal
             e_unit = ' (keV)'
 
@@ -735,6 +736,17 @@ def normalized_dcr_AvE(runs, corr_DCR=True, corr_AoE=True, norm=True, user=False
             elif runtype=='bkg':
                 plt.savefig(f'./plots/{campaign}normalized_{runtype}_ToE_run{run}.png', dpi=200)
                 # plt.show()
+                
+            if 'ToE_60' in plot_list:
+                #now zoom into 60 keV
+                plt.xlim(40, 80)
+                
+                if runtype=='alp':
+                    plt.savefig(f'./plots/{campaign}normalized_{runtype}_ToE_60keV_{radius}mm_{angle_det}deg_run{run}.png', dpi=200)
+                elif runtype=='bkg':
+                    plt.savefig(f'./plots/{campaign}normalized_{runtype}_ToE_60keV_run{run}.png', dpi=200)
+                
+            
 
             plt.clf()
             plt.close()
