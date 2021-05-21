@@ -1,0 +1,35 @@
+
+
+{
+  "system":"cage",
+  "ecaldb" : "./metadata/ecalDB_60keV.json",
+  "input_table":"/ORSIS3302DecoderForEnergy/dsp",
+
+  "init_vals" : {
+    "energy" : {
+      "raw_range":[0, 1000000, 1000],
+      "peakdet_thresh": 0.04,
+      "lowe_cut": 8000
+    },
+    "trapEmax" : {
+      "raw_range":[0, 1500, 1],
+      "peakdet_thresh": 0.02,
+      "lowe_cut": 100
+    },
+    "trapEftp" : {
+      "raw_range":[0, 1500, 1],
+      "peakdet_thresh": 0.020,
+      "lowe_cut": 100
+    }
+  },
+  "pks":{
+    "59.5":"241Am", "238.6":"212Pb", "511.0":"PairProd"
+  },
+  "extras":[511.0],
+  "expected_peaks":[59.5],
+  "test_peaks":[238.6],
+
+  "rawe_default" : ["trapEftp"],
+  "cal_range" : [0, 600, 1],
+  "raw_ene_tol" : 100
+}
