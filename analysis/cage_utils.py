@@ -20,7 +20,7 @@ import pygama.analysis.histograms as pgh
 import pygama.analysis.peak_fitting as pgf
 
 
-def getDataFrame(run, user=True, hit=True, cal=True, dsp_list=[]):
+def getDataFrame(run, user=True, hit=True, cal=True, lowE=False, dsp_list=[]):
     # get run files
     dg = DataGroup('$CAGE_SW/processing/cage.json', load=True)
     str_query = f'run=={run} and skip==False'
@@ -80,6 +80,11 @@ def getDataFrame(run, user=True, hit=True, cal=True, dsp_list=[]):
     if hit==True:
         print('Using hit files')
         file_list = lh5_dir + dg.fileDB['hit_path'] + '/' + dg.fileDB['hit_file']
+        
+        if lowE==True:
+            file_list = lh5_dir + dg.fileDB['hit_path'] + '/lowE/' + dg.fileDB['hit_file']
+            print(f'Using lowE calibration files \n {file_list}')
+            
         if cal==True:
             df = lh5.load_dfs(file_list, dsp_list, 'ORSIS3302DecoderForEnergy/hit')
 

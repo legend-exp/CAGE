@@ -9,13 +9,16 @@ def main():
     # plot_dir = './plots/normScan/cal_normScan/'
 
     # plot_dir = './plots/angleScan/'
-    plot_dir = './plots/new_normScan/'
+    plot_dir = './plots/new_normScan/lowE/'
 
     # radii = ['10', '15', '18'] #source angle scan
     radii = ['7.5', '10.0', '12.5', '15.0', '17.5', '20.0', '22.5', '25.0', '0.0', '2.5', '5.0'] #norm scan
     
-    dsp_params = ['alp_ToEvDCR_', 'alp_ToE_60keV_', 'alp_ToE_']
-    outputs_files = ['toeVsdcr.gif','toeVsE_60keV.gif', 'toeVsE.gif']
+    dsp_params = ['alp_ToE_60keV_']
+    outputs_files = ['toeVsE_60keV.gif']
+    
+    # dsp_params = ['alp_ToEvDCR_', 'alp_ToE_60keV_', 'alp_ToE_']
+    # outputs_files = ['toeVsdcr.gif','toeVsE_60keV.gif', 'toeVsE.gif']
 
     # dsp_params = ['alp_energy_60keV_', 'alp_energy_', 'alp_AoE_', 'alp_DCR_', 'alp_AoEvDCR_', 'alp_DCRvTp050_']
     # outputs_files = ['energy_60keV.gif','energy.gif', 'aoeVsE.gif', 'dcrVsE.gif', 'aoeVsdcr.gif', 'dcrVstp0_50.gif']

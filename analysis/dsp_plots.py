@@ -37,16 +37,16 @@ def main():
 #     alp_runs = [137, 143]
 #     bkg_runs = [136, 136]
     # campaign = 'angleScan/'
-    campaign = 'new_normScan/'
+    campaign = 'new_normScan/lowE/'
 
-    user = False
+    user = True
     hit = True
     cal = True
     etype = 'trapEftp'
 
     test_list = ['test']
     # plot_list = ['energy', 'energy_60', 'AoE', 'dcr', 'ToE', 'AoE_v_DCR', 'tp050_v_DCR', 'ToE_v_DCR']
-    plot_list = ['ToE', 'ToE_60', 'ToE_v_DCR']
+    plot_list = ['ToE', 'ToE_60']
     
 
 
@@ -54,7 +54,7 @@ def main():
 
     # plot_energy(runs, etype=etype, corr_DCR=True, corr_AoE=True, user=True, hit=True, cal=True)
     # dcr_AvE(runs, user, hit, cal, etype, cut=False)
-    normalized_dcr_AvE(runs, plot_list, corr_DCR=True, corr_AoE=True, corr_ToE=True, norm=True, user=user, hit=hit, cal=cal, etype=etype, cut=False, campaign=campaign)
+    normalized_dcr_AvE(runs, plot_list, corr_DCR=True, corr_AoE=True, corr_ToE=True, norm=True, user=user, hit=hit, cal=cal, etype=etype, cut=False, lowE=True, campaign=campaign)
     # bkg_sub_dcr_AvE(alp_runs, bkg_runs, user, hit, cal, etype, cut=False)
 
 def plot_dcr_slope(runs, corr_DCR=True, user=False, hit=True, cal=True, etype='trapEftp', cut=True, campaign=''):
@@ -518,7 +518,7 @@ def bkg_sub_dcr_AvE(alp_runs, bkg_runs, user=False, hit=True, cal=True, etype='t
         plt.clf()
         plt.close()
 
-def normalized_dcr_AvE(runs, plot_list=[], corr_DCR=True, corr_AoE=True, corr_ToE=True, norm=True, user=False, hit=True, cal=True, etype='trapEftp', cut=True, cut_str = '', campaign=''):
+def normalized_dcr_AvE(runs, plot_list=[], corr_DCR=True, corr_AoE=True, corr_ToE=True, norm=True, user=False, hit=True, cal=True, etype='trapEftp', cut=True, lowE=False, cut_str = '', campaign=''):
 
     if cal==True:
             #etype_cal = etype+'_cal'
@@ -527,7 +527,7 @@ def normalized_dcr_AvE(runs, plot_list=[], corr_DCR=True, corr_AoE=True, corr_To
     for run in runs:
 
 
-        df_raw, runtype, rt_min, radius, angle_det, rotary = cage_utils.getDataFrame(run, user=user, hit=hit, cal=cal)
+        df_raw, runtype, rt_min, radius, angle_det, rotary = cage_utils.getDataFrame(run, user=user, hit=hit, cal=cal, lowE=lowE)
 
 
         # use baseline cut
@@ -588,7 +588,7 @@ def normalized_dcr_AvE(runs, plot_list=[], corr_DCR=True, corr_AoE=True, corr_To
             elo, ehi, epb = 0, 10000, 10 #entire enerty range trapEftp
             e_unit = ' (uncal)'
         elif cal==True:
-            elo, ehi, epb = 0, 6000, 1
+            elo, ehi, epb = 0, 6000, 1.
             # etype=etype_cal
             e_unit = ' (keV)'
 
