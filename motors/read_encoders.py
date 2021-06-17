@@ -134,7 +134,7 @@ def set_zero(rpi_pin, n_max=3, t_sleep=0.01, com_spd=10000, verbose=True):
     # check if zeroed
     zeroed = False
     counter = 0
-    while zeroed is not True and counter <= n_max:
+    while zeroed is not True and counter < n_max:
 
         # open communication and read position
         GPIO.output(rpi_pin, GPIO.LOW)
@@ -154,9 +154,9 @@ def set_zero(rpi_pin, n_max=3, t_sleep=0.01, com_spd=10000, verbose=True):
         # send command to zero the encoder
         GPIO.output(rpi_pin, GPIO.LOW)
         time.sleep(t_sleep)
-        enc_val = spi.xfer2(enc_address['reset']) # this works but is not ideal
+        # enc_val = spi.xfer2(enc_address['reset']) # this works but is not ideal
         # time.sleep(t_sleep)
-        # enc_val = spi.xfer2(enc_address['zero']) # tim says this should work
+        enc_val = spi.xfer2(enc_address['zero']) # tim says this should work
         time.sleep(t_sleep)
         GPIO.output(rpi_pin, GPIO.HIGH)
         if len(enc_val) != 2:
@@ -172,8 +172,9 @@ def set_zero(rpi_pin, n_max=3, t_sleep=0.01, com_spd=10000, verbose=True):
 
         if verbose:
             print("i {}  start {}  end {}  zeroed? {}".format(counter, start_pos, zeroed_pos, zeroed))
+    print(counter)
 
-    if not zeroed and counter == n_max:
+    if not zeroed and counter >= n_max:
         print("ERROR, couldn't zero the encoder. UGGG. Final pos:", zeroed_pos)
 
     # these values are read by motor_movement
