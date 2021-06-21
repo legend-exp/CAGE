@@ -34,7 +34,7 @@ def main():
     rpins = {key['rpi_pin'] : name for name, key in mconf.items()}
 
     # TODO: change this when we want to do a new campaign (see motor_config.json)
-    campaign_number = "7"
+    campaign_number = "8"
 
     # parse user args
     par = argparse.ArgumentParser(description=doc, formatter_class=rthf)
