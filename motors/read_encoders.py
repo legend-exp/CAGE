@@ -151,12 +151,17 @@ def set_zero(rpi_pin, n_max=3, t_sleep=0.01, com_spd=10000, verbose=True):
         start_pos = rep1 & 0x3FFF
         time.sleep(t_sleep)
 
-        # send command to zero the encoder
+        # send command to zero the encoder.
+        # NOTE: "zero (0x70)" does not really seem to do its job.  it runs
+        # repeatedly and rarely changes the motor position read to "0".
+        # Instead we use "reset (0x60)", which from the user manual is a little
+        # harder on the electronics (complete reset), but this seems to work
+        # for us.
         GPIO.output(rpi_pin, GPIO.LOW)
         time.sleep(t_sleep)
-        # enc_val = spi.xfer2(enc_address['reset']) # this works but is not ideal
-        # time.sleep(t_sleep)
-        enc_val = spi.xfer2(enc_address['zero']) # tim says this should work
+        # enc_val = spi.xfer2(enc_address['zero'])
+        enc_val = spi.xfer2(enc_address['reset']) # this works but is not ideal
+
         time.sleep(t_sleep)
         GPIO.output(rpi_pin, GPIO.HIGH)
         if len(enc_val) != 2:
