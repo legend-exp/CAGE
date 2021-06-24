@@ -124,7 +124,7 @@ def main():
 
     if args['read_enc']:
         rpi_pin = int(args['read_enc'][0])
-        query_encoder(rpi_pin, t_sleep, com_spd, verbose, ipconf)
+        query_encoder(rpi_pin, t_sleep, com_spd, verbose, ipconf=ipconf)
 
     if args['zero_enc']:
         rpi_pin = int(args['zero_enc'][0])
