@@ -25,6 +25,7 @@ def main():
     doc="""
     CAGE data processing routine.
     """
+    print('entered main()')
     rthf = argparse.RawTextHelpFormatter
     par = argparse.ArgumentParser(description=doc, formatter_class=rthf)
     arg, st, sf = par.add_argument, 'store_true', 'store_false'
@@ -50,6 +51,7 @@ def main():
         help="specify raw energy parameters to calibrate: --epar 'asd sdf dfg' ")
 
     args = par.parse_args()
+    print('just did arg parse')
 
     # -- load inputs --
     dg = DataGroup(os.path.expandvars('$CAGE_SW/processing/cage.json'), load=True)
@@ -230,8 +232,8 @@ def d2h(dg, overwrite=False, nwfs=None, verbose=False, user=False, lowE=False):
     # set additional options
     if 'rawe' not in dg.config:
         dg.config['rawe'] = dg.config['rawe_default']
-    dg.config['dsp_input_dir'] = dg.lh5_dir # using dsp files in CAGE LH5 directory
-    # dg.config['dsp_input_dir'] = dg.lh5_user_dir if user else dg.lh5_dir # comment in if using dsp files in user directory 
+    #dg.config['dsp_input_dir'] = dg.lh5_dir # using dsp files in CAGE LH5 directory
+    dg.config['dsp_input_dir'] = dg.lh5_user_dir if user else dg.lh5_dir # comment in if using dsp files in user directory 
     dg.config['hit_output_dir'] = dg.lh5_user_dir if user else dg.lh5_dir
         
     print('  Energy parameters to calibrate:', dg.config['rawe'])    

@@ -1,0 +1,9 @@
+{
+    "44": {
+        "60keV_withBkg": "(95000 <= energy <= 112500)",
+        "bl_cut": "'bl > 9150 and bl < 9320 and bl_slope > -3.0 and bl_slope < 3.0 and (trapEftp*(1-0.1) < trapEmax < trapEftp*(1+0.1))'"
+    },
+    "64": {
+        "bl_cut": "'bl > 9150 and bl < 9319 and bl_slope > -5.0 and bl_slope < 5.0 and bl_sig > 3.1 and bl_sig < 6.0'"
+    }
+}
