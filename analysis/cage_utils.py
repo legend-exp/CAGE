@@ -319,6 +319,9 @@ def writeCuts(run, cut_key, cut):
         f.seek(0)  # <--- should reset file position to the beginning.
         json.dump(cuts, f, indent=4, sort_keys=True) # <--- pretty printing of json file
         f.truncate()
+        
+def gauss_fit_func(x, A, mu, sigma, C):
+    return (A * (1/(sigma*np.sqrt(2*np.pi))) *(np.exp(-1.0 * ((x - mu)**2) / (2 * sigma**2))+C))
     
     
     
