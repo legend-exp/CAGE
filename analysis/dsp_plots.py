@@ -29,15 +29,15 @@ mpl.use('Agg')
 
 def main():
     # runs = [38]
-    runs = [38, 60, 42, 64, 44, 66, 48, 70, 50, 72, 54]
+    # runs = [38, 60, 42, 64, 44, 66, 48, 70, 50, 72, 54]
     # runs = [120, 121, 123, 124, 126, 128, 129, 131, 132, 134, 135, 137, 143]
-    # runs = [60, 64, 66, 70, 72] # alpha runs for dsp_id = 2
+    runs = [60, 64, 66, 70, 72] # alpha runs for dsp_id = 2
 #     runs = [62, 68, 74] #bkg runs for dsp_id = 2
 #     runs = [50]
 #     alp_runs = [137, 143]
 #     bkg_runs = [136, 136]
     # campaign = 'angleScan/'
-    campaign = 'new_normScan/lowE/'
+    campaign = 'new_normScan/'
 
     user = True
     hit = True
@@ -47,7 +47,7 @@ def main():
     test_list = ['test']
     # plot_list = ['energy', 'energy_60', 'AoE', 'dcr', 'ToE', 'AoE_v_DCR', 'tp050_v_DCR', 'ToE_v_DCR']
     plot_list = ['ToE', 'ToE_60']
-    
+
 
 
     # plot_dcr_slope(runs, corr_DCR=True, user=False, hit=True, cal=True, etype=etype, cut=True, campaign=campaign)
@@ -736,17 +736,17 @@ def normalized_dcr_AvE(runs, plot_list=[], corr_DCR=True, corr_AoE=True, corr_To
             elif runtype=='bkg':
                 plt.savefig(f'./plots/{campaign}normalized_{runtype}_ToE_run{run}.png', dpi=200)
                 # plt.show()
-                
+
             if 'ToE_60' in plot_list:
                 #now zoom into 60 keV
                 plt.xlim(40, 80)
-                
+
                 if runtype=='alp':
                     plt.savefig(f'./plots/{campaign}normalized_{runtype}_ToE_60keV_{radius}mm_{angle_det}deg_run{run}.png', dpi=200)
                 elif runtype=='bkg':
                     plt.savefig(f'./plots/{campaign}normalized_{runtype}_ToE_60keV_run{run}.png', dpi=200)
-                
-            
+
+
 
             plt.clf()
             plt.close()
