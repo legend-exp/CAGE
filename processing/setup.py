@@ -64,7 +64,7 @@ def show_fileDB(dg):
 
     Columns:
     - Added by get_cyc_info: 'YYYY', 'cycle', 'daq_dir', 'daq_file', 'dd', 'mm',
-                             'run', 'runtype', 'unique_key'
+                             'run', 'runtype', 'unique_key', 'detector', 'dsp_id'
     - Added by get_lh5_cols: 'raw_file', 'raw_path', 'dsp_file', 'dsp_path',
                              'hit_file', 'hit_path'
     - Added by scan_orca_headers: 'startTime', 'threshold',
@@ -72,7 +72,7 @@ def show_fileDB(dg):
     """
     dg.load_df()
 
-    dbg_cols = ['run', 'cycle', 'unique_key', 'runtype']
+    dbg_cols = ['run', 'cycle', 'unique_key', 'runtype', 'dsp_id']
 
     if 'startTime' in dg.fileDB.columns:
         dbg_cols += ['startTime']
@@ -194,17 +194,38 @@ def get_cyc_info(row, dg):
                     row['runtype'] = cycles[1]
                     break
 
-    # label the detector
-    if 0 < cyc <= 124:
-        row['detector'] = 'oppi_v1'
-    elif 125 <= cyc <= 136:
-        row['detector'] = 'icpc_v1'
-    elif 137 <= cyc <= 9999:
-        row['detector'] = 'oppi_v2'
+    # label the detector (when hardware iteration changes)
+    det_name = 'none'
+    det_map = {
+        'oppi_v1' : [0, 124],
+        'icpc_v1' : [125, 136],
+        'oppi_v2' : [137, 9999]
+        }
+    for id, (clo, chi) in det_map.items():
+        if clo <= cyc <= chi:
+            row['detector'] = id
+            break
 
     # apply file selection
     skips = dg.runSelectionDB['daq_junk_cycles']
     row['skip'] = cyc in skips
+    
+    # apply DSP config labeling by run (when electronics config changes)
+    # elog: https://elog.legend-exp.org/UWScanner/320
+    # Ideally these boundaries are continuous, but if the current run isn't
+    # found, we will use the 'current default' config_dsp.json in processing.
+    dsp_map = {
+        1 : [36, 56],
+        2 : [57, 78],
+        3 : [79, 84], 
+        4 : [85, 96],
+        5 : [97, 9999]
+        }
+    row['dsp_id'] = 0
+    for id, (rlo, rhi) in dsp_map.items():
+        if rlo <= int(row.run) <= rhi:
+            row['dsp_id'] = id
+            break
 
     return row
 

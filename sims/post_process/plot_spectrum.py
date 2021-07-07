@@ -14,26 +14,10 @@ matplotlib.rcParams['text.usetex'] = True
 
 def main():
 
-	# filename = '../alpha/raw_out/ICPC_Pb_241Am_10000000.hdf5'
-	# filename = '../alpha/processed_out/processed_ICPC_Pb_241Am_10000000.hdf5'
+	processed_dir = '../alpha/processed_out/oppi/source_angle_scan/'
+	file = 'processed_y15_thetaDet90_rotary0_241Am_100000000.hdf5'
 
-	# filename = '../alpha/raw_out/test.hdf5'
-	# filename = '../alpha/processed_out/processed_test.hdf5'
-
-	# filename = '../alpha/raw_out/sourceRot33_ICPC_Pb_241Am_10000000.hdf5'
-	# processed_filename = '../alpha/processed_out/processed_sourceRot33_ICPC_Pb_241Am_10000000.hdf5'
-
-
-	# filename = '../alpha/raw_out/newDet_sourceRot33_ICPC_Pb_241Am_20000000.hdf5'
-
-	# filename = '../alpha/raw_out/newDet_sourceRotNorm_y6mm_ICPC_Pb_241Am_20000000.hdf5'
-	# processed_filename = '../alpha/processed_out/processed_newDet_sourceRot25_thetaDet65_y14mm_ICPC_Pb_241Am_100000000.hdf5'
-
-	# processed_filename = '../alpha/processed_out/oppi/processed_oppi_y19mm_norm_241Am_100000000.hdf5'
-	processed_filename = '../alpha/processed_out/oppi/processed_oppi_ring_y10_thetaDet45_241Am_100000000.hdf5'
-	# processed_filename = '../alpha/processed_out/oppi/processed_test_oppi_y19mm_norm_241Am_1000000.hdf5'
-
-	# processed_filename = '../alpha/processed_out/processed_newDet_sourceRotNorm_y6mm_ICPC_Pb_241Am_20000000.hdf5'
+	processed_filename = processed_dir + file
 
 
 
@@ -41,11 +25,11 @@ def main():
 
 	# plotHist(processed_filename)
 	# post_process(filename, processed_filename, source=False)
-	# plotSpot(processed_filename, source=False, plot_title = 'Spot Size from $^{241}$Am (10$^8$ Primaries) \nnormal incidence at 6 mm', particle = 'all')
+	# plotSpot(processed_filename, source=False, plot_title = 'Spot Size from $^{241}$Am (10$^8$ Primaries) \n90 deg at 15 mm', particle = 'all')
 	# ZplotSpot(filename)
 	# spot_curve()
-	plot1DSpot(processed_filename, axis='y', particle='all')
-	# plot2Dhist(processed_filename, nbins=500, plot_title = 'Spot Size from $^{241}$Am (10$^8$ Primaries) \n 45 deg theta_det at 10 mm', source=False, particle = 'all')
+	plot1DSpot(processed_filename, axis='y', particle='alpha')
+	# plot2Dhist(processed_filename, nbins=500, plot_title = 'Spot Size from $^{241}$Am (10$^8$ Primaries) \nalphas only; 90 deg at 15 mm', source=False, particle = 'alpha')
 	# plotDepth(processed_filename, source=False, particle = 'all', plot_title='65 deg, 14mm, $10^8$ primaries')
 	# plotContour(processed_filename, source=False, particle = 'all')
 	# testFit(filename)
@@ -73,7 +57,7 @@ def gauss_fit_func(x, A, mu, sigma, C):
 	return (A * (1/(sigma*np.sqrt(2*np.pi))) *(np.exp(-1.0 * ((x - mu)**2) / (2 * sigma**2))+C))
 	# return (A * (np.exp(-1.0 * ((x - mu)**2) / (2 * sigma**2))))
 
-def kde1D(x, bandwidth=1., bins=100, optimize_bw=True):
+def kde1D(x, bandwidth=0.25, bins=200, optimize_bw=True):
 	from sklearn.neighbors import KernelDensity
 	from sklearn.model_selection import GridSearchCV, LeaveOneOut, KFold, cross_val_score
 
@@ -719,7 +703,7 @@ def plot1DSpot(filename, axis='x', particle = 'all', fit=True):
 	print('moment mean: ', mom_mean, 'moment variance: ', mom_var, 'moment_skew: ', mom_skew)
 
 	# x1, y1, bw = kde1D(x, bins=500, bandwidth=0.25, optimize_bw=False)
-	x1, y1, bw = kde1D(x, bins=500, optimize_bw=True)
+	x1, y1, bw = kde1D(x, bins=500, optimize_bw=False)
 	std_kde = np.std(y1)
 	print(std_kde)
 	# exit()
@@ -752,7 +736,7 @@ def plot1DSpot(filename, axis='x', particle = 'all', fit=True):
 	fig, ax = plt.subplots(figsize=(10,8))
 	# ax.figure(figsize=(10,10))
 
-	ax.hist(x, bins = 100, density=True, color='grey', alpha=0.75, label = 'Normalized histogram \nof data: %.f entries \n100 bins' % len(x))
+	ax.hist(x, bins = 10, density=True, color='grey', alpha=0.75, label = 'Normalized histogram \nof data: %.f entries \n10 bins' % len(x))
 	# ax.hist(xfit, bins = bins, label = 'Data: %.f entries \n 0.25 mm bins' % len(xfit))
 
 	# ax.plot(x1, y1, 'k-', linewidth=3, label='Gaussian KDE of data: %.2f bandwidth' % bw)
@@ -768,27 +752,30 @@ def plot1DSpot(filename, axis='x', particle = 'all', fit=True):
 	plt.setp(ax.get_xticklabels(), fontsize=20)
 
 	plt.setp(ax.get_yticklabels(), fontsize=20)
-	plt.xlim(-5,5)
+	plt.xlim(11,21)
 
 	# plt.title('Y-axis projection of spot-size. Gaussian KDE, %.2f bandwidth' % bw, fontsize=16)
-	plt.title('Y-axis projection of spot-size with Gaussian fit', fontsize=35)
+	plt.title('Y-axis projection of spot-size with Gaussian fit \nalphas only; 90 deg at 15 mm', fontsize=25)
 
 	plt.show()
 
 def spot_curve():
-	angles = [90, 75, 65, 55, 45]
-	spotSize = [1.98, 2.08, 2.37, 2.87, 3.79]
-	uncertainty = [0.00569, 0.00570, 0.0066, 0.00784, 0.0118]
+	angles = [90, 75, 60, 45]
+	spotSize = [1.975, 2.09,  2.618, 3.85]
+	uncertainty = [0.004878, 0.00477, 0.0074,  0.0111]
+	# angles = [90, 75, 65, 55, 45]
+	# spotSize = [1.98, 2.08, 2.37, 2.87, 3.79]
+	# uncertainty = [0.00569, 0.00570, 0.0066, 0.00784, 0.0118]
 
-	fig, ax = plt.subplots(figsize=(6,5))
+	fig, ax = plt.subplots(figsize=(10,8))
 
-	plt.plot(angles, spotSize, '.r')
+	plt.errorbar(angles, spotSize, yerr=uncertainty, marker = 'o', ls='none', c='r', markersize=10)
 
-	plt.xlabel('Theta Det (deg)', fontsize=16)
-	plt.ylabel('Spot size (mm)', fontsize=16)
-	plt.setp(ax.get_xticklabels(), fontsize=14)
-	plt.setp(ax.get_yticklabels(), fontsize=14)
-	plt.title('Y-axis projection of spot-size for various source angles', fontsize=16)
+	plt.xlabel('Source Angle (WRT det. surface) (deg)', fontsize=22)
+	plt.ylabel('FWHM (mm)', fontsize=22)
+	plt.setp(ax.get_xticklabels(), fontsize=20)
+	plt.setp(ax.get_yticklabels(), fontsize=20)
+	plt.title('Y-axis projection of spot-size for various source angles', fontsize=28)
 
 	plt.show()
 

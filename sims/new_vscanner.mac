@@ -1,0 +1,43 @@
+# use QGSP_BERT just to have something - this one loads fast.
+/g4simple/setReferencePhysList QGSP_BERT
+/g4simple/setDetectorGDML ./geometries/mothers/oppi/source_angle_scan/y18_thetaDet45_rotary0_241Am_100000000.gdml false
+
+/run/initialize
+
+# Use RayTracerX
+/vis/open RayTracerX
+
+# Camera setting
+/vis/viewer/set/style surface
+/vis/viewer/set/upVector 0 0 1
+/vis/viewer/set/viewpointThetaPhi 80 0
+#/vis/viewer/set/viewpointThetaPhi 90 0
+#/vis/viewer/set/viewpointThetaPhi 90 0
+/vis/viewer/set/background white 1.
+#/vis/viewer/set/background ! ! ! 0.
+#/vis/viewer/set/lightsThetaPhi 30 30
+/vis/viewer/set/lightsVector 1 1 1
+/vis/viewer/zoom 2.75
+/vis/viewer/pan 0.0 0.0
+
+/vis/geometry/set/visibility mother_vacuum_volume 0 false
+/vis/geometry/set/visibility source_volume 0 false
+/vis/geometry/set/visibility diving_board_volume 0 False
+/vis/geometry/set/visibility Top_Hat 1 true
+/vis/geometry/set/visibility Am_Collimator_new 1 True
+
+#/vis/geometry/set/visibility Am_Collimator_new  0 false
+/vis/geometry/set/visibility ss_sourceDisk_ezag  0 false
+/vis/geometry/set/colour OPPI1_Detector 1 0.4 0.4 0.4 1
+/vis/geometry/set/colour OPPI1_ring_new 1 1. 0.79 0.6 1
+/vis/geometry/set/colour OPPI1_peek_diving_board 1 1. 0.79 0.6 1
+/vis/geometry/set/colour Outer_Vessel 0 0.9 0.7 0.7 0.
+/vis/geometry/set/colour Cold_Plate 1 0.7 0.35 0.035 1
+/vis/geometry/set/colour Top_Hat 1 0.7 0.35 0.035 0.2
+/vis/geometry/set/colour Am_Collimator_new 1 0 0 0 0.8
+/vis/geometry/set/colour ss_sourceDisk_ezag -1 1 1 0.5 1
+/vis/geometry/set/colour lmfe_substrate -1 1 1 0.5 1
+
+# Camera setting
+/vis/drawVolume
+/vis/viewer/flush

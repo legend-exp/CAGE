@@ -5,6 +5,7 @@ from pygama import lh5
 from energy_selector import select_energies
 import matplotlib.pyplot as plt
 import matplotlib as mpl
+import os
 
 mpl.use('Agg')
 
@@ -14,7 +15,8 @@ if len(sys.argv) < 2:
 
 # get input file, dsp_config, and apdb
 filenames = sys.argv[1:]
-with open('../config_dsp.json') as f: dsp_config = json.load(f)
+dsp_id = '01'
+with open(os.path.expandvars(f'$CAGE_SW/processing/metadata/dsp/dsp_{dsp_id}.json')) as f: dsp_config = json.load(f)
 with open('oppi_apdb.json') as f: apdb = json.load(f)
 
 # Override dsp_config['outputs'] to contain only what we need for optimization
@@ -23,20 +25,20 @@ dsp_config['outputs'] = ['fltp2_sig']
 # build a parameter grid for the dsp of choice
 pz2_grid = ParGrid()
 
-tau1_values = np.linspace(44, 49, 6)
+tau1_values = np.linspace(180, 190, 10)
 # tau1_values = np.linspace(45, 48, 5)
 tau1_values = [ f'{tau:.2f}*us' for tau in tau1_values]
-pz2_grid.add_dimension('wf_pz2', 1, tau1_values)
+pz2_grid.add_dimension('wf_pz', 1, tau1_values)
 
-tau2_values = np.linspace(3.0, 6.0, 4)
+tau2_values = np.linspace(2.5, 3.5, 8)
 # tau2_values = np.linspace(2.0, 10., 9)
 tau2_values = [ f'{tau:.2f}*us' for tau in tau2_values]
-pz2_grid.add_dimension('wf_pz2', 2, tau2_values)
+pz2_grid.add_dimension('wf_pz', 2, tau2_values)
 
-frac_values = np.linspace(0.015, 0.055, 5)
+frac_values = np.linspace(0.025, 0.045, 6)
 # frac_values = np.linspace(0.005, 0.035, 9)
 frac_values = [ f'{frac:.3f}' for frac in frac_values]
-pz2_grid.add_dimension('wf_pz2', 3, frac_values)
+pz2_grid.add_dimension('wf_pz', 3, frac_values)
 
 # set up the figure-of-merit to be computed at each grid point
 def fltp_sig_mean(tb_out, verbosity):
@@ -49,7 +51,7 @@ energy_name = 'energy'
 range_name = '40K_1460'
 
 # loop over detectors 
-detectors = ['oppi']
+detectors = [f'oppi_{dsp_id}']
 store = lh5.Store()
 for detector in detectors:
     # get indices for just a selected energy range
