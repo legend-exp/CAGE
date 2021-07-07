@@ -25,6 +25,7 @@ def main():
     doc="""
     CAGE data processing routine.
     """
+    print('entered main()')
     rthf = argparse.RawTextHelpFormatter
     par = argparse.ArgumentParser(description=doc, formatter_class=rthf)
     arg, st, sf = par.add_argument, 'store_true', 'store_false'
@@ -45,10 +46,12 @@ def main():
     arg('-v', '--verbose', action=st, help='verbose mode')
     arg('-u', '--user', action=st, help='user lh5 mode')
     arg('-s', '--spec', nargs=1, type=int, help='select alt set of calib peaks')
+    arg('-l', '--lowE', action=st, help='calibrate low-E region with different calibration constants')
     arg('--epar', nargs=1, type=str,
         help="specify raw energy parameters to calibrate: --epar 'asd sdf dfg' ")
 
     args = par.parse_args()
+    print('just did arg parse')
 
     # -- load inputs --
     dg = DataGroup(os.path.expandvars('$CAGE_SW/processing/cage.json'), load=True)
@@ -57,6 +60,11 @@ def main():
         dg.fileDB.query(que, inplace=True)
     else:
         dg.fileDB = dg.fileDB[-1:]
+        
+    if args.lowE:
+        lowE=True
+    else:
+        lowE=False
 
     # set additional options
     nwfs = args.nwfs[0] if args.nwfs is not None else np.inf
@@ -78,7 +86,7 @@ def main():
     # -- run routines --
     if args.d2r: d2r(dg, args.over, nwfs, args.verbose, args.user)
     if args.r2d: r2d(dg, args.over, nwfs, args.verbose, args.user)
-    if args.d2h: d2h(dg, args.over, nwfs, args.verbose, args.user)
+    if args.d2h: d2h(dg, args.over, nwfs, args.verbose, args.user, lowE)
 
     if args.r2d_file:
         f_raw, f_dsp = args.r2d_file
@@ -126,10 +134,9 @@ def r2d(dg, overwrite=False, nwfs=None, verbose=False, user=False):
     """
     $ ./processing.py -q 'run==[something]' --r2d
     """
-    # print(dg.fileDB)
-    # print(dg.fileDB.columns)
-
-    with open(os.path.expandvars('$CAGE_SW/processing/metadata/config_dsp.json')) as f:
+    # load default DSP config file
+    dsp_dir = os.path.expandvars('$CAGE_SW/processing/metadata')
+    with open(dsp_dir + '/config_dsp.json') as f:
         dsp_config = json.load(f, object_pairs_hook=OrderedDict)
 
     for i, row in dg.fileDB.iterrows():
@@ -151,6 +158,12 @@ def r2d(dg, overwrite=False, nwfs=None, verbose=False, user=False):
         if row.skip:
             print(f'Cycle {cyc} has been marked junk, will not process.')
             continue
+        
+        # load updated dsp config file (optional)
+        if row.dsp_id > 0:
+            with open(dsp_dir + f'/dsp/dsp_{row.dsp_id:02d}.json') as f:
+                dsp_config = json.load(f, object_pairs_hook=OrderedDict)
+            print(f'Using DSP config: {dsp_dir}' + f'/dsp/dsp_{row.dsp_id:02d}.json')
 
         print(f'Processing cycle {cyc}')
         raw_to_dsp(f_raw, f_dsp, dsp_config, n_max=nwfs, verbose=verbose,
@@ -177,7 +190,7 @@ def r2d_file(f_raw, f_dsp, overwrite=True, nwfs=None, verbose=False):
                overwrite=overwrite)
 
 
-def d2h(dg, overwrite=False, nwfs=None, verbose=False, user=False):
+def d2h(dg, overwrite=False, nwfs=None, verbose=False, user=False, lowE=False):
     """
     $ ./processing.py -q 'run==[something]' --d2h
     
@@ -201,11 +214,13 @@ def d2h(dg, overwrite=False, nwfs=None, verbose=False, user=False):
     f_ecal = dg.config['ecal_default']
     if 'spec_id' in dg.config:
         spec_id = dg.config['spec_id'][0]
+        print(f'spec_id: {spec_id}')
         if spec_id == 1:
             f_ecal = './metadata/config_ecal_ba.json' 
             print(f'Loading Ba133 calibration parameters from: {f_ecal}')
-        else:
-            print('Error, unknown calib mode:', spec_id)
+    if lowE:
+        f_ecal = './metadata/config_ecal_60keV.json' 
+        print(f'Loading 60 keV 241Am calibration parameters from: {f_ecal}')
     else:
         print(f'Loading default calibration parameters:\n  {f_ecal}')
 
@@ -217,14 +232,17 @@ def d2h(dg, overwrite=False, nwfs=None, verbose=False, user=False):
     # set additional options
     if 'rawe' not in dg.config:
         dg.config['rawe'] = dg.config['rawe_default']
-    dg.config['dsp_input_dir'] = dg.lh5_dir
+    #dg.config['dsp_input_dir'] = dg.lh5_dir # using dsp files in CAGE LH5 directory
+    dg.config['dsp_input_dir'] = dg.lh5_user_dir if user else dg.lh5_dir # comment in if using dsp files in user directory 
     dg.config['hit_output_dir'] = dg.lh5_user_dir if user else dg.lh5_dir
         
+    print('  Energy parameters to calibrate:', dg.config['rawe'])    
+
     # run dsp_to_hit (the pandas apply is more useful than a regular loop)
-    dg.fileDB.apply(dsp_to_hit, axis=1, args=(dg, verbose, overwrite))    
+    dg.fileDB.apply(dsp_to_hit, axis=1, args=(dg, verbose, overwrite, lowE))    
         
         
-def dsp_to_hit(df_row, dg=None, verbose=False, overwrite=False):
+def dsp_to_hit(df_row, dg=None, verbose=False, overwrite=False, lowE=False):
     """
     Create hit files from dsp files.  This routine is specific to CAGE but could
     be extended & modified in the future to work for multi-channel data (PGT, 
@@ -235,6 +253,10 @@ def dsp_to_hit(df_row, dg=None, verbose=False, overwrite=False):
     
     f_dsp = f"{dg.config['dsp_input_dir']}/{df_row['dsp_path']}/{df_row['dsp_file']}"
     f_hit = f"{dg.config['hit_output_dir']}/{df_row['hit_path']}/{df_row['hit_file']}"
+    # change output directory if in spec_id 2 mode (ie low-energy calibration to get 60 keV in right place)
+    if lowE:
+        f_hit = f"{dg.config['hit_output_dir']}/{df_row['hit_path']}/lowE/{df_row['hit_file']}"
+        print(f'Writing to low-energy hit file: {f_hit}')
     if verbose:
         print('input:', f_dsp)
         print('output:', f_hit)

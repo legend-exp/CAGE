@@ -16,7 +16,7 @@
     },
     "trapEftp" : {
       "raw_range":[0, 10000, 5],
-      "peakdet_thresh": 0.025,
+      "peakdet_thresh": 0.020,
       "lowe_cut": 500
     }
   },
@@ -27,7 +27,7 @@
   },
   "extras":[238.6],
   "expected_peaks":[1460.8],
-  "test_peaks":[2614.5, 1120.3, 911.2, 609.3,  583.2],
+  "test_peaks":[2614.5, 1120.3, 911.2, 609.3,  583.2, 238.6],
 
   "rawe_default" : ["trapEftp"],
   "cal_range" : [0, 3000, 5],

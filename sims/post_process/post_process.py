@@ -9,35 +9,34 @@ import h5py
 import pandas as pd
 #import ROOT
 import sys
+import os
 #from particle import PDGID
 #matplotlib.rcParams['text.usetex'] = True
 
 def main():
 
-    # filename = '../alpha/raw_out/newDet_sourceRot25_thetaDet65_y14mm_ICPC_Pb_241Am_100000000.hdf5'
-    # processed_filename = '../alpha/processed_out/processed_newDet_sourceRot25_thetaDet65_y14mm_ICPC_Pb_241Am_100000000.hdf5'
-
-    # raw_dir = '../alpha/raw_out/'
-    # processed_dir = '../alpha/processed_out/'
-    # base_filenames = ['test_newDet_sourceRotNorm_y6mm_ICPC_Pb_241Am_100000.hdf5']
-
-    # post_process(filename, processed_filename)
-
-    raw_dir = '../alpha/raw_out/oppi/'
-    processed_dir = '../alpha/processed_out/oppi/'
-    base_filenames = ['oppi_ring_y10_thetaDet45_241Am_100000000.hdf5']
-    # base_filenames =['oppi_largeHole_ring_y5_norm_241Am_100000000.hdf5', 'oppi_largeHole_ring_y6_norm_241Am_100000000.hdf5', 'oppi_largeHole_ring_y7_norm_241Am_100000000.hdf5', 'oppi_largeHole_ring_y8_norm_241Am_100000000.hdf5', 'oppi_largeHole_ring_y10_norm_241Am_100000000.hdf5']
+    raw_dir = '../alpha/raw_out/oppi/source_angle_scan/'
+    processed_dir = '../alpha/processed_out/oppi/source_angle_scan/'
+    base_filenames = os.listdir(raw_dir)
+    # print(base_filenames)
+    # exit()
 
 
     for file in range(len(base_filenames)):
         post_process(raw_dir, processed_dir, base_filenames[file])
+        
 
 
 def post_process(raw_dir, processed_dir, base_filename, hits=False):
     filename = raw_dir+base_filename
     processed_filename = processed_dir+'processed_'+base_filename
+    #Create directory for future processed hdf5 output if doesn't alreasy exist
+    if not os.path.isdir(processed_dir):
+        print(f'Creating directory for processed hdf5 output file: {processed_dir}')
+        os.mkdir(processed_dir)
     print('Processing file: ', filename)
     # print(processed_filename)
+    # print(base_filename)
     # exit()
     if hits==True:
         procdf, pos_df = pandarize(filename, hits=True)
