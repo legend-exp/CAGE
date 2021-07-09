@@ -28,7 +28,7 @@ def main():
     dg = DataGroup('$CAGE_SW/processing/cage.json', load=True)
     if args.query:
         que = args.query[0]
-        dg.fileDB.query(que, inplace=True)
+        dg.fileDB.query(que + "and skip==False", inplace=True)
     else:
         dg.fileDB = dg.fileDB[-1:]
     
@@ -94,12 +94,15 @@ def hist_jump_in_run(run):
         baseline = np.array(dsp['ORSIS3302DecoderForEnergy']['dsp']['bl'])
         ts = np.array(dsp['ORSIS3302DecoderForEnergy']['dsp']['timestamp'])
         ts_corrected = correct_timestamps(f_dsp)
+        if ts_corrected[-1] < time_intervals:
+            print(f'Cycle {c} is less than {time_intervals} seconds')
+            continue
         bl = np.mean(baseline)
         adu1460 = find_1460(ts_corrected, trapEftp)
         blh = np.histogram2d(ts_corrected, baseline, bins=[np.arange(0, ts_corrected[-1], np.minimum(time_intervals, int(ts_corrected[-1]-1))), np.arange(bl - 100, bl+100)])
         eh = np.histogram2d(ts_corrected, trapEftp, bins=[np.arange(0, ts_corrected[-1], np.minimum(time_intervals, int(ts_corrected[-1]-1))), np.arange(adu1460-250, adu1460+250)])
-        ehists.append(eh)
-        blhists.append(blh)
+        ehists.append((eh, c))
+        blhists.append((blh, c))
     return ehists, blhists
 
 # TODO: Use better thresholds than hardcoded ones
@@ -107,8 +110,9 @@ def find_jump_in_run(cycles, ehist_infos, bhist_infos, thresholds, plot):
     assert len(ehist_infos) == len(bhist_infos)
     ret = []
     for i in np.arange(len(ehist_infos)):
-        ehist, t_edges, e_edges = ehist_infos[i]
-        bhist, t_edges, b_edges = bhist_infos[i]
+        c = ehist_infos[i][1]
+        ehist, t_edges, e_edges = ehist_infos[i][0]
+        bhist, t_edges, b_edges = bhist_infos[i][0]
         ye = [e_edges[np.argmax(ehist[j][:])] for j in range(0, len(t_edges)-1)]
         yemean = np.mean(ye)
         ye -= yemean
@@ -135,7 +139,7 @@ def find_jump_in_run(cycles, ehist_infos, bhist_infos, thresholds, plot):
                 plt.axvline(t_edges[estep_index],color='orange')
                 plt.xlabel('timestamp')
                 plt.ylabel('trapEftp')
-                plt.title(f'cycle {cycles.iloc[i]} trapEftp')
+                plt.title(f'cycle {c} trapEftp')
                 plt.savefig(f'./plots/jumpdet/cycle{cycles.iloc[i]}_trapEftp.png', dpi=300)
                 plt.figure()
                 plt.imshow(np.transpose(bhist), extent=(t_edges[0], t_edges[-1], b_edges[0], b_edges[-1]), aspect='auto', origin='lower')
@@ -143,10 +147,10 @@ def find_jump_in_run(cycles, ehist_infos, bhist_infos, thresholds, plot):
                 plt.axvline(t_edges[bstep_index],color='orange')
                 plt.xlabel('timestamp')
                 plt.ylabel('baseline')
-                plt.title(f'cycle {cycles.iloc[i]} baseline')
+                plt.title(f'cycle {c} baseline')
                 plt.savefig(f'./plots/jumpdet/cycle{cycles.iloc[i]}_baseline.png', dpi=300)
-            ret.append( (t_edges[estep_index], ejump, i, 'e') )
-            ret.append( (t_edges[bstep_index], bjump, i, 'b') )
+            ret.append( (t_edges[estep_index], ejump, c, 'e') )
+            ret.append( (t_edges[bstep_index], bjump, c, 'b') )
     return ret
 
 #a jump is a list [run, cycle, time, adu]
@@ -157,15 +161,15 @@ def find_jumps(dg, plot):
     for i in range(len(runs)):
         r = runs[i]
         run = dg.fileDB.query(f'run == {r}')
-        ehists, blhists = hist_jump_in_run(run, plot)
+        ehists, blhists = hist_jump_in_run(run)
         jumps = find_jump_in_run(run['cycle'], ehists, blhists, [15, 3], plot)
         if jumps is not None:
             for jump in jumps:
                 if jump[-1] == 'e':
-                    ejump = [r, run['cycle'].iloc[jump[2]], jump[0], jump[1]]
+                    ejump = [r, jump[2], jump[0], jump[1]]
                     en_jumps.append(ejump)
                 if jump[-1] == 'b':
-                    bjump = [r, run['cycle'].iloc[jump[2]], jump[0], jump[1]]
+                    bjump = [r, jump[2], jump[0], jump[1]]
                     bl_jumps.append(bjump)
     return (en_jumps, bl_jumps)
 
