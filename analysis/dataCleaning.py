@@ -57,7 +57,7 @@ def main():
     
     df_raw['ftp_max'] = df_raw['trapEftp']/df_raw['trapEmax']
 
-    # n_minus_1(run, df_raw, dg, runtype, rt_min, radius, angle_det, rotary, cut_keys_raw)
+    n_minus_1(run, df_raw, dg, runtype, rt_min, radius, angle_det, rotary, cut_keys_raw)
     allCuts(run, df_raw, dg, runtype, rt_min, radius, angle_det, rotary, cut_keys_raw)
 
 def n_minus_1(run, df, dg, runtype, rt_min, radius, angle_det, rotary, cut_keys):
@@ -500,10 +500,10 @@ def allCuts(run, df, dg, runtype, rt_min, radius, angle_det, rotary, cut_keys):
     plt.setp(ax.get_yticklabels(), fontsize=12)
         
 
-    ax.text(0.05, 0.75, f'r = {radius} mm \ntheta = {angle_det} deg \nruntime {rt_min:.2f}', verticalalignment='bottom',
+    ax.text(0.04, 0.75, f'r = {radius} mm \ntheta = {angle_det} deg \nruntime {rt_min:.2f}', verticalalignment='bottom',
                 horizontalalignment='left', transform=ax.transAxes, color='black', fontsize=12, bbox={'facecolor': 'white', 'alpha': 0.5, 'pad': 10})
         
-    plt.legend()
+    plt.legend(loc='upper right')
         
     plt.tight_layout()
 
