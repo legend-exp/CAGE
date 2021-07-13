@@ -108,6 +108,44 @@ def getDataFrame(run, user=True, hit=True, cal=True, lowE=False, dsp_list=[]):
 
     return(df, dg, runtype, rt_min, radius, angle_det, rotary)
 
+def apply_DC_Cuts(run, df, cut_keys=set()):
+    
+    default_cut_keys = set(['wf_max_cut', 'bl_mean_cut_raw', 'bl_slope_cut_raw', 'bl_sig_cut_raw', 'ftp_max_cut_raw'])
+    
+ 
+    
+    if len(cut_keys) < 1:
+        print(f'No options specified for cut selection! Using default: {default_cut_keys}')
+        cut_keys = default_cut_keys
+        
+    if 'ftp_max_cut_raw' in cut_keys:
+        df['ftp_max'] = df['trapEftp']/df['trapEmax']
+    
+    with open('./cuts.json') as f:
+        cuts = json.load(f)
+    
+    # always apply muon cut
+    df = df.query(cuts[str(run)]['muon_cut']).copy()
+    df_cut = df
+
+    total_counts = len(df)
+    print(f'total counts before cuts: {total_counts}')
+
+        
+    #have to apply cuts individually instead of using `join` for the set because the total cut string is too long for the query :'(
+    for cut in cut_keys:
+        print(f'applying cut: {cut}')
+        df_cut = df_cut.query((cuts[str(run)][cut])).copy()
+        cut_counts = len(df.query((cuts[str(run)][cut])).copy())
+        percent_surviving = (cut_counts/total_counts)*100.
+        print(f'Percentage surviving {cut} cut: {percent_surviving:.2f}')
+        
+    cut_counts_total = len(df_cut)
+    percent_surviving_total = (cut_counts_total/total_counts)*100.
+    print(f'Percentage surviving cuts: {percent_surviving_total:.2f}')
+    
+    return(df_cut)
+
 def getStartStop(run):
     """
     get the start time and stop time for a given run
@@ -319,6 +357,9 @@ def writeCuts(run, cut_key, cut):
         f.seek(0)  # <--- should reset file position to the beginning.
         json.dump(cuts, f, indent=4, sort_keys=True) # <--- pretty printing of json file
         f.truncate()
+        
+def gauss_fit_func(x, A, mu, sigma, C):
+    return (A * (1/(sigma*np.sqrt(2*np.pi))) *(np.exp(-1.0 * ((x - mu)**2) / (2 * sigma**2))+C))
     
     
     
