@@ -14,20 +14,20 @@ mpl.use('Agg')
 
 def main():
     base_filename = '../alpha/processed_out/oppi/'
-    processed_filename = '../alpha/processed_out/oppi/rotary_centering_scan/processed_y12_thetaDet90_rotary4_241Am_100000000.hdf5'
+    processed_filename = '../alpha/processed_out/oppi/centering_scan/processed_y10_norm_rotary0_241Am_100000000.hdf5'
     run = 'angled_rotary_centering_scan/'
     processed_dir = f'{base_filename}{run}'
 
-    primaries = 10000000
-    radius = [12] # in mm
-    rotary_angles = np.linspace(4, 144, 15)
-#     elo = 5.4 # in MeV
-#     ehi = 5.6 # in MeV
-    elo = 0. # in MeV
-    ehi = 6. # in MeV
+    primaries = 100000000
+    radius = [10] # in mm
+#     rotary_angles = np.linspace(4, 144, 15)
+    elo = 5.4 # in MeV
+    ehi = 5.6 # in MeV
+#     elo = 0. # in MeV
+#     ehi = 6. # in MeV
 
-    # getCounts(processed_filename) # get all counts in physical volume for this file. Useful for debugging if sim was successful
-    # getCounts_cut(processed_filename, elo, ehi) # get counts within specific energy region
+    getCounts(processed_filename) # get all counts in physical volume for this file. Useful for debugging if sim was successful
+    getCounts_cut(processed_filename, elo, ehi) # get counts within specific energy region
     getRate(processed_filename, primaries, elo, ehi) # get rate in counts/sec for specific energy region
     # plotRate(radius, rotary_angles, elo, ehi, rotary=True) # plot rates for multiple source positions (sims files) on one plot
     # rotary_plotRate(radius, rotary_angles, elo, ehi, processed_dir) # for rotary scans, plot rates for multiple source positions (sims files) on one plot
