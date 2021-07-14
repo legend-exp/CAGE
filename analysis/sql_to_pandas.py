@@ -59,6 +59,7 @@ def main():
     run = 66
     endpoints = ['cage_pressure', 'cage_coldPlate_temp', 'cage_topHat_temp']
     # t_earlier, t_later = cage_utils.getStartStop(run)
+    t_earlier, t_later = '2020-10-08 20:35:50', '2020-10-09 01:35:41.367230415' #run 66
     df_file = f'./data/run{run}_SCDB.h5'
 
     # pandas_db_query(endpoints, t_earlier, t_later, df_file)
