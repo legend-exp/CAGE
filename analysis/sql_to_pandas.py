@@ -65,6 +65,7 @@ def main():
 
     plot_run_stability(run, df_file)
 
+
     # get_temp()
 
 
@@ -165,6 +166,7 @@ def plot_cooldown_data():
 
     plt.tight_layout()
     plt.show()
+
 
 
 def plot_run_stability(run, df_file):
