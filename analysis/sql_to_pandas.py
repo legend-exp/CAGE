@@ -9,6 +9,8 @@ from datetime import datetime
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import matplotlib.dates as md
+from matplotlib import gridspec
+import pickle
 
 mpl.use('Agg')
 
@@ -55,13 +57,15 @@ def main():
     # plot_cooldown_data()
 
     run = 66
-    endpoints = ['cage_pressure', 'cage_coldPlate_temp', 'cage_topHat_temp', 'cage_baseline']
+    endpoints = ['cage_pressure', 'cage_coldPlate_temp', 'cage_topHat_temp']
     # t_earlier, t_later = cage_utils.getStartStop(run)
-
-    t_earlier, t_later = '2020-10-08 20:35:50', '2020-10-09 01:35:41.367230415'
+    t_earlier, t_later = '2020-10-08 20:35:50', '2020-10-09 01:35:41.367230415' #run 66
     df_file = f'./data/run{run}_SCDB.h5'
 
-    pandas_db_query(endpoints, t_earlier, t_later, df_file)
+    # pandas_db_query(endpoints, t_earlier, t_later, df_file)
+
+    plot_run_stability(run, df_file)
+
 
     # get_temp()
 
@@ -164,6 +168,89 @@ def plot_cooldown_data():
     plt.tight_layout()
     plt.show()
 
+
+
+def plot_run_stability(run, df_file):
+    """
+    """
+
+
+    with pd.HDFStore(df_file, 'r') as f:
+        print("Keys:", f.keys())
+
+    df_file_1460 = './data/run66_1460.h5'
+
+    with pd.HDFStore(df_file_1460, 'r') as f:
+        print("Keys:", f.keys())
+
+
+
+
+    baseline = pd.read_hdf(df_file, key='/cage_baseline')
+    tophat_temp = pd.read_hdf(df_file, key='/cage_topHat_temp')
+    cp_temp = pd.read_hdf(df_file, key='/cage_coldPlate_temp')
+    pressure = pd.read_hdf(df_file, key='/cage_pressure')
+    # df_1460 = pd.read_hdf(df_file_1460, key = '/data')
+
+
+    fig = plt.figure(figsize=(6, 8))
+    fig.suptitle(f'System Stability for run {run}')
+    gs = gridspec.GridSpec(4, 1) #, height_ratios=[2, 1]
+
+
+
+    # the first subplot
+    ax0 = plt.subplot(gs[0])
+    line0, = ax0.plot(pressure["timestamp"],
+                 pressure["cage_pressure"], '-b')
+    ax0.set_ylabel('Pressure \n(hPa)', fontsize=8)
+    ax0.set_ylim(4.9e-8, 5.4e-8)
+
+
+    # the second subplot
+    # shared axis X
+    ax1 = plt.subplot(gs[1], sharex = ax0)
+    line1, = ax1.plot(cp_temp["timestamp"], cp_temp["cage_coldPlate_temp"] + 273, "-r")
+    plt.setp(ax1.get_xticklabels(), visible=False)
+    # remove last tick label for the subplot
+    yticks = ax1.yaxis.get_major_ticks()
+    yticks[-1].label1.set_visible(False)
+    ax1.set_ylabel('Cold Plate \nTemperature \n(K)', fontsize=8)
+    ax1.set_ylim(89.8, 90.4)
+
+
+
+    # the third subplot
+    # shared axis X
+    ax2 = plt.subplot(gs[2], sharex = ax0)
+    line1, = ax2.plot(tophat_temp["timestamp"], tophat_temp["cage_topHat_temp"] + 273, "-g")
+    plt.setp(ax2.get_xticklabels(), visible=False)
+    # remove last tick label for the subplot
+    yticks2 = ax2.yaxis.get_major_ticks()
+    yticks2[-1].label1.set_visible(False)
+    ax2.set_ylabel('Top-Hat \nTemperature \n(K)', fontsize=8)
+    ax2.set_ylim(96.9, 97.7)
+
+    # the fourth subplot
+    # shared axis X
+    ax3 = plt.subplot(gs[3], sharex = ax0)
+    line1, = ax3.plot(baseline["timestamp"], baseline["cage_baseline"], "-c")
+    #plt.setp(ax3.get_xticklabels(), visible=False)
+    # remove last tick label for the second subplot
+    yticks3 = ax3.yaxis.get_major_ticks()
+    yticks3[-1].label1.set_visible(False)
+    ax3.set_ylabel('Baseline Value \n(ADC)', fontsize=8)
+    ax3.set_ylim(-0.685, -0.665)
+
+    ax3.set_xlabel('Timestamp (UTC) \n[mm-dd hr]')
+
+
+
+    plt.tight_layout()
+
+    plt.subplots_adjust(hspace=.0)
+    plt.savefig('./plots/scm_test.png', dpi=200)
+    # plt.show() #don't show plot otherwise you get a segfault lol
 
 def get_temp():
     """
