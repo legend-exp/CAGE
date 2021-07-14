@@ -5,6 +5,8 @@ import os
 import matplotlib.pyplot as plt
 from pygama.analysis.peak_fitting import gauss_mode_width_max
 from pygama import DataGroup, lh5
+from datetime import datetime as dt
+from datetime import timezone, timedelta
 
 
 def main():
@@ -16,6 +18,9 @@ def main():
     arg, st, sf = par.add_argument, 'store_true', 'store_false'
     arg('-q', '--query', nargs=1, type=str,
         help="select file group to calibrate: -q 'run==1' ")
+    arg('-t', '--time', nargs=2, type=str,
+        help="select file group to calibrate: -t '2021-01-15T00:00' '2021-02-05T00:00' ")
+
     arg('-p', '--plot', action='store_true',
         help="plot option")
     arg('-u', '--user', action='store_true',
@@ -23,14 +28,9 @@ def main():
     args = par.parse_args()
     plot = args.plot
     user = args.user
-
+    
     # load main DataGroup, select files from cmd line
     dg = DataGroup('$CAGE_SW/processing/cage.json', load=True)
-    if args.query:
-        que = args.query[0]
-        dg.fileDB.query(que + "and skip==False", inplace=True)
-    else:
-        dg.fileDB = dg.fileDB[-1:]
     
     global lh5_dir
     if user:
@@ -42,7 +42,19 @@ def main():
     time_intervals = 300
     global fit_interval
     fit_interval = 1800
-    print(find_drifts(dg, False))
+    
+    if args.query:
+        que = args.query[0]
+        dg.fileDB.query(que + "and skip==False", inplace=True)
+        print(find_drifts(dg, False))
+    elif args.time:
+        start = args.time[0]
+        end = args.time[1]
+        hist_1460_over_time(dg, start, end)
+    else:
+        print("Give arguments to tell me what to do")
+        return 1
+    
     
     return 0
 
@@ -78,9 +90,9 @@ def find_1460(timestamps, trapEftp):
     return e_edges[ind[1]]
 
 def hist_1460_in_run(dg, plot=False):    
-    cycles = dg.fileDB['cycle'].unique()
+    cycles = dg['cycle'].unique()
 
-    f_dsp = f"{lh5_dir}/dsp/{df['dsp_file'].iloc[-1]}"
+    f_dsp = f"{lh5_dir}/dsp/{dg['dsp_file'].iloc[-1]}"
     dsp = h5py.File(f_dsp)
 
     ts_corrected = correct_timestamps(f_dsp)
@@ -92,16 +104,16 @@ def hist_1460_in_run(dg, plot=False):
 
     energy_bins = np.arange(adu1460-100, adu1460+101)
     bl_bins = np.arange(bl-50, bl+51)
-    time_bins = np.arange(0, df['startTime'].iloc[-1] - df['startTime'].iloc[0] + ts_corrected[-1], time_intervals)
-    time_bins = np.append(time_bins, df['startTime'].iloc[-1] - df['startTime'].iloc[0] + ts_corrected[-1])
+    time_bins = np.arange(0, dg['startTime'].iloc[-1] - dg['startTime'].iloc[0] + ts_corrected[-1], time_intervals)
+    time_bins = np.append(time_bins, dg['startTime'].iloc[-1] - dg['startTime'].iloc[0] + ts_corrected[-1])
 
 
     ehists = np.zeros((len(time_bins)-1, len(energy_bins)-1))
     blhists = np.zeros((len(time_bins)-1, len(bl_bins)-1))
 
 
-    for i in range(len(df)):
-        f_dsp = f"{lh5_dir}/dsp/{df['dsp_file'].iloc[i]}"
+    for i in range(len(dg)):
+        f_dsp = f"{lh5_dir}/dsp/{dg['dsp_file'].iloc[i]}"
         try:
             dsp = h5py.File(f_dsp)
         except OSError:
@@ -110,7 +122,7 @@ def hist_1460_in_run(dg, plot=False):
         baseline = np.array(dsp['ORSIS3302DecoderForEnergy']['dsp']['bl'])
 
 
-        ts_corrected = np.array(correct_timestamps(f_dsp) + df['startTime'].iloc[i] - df['startTime'].iloc[0])
+        ts_corrected = np.array(correct_timestamps(f_dsp) + dg['startTime'].iloc[i] - dg['startTime'].iloc[0])
 
         e_cyc = np.histogram2d(ts_corrected, trapEftp, bins=[time_bins, energy_bins])
         b_cyc = np.histogram2d(ts_corrected, baseline, bins=[time_bins, bl_bins])
@@ -137,6 +149,8 @@ def hist_1460_in_run(dg, plot=False):
 
         ax2.hist2d(bx, by, bins=[time_bins, bl_bins], weights=np.ravel(blhists))
         ax2.set(xlabel='Timestamp (s)', ylabel='Baseline (adu)')
+        
+        plt.show()
     return ehists, blhists, time_bins, energy_bins, bl_bins
 
 #dates should be a string in the format YYYY-MM-DDTHH:MM in UTC (will maybe support timezones later)
@@ -153,13 +167,14 @@ def hist_1460_over_time(dg, start_date, end_date, plot=True):
     time_end = dt.timestamp(dt_end)
     
     df = dg.fileDB.query(f'startTime >= {time_start} & startTime <= {time_end}')
+
     f_dsp = f"{lh5_dir}/dsp/{df['dsp_file'].iloc[0]}"
     dsp = h5py.File(f_dsp)
     ts_corrected = correct_timestamps(f_dsp)
     trapEftp = np.array(dsp['ORSIS3302DecoderForEnergy']['dsp']['trapEftp'])
     
     adu1460 = find_1460(ts_corrected, trapEftp)
-    energy_bins = np.arange(adu1460-200, adu1460+201)
+    energy_bins = np.arange(adu1460-100, adu1460+101)
     time_bins = np.arange(time_start, time_end, time_intervals)
 
     ehists = np.zeros((len(time_bins)-1, len(energy_bins)-1))
@@ -188,16 +203,17 @@ def hist_1460_over_time(dg, start_date, end_date, plot=True):
 
         fig, ax = plt.subplots(1,1,figsize=(12,10))
         fig.suptitle(f'1460 line from {start_date} to {end_date}')
-                
-        #print(np.amin(ehists))
-        #print(np.amax(ehists))
         
         #dt_bins = [dt.fromtimestamp(time_bins[j], tz=timezone.utc) for j in range(len(time_bins))]
         #date_bins = [dt.isoformat(dt_bins[j]) for j in range(len(dt_bins))]
 
         hist = ax.hist2d(ex, ey, bins=[time_bins, energy_bins], weights=np.ravel(ehists), vmax=1)
-        ax.set(xlabel='Time (UTC)', ylabel='trapEftp (adu)') 
+        ax.set(xlabel='Time (UTC)', ylabel='trapEftp (adu)')
+        ax.tick_params(color='white')
         
+        #start_label = dt_start.replace(hour=dt_start.hour+1, minute=0)
+        #xlabels = [start_label + timedelta(hours=j) for j in range(int((time_end-time_start)/(3600)))]
+
         start_label = dt_start
         if start_label.time().hour < 12:
             start_label = start_label.replace(hour=12, minute=0)
@@ -205,16 +221,10 @@ def hist_1460_over_time(dg, start_date, end_date, plot=True):
             start_label = start_label.replace(day=(dt_start.date().day+1), hour=0, minute=0)
             
         start_label = start_label.replace(tzinfo=None)
-        xlabels = [start_label + timedelta(hours=24*j) for j in range(int((time_end-time_start)/(24*3600)))]
+        xlabels = [start_label + timedelta(hours=j*24) for j in range(int((time_end-time_start)/(24*3600)))]
         xticks = [dt.timestamp(xlabels[j]) for j in range(len(xlabels))]
         ax.set_xticks(xticks)
-        ax.set_xticklabels(xlabels, rotation=45, ha='right')
-        
-        fig.colorbar(hist[3])
-        
-        #ticks = ax.get_xticks()
-        #new_labels = [dt.isoformat((dt.fromtimestamp(ticks[j], tz=timezone.utc)).replace(tzinfo=None), timespec='minutes') for j in range(len(ticks))]
-        #ax.set_xticklabels(new_labels, rotation=45, ha="right")
+        ax.set_xticklabels([xlabels[j].strftime('%Y-%m-%dT%H:%M') for j in range(len(xlabels))], rotation=45, ha='right')
  
     return ehists
 
@@ -287,7 +297,7 @@ def find_drifts(dg, plot=False):
     for i in range(len(runs)):
         r = runs[i]
         df = dg.fileDB.query(f'run == {r} and skip==False')
-        ehists, blhists, time_bins, energy_bins, bl_bins = hist_1460_in_run(dg, r, False)
+        ehists, blhists, time_bins, energy_bins, bl_bins = hist_1460_in_run(df, False)
         e_total, b_total = fit_peaks(ehists, blhists, time_bins, energy_bins, bl_bins)
 
         x = time_bins[-1]
