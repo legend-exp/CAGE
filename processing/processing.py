@@ -25,6 +25,7 @@ def main():
     doc="""
     CAGE data processing routine.
     """
+    print('entered main()')
     rthf = argparse.RawTextHelpFormatter
     par = argparse.ArgumentParser(description=doc, formatter_class=rthf)
     arg, st, sf = par.add_argument, 'store_true', 'store_false'
@@ -45,10 +46,12 @@ def main():
     arg('-v', '--verbose', action=st, help='verbose mode')
     arg('-u', '--user', action=st, help='user lh5 mode')
     arg('-s', '--spec', nargs=1, type=int, help='select alt set of calib peaks')
+    arg('-l', '--lowE', action=st, help='calibrate low-E region with different calibration constants')
     arg('--epar', nargs=1, type=str,
         help="specify raw energy parameters to calibrate: --epar 'asd sdf dfg' ")
 
     args = par.parse_args()
+    print('just did arg parse')
 
     # -- load inputs --
     dg = DataGroup(os.path.expandvars('$CAGE_SW/processing/cage.json'), load=True)
@@ -58,27 +61,32 @@ def main():
     else:
         dg.fileDB = dg.fileDB[-1:]
 
+    if args.lowE:
+        lowE=True
+    else:
+        lowE=False
+
     # set additional options
     nwfs = args.nwfs[0] if args.nwfs is not None else np.inf
     if args.epar: dg.config['rawe'] = args.epar[0].split(' ')
 
-    # -- show status before processing -- 
+    # -- show status before processing --
     print('Processing settings:'
           f'\n  overwrite? {args.over}'
           f'\n  limit wfs? {nwfs}')
-    
+
     for envar in ['CAGE_SW','CAGE_DAQ','CAGE_LH5','CAGE_LH5_USER']:
         print(f'  {envar}', os.environ.get(envar))
 
     print(f'Current data group: {len(dg.fileDB)} files.')
     view_cols = ['run','cycle','daq_file','runtype']
     print(dg.fileDB[view_cols])
-    
+
 
     # -- run routines --
     if args.d2r: d2r(dg, args.over, nwfs, args.verbose, args.user)
     if args.r2d: r2d(dg, args.over, nwfs, args.verbose, args.user)
-    if args.d2h: d2h(dg, args.over, nwfs, args.verbose, args.user)
+    if args.d2h: d2h(dg, args.over, nwfs, args.verbose, args.user, lowE)
 
     if args.r2d_file:
         f_raw, f_dsp = args.r2d_file
@@ -150,7 +158,7 @@ def r2d(dg, overwrite=False, nwfs=None, verbose=False, user=False):
         if row.skip:
             print(f'Cycle {cyc} has been marked junk, will not process.')
             continue
-        
+
         # load updated dsp config file (optional)
         if row.dsp_id > 0:
             with open(dsp_dir + f'/dsp/dsp_{row.dsp_id:02d}.json') as f:
@@ -182,35 +190,37 @@ def r2d_file(f_raw, f_dsp, overwrite=True, nwfs=None, verbose=False):
                overwrite=overwrite)
 
 
-def d2h(dg, overwrite=False, nwfs=None, verbose=False, user=False):
+def d2h(dg, overwrite=False, nwfs=None, verbose=False, user=False, lowE=False):
     """
     $ ./processing.py -q 'run==[something]' --d2h
-    
-    Create a pygama 'hit' file with calibrated energy values.  
+
+    Create a pygama 'hit' file with calibrated energy values.
     This routine assumes you can always calculate the calibration curve from
     the run you're considering.  For a test stand, this should work "Okay".
-    
+
     IMPORTANT: by convention the ecalDB lookups are by 'run, cyclo, cychi'
-    
+
     FUTURE TODO: It is pretty important to be able to apply a set of calibration
     constants from one group of cycles to another.   This could involve making
     more than one query to fileDB, which this CAGE routine won't support for now.
     To do this well (and cover many use cases), it might be better to make
     dsp_to_hit its own script with more flexibility in implementing this.  To me
-    it seems like the best way to specify 'which calibration for which file' is 
+    it seems like the best way to specify 'which calibration for which file' is
     to encode the correct input to use as a column of fileDB, probably computed
-    based on cycle number or unix timestamp, and have methods for updating / 
+    based on cycle number or unix timestamp, and have methods for updating /
     modifying it.
     """
     # load ecal config file
     f_ecal = dg.config['ecal_default']
     if 'spec_id' in dg.config:
         spec_id = dg.config['spec_id'][0]
+        print(f'spec_id: {spec_id}')
         if spec_id == 1:
-            f_ecal = './metadata/config_ecal_ba.json' 
+            f_ecal = './metadata/config_ecal_ba.json'
             print(f'Loading Ba133 calibration parameters from: {f_ecal}')
-        else:
-            print('Error, unknown calib mode:', spec_id)
+    if lowE:
+        f_ecal = './metadata/config_ecal_60keV.json'
+        print(f'Loading 60 keV 241Am calibration parameters from: {f_ecal}')
     else:
         print(f'Loading default calibration parameters:\n  {f_ecal}')
 
@@ -222,33 +232,41 @@ def d2h(dg, overwrite=False, nwfs=None, verbose=False, user=False):
     # set additional options
     if 'rawe' not in dg.config:
         dg.config['rawe'] = dg.config['rawe_default']
-    dg.config['dsp_input_dir'] = dg.lh5_user_dir if user else dg.lh5_dir
+
+    # dg.config['dsp_input_dir'] = dg.lh5_dir # using dsp files in CAGE LH5 directory
+    dg.config['dsp_input_dir'] = dg.lh5_user_dir if user else dg.lh5_dir # comment in if using dsp files in user directory
+
     dg.config['hit_output_dir'] = dg.lh5_user_dir if user else dg.lh5_dir
-    print('  Energy parameters to calibrate:', dg.config['rawe'])    
+
+    print('  Energy parameters to calibrate:', dg.config['rawe'])
 
     # run dsp_to_hit (the pandas apply is more useful than a regular loop)
-    dg.fileDB.apply(dsp_to_hit, axis=1, args=(dg, verbose, overwrite))    
-        
-        
-def dsp_to_hit(df_row, dg=None, verbose=False, overwrite=False):
+    dg.fileDB.apply(dsp_to_hit, axis=1, args=(dg, verbose, overwrite, lowE))
+
+
+def dsp_to_hit(df_row, dg=None, verbose=False, overwrite=False, lowE=False):
     """
     Create hit files from dsp files.  This routine is specific to CAGE but could
-    be extended & modified in the future to work for multi-channel data (PGT, 
+    be extended & modified in the future to work for multi-channel data (PGT,
     L200, etc.)
     """
-    apply_ecal = True 
+    apply_ecal = True
     apply_tscorr = False # not needed, should be fixed by the jan 30 2021 re-d2r
-    
+
     f_dsp = f"{dg.config['dsp_input_dir']}/{df_row['dsp_path']}/{df_row['dsp_file']}"
     f_hit = f"{dg.config['hit_output_dir']}/{df_row['hit_path']}/{df_row['hit_file']}"
+    # change output directory if in spec_id 2 mode (ie low-energy calibration to get 60 keV in right place)
+    if lowE:
+        f_hit = f"{dg.config['hit_output_dir']}/{df_row['hit_path']}/lowE/{df_row['hit_file']}"
+        print(f'Writing to low-energy hit file: {f_hit}')
     if verbose:
         print('input:', f_dsp)
         print('output:', f_hit)
-    
+
     if not overwrite and os.path.exists(f_hit):
         print('file exists, overwrite not set, skipping f_hit:\n   ', f_dsp)
         return
-    
+
     # get run and cycle for ecalDB lookup.  also apply run selection
     run, cycle = df_row[['run', 'cycle']].astype(int)
     if df_row.skip:
@@ -259,19 +277,19 @@ def dsp_to_hit(df_row, dg=None, verbose=False, overwrite=False):
     hit_store = lh5.Store()
     data, n_rows = hit_store.read_object(dg.config['input_table'], f_dsp)
     df_hit = data.get_dataframe()
-    
+
     # 1. get energy calibration for this run from peakfit
     if apply_ecal:
-        
+
         # loading the tinydb this way preserves the in-file text formatting
         cal_db = db.TinyDB(storage=MemoryStorage)
         with open(dg.config['ecaldb']) as f:
             raw_db = json.load(f)
             cal_db.storage.write(raw_db)
-        
+
         # loop over energy estimators of interest
         for etype in dg.config['rawe']:
-            
+
             # load ecalDB table
             tb = cal_db.table(f'peakfit_{etype}').all()
             df_cal = pd.DataFrame(tb)
@@ -285,7 +303,7 @@ def dsp_to_hit(df_row, dg=None, verbose=False, overwrite=False):
                 print('Warning, non-unique query:', que)
                 print(df_run)
                 exit()
-                
+
             # figure out the order of the polynomial from column names
             pols = {}
             for col in [c for c in df_run.columns if 'cal' in c]:
@@ -293,7 +311,7 @@ def dsp_to_hit(df_row, dg=None, verbose=False, overwrite=False):
                 val = val.named # convert to dict
                 iord = int(val['p'])
                 pols[iord] = df_run.iloc[0][f'cal{iord}']
-            
+
             # get the coefficients in descending order for np.poly1d: p2, p1, p0...
             coeffs = []
             for ord, val in sorted(pols.items()):
@@ -303,7 +321,7 @@ def dsp_to_hit(df_row, dg=None, verbose=False, overwrite=False):
             coeffs = coeffs[:,1]
 
             # apply the calibration to the dataframe
-            pfunc = np.poly1d(coeffs) 
+            pfunc = np.poly1d(coeffs)
             df_hit[f'{etype}_cal'] = pfunc(df_hit[f'{etype}'])
 
 
@@ -344,7 +362,7 @@ def dsp_to_hit(df_row, dg=None, verbose=False, overwrite=False):
     sto = lh5.Store()
     tb_name = dg.config['input_table'].replace('dsp', 'hit')
     tb_lh5 = lh5.Table(size=len(df_hit))
-    
+
     for col in df_hit.columns:
         tb_lh5.add_field(col, lh5.Array(df_hit[col].values, attrs={'units':''}))
         if verbose:
@@ -352,10 +370,10 @@ def dsp_to_hit(df_row, dg=None, verbose=False, overwrite=False):
 
     print(f'Writing table: {tb_name} in file:\n   {f_hit}')
     sto.write_object(tb_lh5, tb_name, f_hit)
-    
+
     if verbose:
         print('Creating diagnostic plots ...')
-        
+
         # energy
         xlo, xhi, xpb = 0, 3000, 10
         hist, bins, _ = pgh.get_hist(df_hit['trapEftp_cal'], range=(xlo, xhi), dx=xpb)
@@ -365,14 +383,14 @@ def dsp_to_hit(df_row, dg=None, verbose=False, overwrite=False):
         plt.savefig('./plots/d2h_etest.png')
         print('saved figure: ./plots/d2h_etest.png')
         plt.cla()
-        
+
         # timestamp
         xv = np.arange(len(df_hit))
         plt.plot(xv, df_hit['ts_sec'], '.b')
         plt.savefig('./plots/d2h_ttest.png')
         print('saved figure: ./plots/d2h_ttest.png')
         plt.cla()
-        
+
         # exit, don't create + overwrite a million plots
         print('verbose mode of d2h is meant to look at 1 cycle file, exiting...')
         exit()
