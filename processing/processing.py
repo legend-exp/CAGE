@@ -25,7 +25,6 @@ def main():
     doc="""
     CAGE data processing routine.
     """
-    print('entered main()')
     rthf = argparse.RawTextHelpFormatter
     par = argparse.ArgumentParser(description=doc, formatter_class=rthf)
     arg, st, sf = par.add_argument, 'store_true', 'store_false'
@@ -51,7 +50,6 @@ def main():
         help="specify raw energy parameters to calibrate: --epar 'asd sdf dfg' ")
 
     args = par.parse_args()
-    print('just did arg parse')
 
     # -- load inputs --
     dg = DataGroup(os.path.expandvars('$CAGE_SW/processing/cage.json'), load=True)
@@ -61,10 +59,7 @@ def main():
     else:
         dg.fileDB = dg.fileDB[-1:]
 
-    if args.lowE:
-        lowE=True
-    else:
-        lowE=False
+    lowE = True if args.lowE else False
 
     # set additional options
     nwfs = args.nwfs[0] if args.nwfs is not None else np.inf
@@ -115,6 +110,13 @@ def d2r(dg, overwrite=False, nwfs=None, verbose=False, user=False):
         f_raw = f"{lh5_dir}/{row['raw_path']}/{row['raw_file']}"
         # f_raw = 'test.lh5'
         subrun = row['cycle'] if 'cycle' in row else None
+
+        if pd.isna(row['raw_path']) or pd.isna(row['raw_file']):
+            print('Error, nans in filenames/paths.  Check your fileDB.')
+            print('f_daq:', f_daq)
+            print('f_raw:', f_raw)
+            print(row)
+            exit()
 
         if not overwrite and os.path.exists(f_raw):
             print('file exists, overwrite not set, skipping f_raw:\n   ', f_raw)
