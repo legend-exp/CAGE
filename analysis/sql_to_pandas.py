@@ -10,6 +10,7 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 import matplotlib.dates as md
 from matplotlib import gridspec
+import pickle
 
 mpl.use('Agg')
 
@@ -174,14 +175,22 @@ def plot_run_stability(run, df_file):
     with pd.HDFStore(df_file, 'r') as f:
         print("Keys:", f.keys())
 
+    df_file_1460 = './data/run66_1460.h5'
+
+    with pd.HDFStore(df_file_1460, 'r') as f:
+        print("Keys:", f.keys())
+
+
+
 
     baseline = pd.read_hdf(df_file, key='/cage_baseline')
     tophat_temp = pd.read_hdf(df_file, key='/cage_topHat_temp')
     cp_temp = pd.read_hdf(df_file, key='/cage_coldPlate_temp')
     pressure = pd.read_hdf(df_file, key='/cage_pressure')
+    # df_1460 = pd.read_hdf(df_file_1460, key = '/data')
 
 
-    fig = plt.figure()
+    fig = plt.figure(figsize=(6, 8))
     fig.suptitle(f'System Stability for run {run}')
     gs = gridspec.GridSpec(4, 1) #, height_ratios=[2, 1]
 
