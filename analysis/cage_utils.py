@@ -12,6 +12,7 @@ import matplotlib as mpl
 from matplotlib.colors import LogNorm
 
 import scipy.stats as stats
+import scipy.signal as signal
 
 import pygama
 from pygama import DataGroup
@@ -340,6 +341,33 @@ def double_pole_zero(wf_in, tau1, tau2, frac):
         wf_out_arr.append(wf_out)
 
     return(wf_out_arr)
+
+def notchFilter(waveform, f_notch, Q):
+    """
+    apply notch filter of some frequency f_notch (Hz) with some quality factor Q
+    """
+    wf = waveform
+    clk = 100e6 # 100 MHz sampling frequency of SIS 3302
+    
+    b_notch, a_notch = signal.iirnotch(f_notch, Q, clk)
+    wf_notch = signal.filtfilt(b_notch, a_notch, wf)
+    return wf_notch
+
+def notchFilter_SIS3302(waveform, Q):
+    """
+    specific notch filter to get rid of 25 MHz and 50 MHz noise in the SIS 3302 used by CAGE. 
+    Can specify the quality factor
+    """
+    wf = waveform
+    f_notch1 = 25e6
+    f_notch2 = 50e6
+    
+    pre_notch = notchFilter(wf, f_notch1, Q)
+    wf_notch = notchFilter(pre_notch, f_notch2, Q)
+
+
+    return wf_notch
+
 
 def peakCounts(df, energy_par='trapEftp_cal', bins=50, erange=[], bkg_sub=True, writeParams=False):
     """
