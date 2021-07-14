@@ -28,10 +28,18 @@ fi
 # NOTE: you need to update runDB.json before running this!
 # shifter python setup.py --update --orca -b
 
+# run dsp_to_hit
+shifter python processing.py -q 'dsp_id==1 or dsp_id==2' --d2h -o
+
+# reprocess specific dsp_id's.  roughly 5 min/cycle file.
+#shifter python processing.py -q 'dsp_id==1' --r2d -o
+#shifter python processing.py -q 'dsp_id==2' --r2d -o
+
+
 # -- reprocess 2021 d2r (ts bug)
 # shifter python processing.py -q 'cycle>=1192' --d2r -o
 # not re-r2d'ing cycles before 1192 because config_dsp would be wrong for them ...
-shifter python processing.py -q 'cycle>=1192' --r2d -o 
+#shifter python processing.py -q 'cycle>=1192' --r2d -o 
 
 # --
 # Standard mode: update recent runs (cuts down on log file size)
