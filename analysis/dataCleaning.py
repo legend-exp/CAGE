@@ -24,18 +24,12 @@ import cage_utils
 mpl.use('Agg')
 
 def main():
-    # runs = [38]
-    # runs = [38, 60, 42, 64, 44, 66, 48, 70, 50, 72, 54]
-    # runs = [120, 121, 123, 124, 126, 128, 129, 131, 132, 134, 135, 137, 143]
     runs = [60, 64, 66, 70, 72] # alpha runs for dsp_id = 2
-#     runs = [62, 68, 74] #bkg runs for dsp_id = 2
-#     runs = [50]
-#     alp_runs = [137, 143]
-#     bkg_runs = [136, 136]
+    # runs = [62, 68, 74] #bkg runs for dsp_id = 2
     # campaign = 'angleScan/'
-    campaign = 'new_normScan/'
+    campaign = 'new_normScan/centeringScans/'
     
-    run=72
+    run=95
 
     user = True
     hit = True
@@ -57,10 +51,10 @@ def main():
     
     df_raw['ftp_max'] = df_raw['trapEftp']/df_raw['trapEmax']
 
-    n_minus_1(run, df_raw, dg, runtype, rt_min, radius, angle_det, rotary, cut_keys_raw)
-    allCuts(run, df_raw, dg, runtype, rt_min, radius, angle_det, rotary, cut_keys_raw)
+    # n_minus_1(run, campaign, df_raw, dg, runtype, rt_min, radius, angle_det, rotary, cut_keys_raw)
+    allCuts(run, campaign, df_raw, dg, runtype, rt_min, radius, angle_det, rotary, cut_keys_raw)
 
-def n_minus_1(run, df, dg, runtype, rt_min, radius, angle_det, rotary, cut_keys):
+def n_minus_1(run, campaign, df, dg, runtype, rt_min, radius, angle_det, rotary, cut_keys):
 
     with open('./cuts.json') as f:
         cuts = json.load(f)
@@ -145,7 +139,7 @@ def n_minus_1(run, df, dg, runtype, rt_min, radius, angle_det, rotary, cut_keys)
         
         plt.tight_layout()
 
-        plt.savefig(f'./plots/new_normScan/dataCleaning/N_minus_1/raw/{str(run)}/except_{cut_out}_bl_mean_raw.png', dpi=200)
+        plt.savefig(f'./plots/{campaign}N_minus_1/raw/{str(run)}/except_{cut_out}_bl_mean_raw.png', dpi=200)
         plt.clf()
         plt.close()
         
@@ -187,7 +181,7 @@ def n_minus_1(run, df, dg, runtype, rt_min, radius, angle_det, rotary, cut_keys)
         
         plt.tight_layout()
 
-        plt.savefig(f'./plots/new_normScan/dataCleaning/N_minus_1/raw/{str(run)}/except_{cut_out}_bl_slope_raw.png', dpi=200)
+        plt.savefig(f'./plots/{campaign}dataCleaning/N_minus_1/raw/{str(run)}/except_{cut_out}_bl_slope_raw.png', dpi=200)
         plt.clf()
         plt.close()
 
@@ -225,7 +219,7 @@ def n_minus_1(run, df, dg, runtype, rt_min, radius, angle_det, rotary, cut_keys)
         plt.tight_layout()
 
 
-        plt.savefig(f'./plots/new_normScan/dataCleaning/N_minus_1/raw/{str(run)}/except_{cut_out}_bl_sig_raw.png', dpi=200)
+        plt.savefig(f'./plots/{campaign}dataCleaning/N_minus_1/raw/{str(run)}/except_{cut_out}_bl_sig_raw.png', dpi=200)
         plt.clf()
         plt.close()
 
@@ -262,7 +256,7 @@ def n_minus_1(run, df, dg, runtype, rt_min, radius, angle_det, rotary, cut_keys)
         
         plt.tight_layout()
 
-        plt.savefig(f'./plots/new_normScan/dataCleaning/N_minus_1/raw/{str(run)}/except_{cut_out}_ftp_max_raw.png', dpi=200)
+        plt.savefig(f'./plots/{campaign}dataCleaning/N_minus_1/raw/{str(run)}/except_{cut_out}_ftp_max_raw.png', dpi=200)
         plt.clf()
         plt.close()
 
@@ -313,18 +307,18 @@ def n_minus_1(run, df, dg, runtype, rt_min, radius, angle_det, rotary, cut_keys)
         plt.ylim(0, 300)
         plt.xlim(0, 800)
 
-        plt.savefig(f'./plots/new_normScan/dataCleaning/N_minus_1/raw/{str(run)}/except_{cut_out}_wf_max_raw_lowE.png', dpi=200)
+        plt.savefig(f'./plots/{campaign}dataCleaning/N_minus_1/raw/{str(run)}/except_{cut_out}_wf_max_raw_lowE.png', dpi=200)
 
         plt.ylim(1200, 1550)
         plt.xlim(3300, 4300)
 
-        plt.savefig(f'./plots/new_normScan/dataCleaning/N_minus_1/raw/{str(run)}/except_{cut_out}_wf_max_raw_1460.png', dpi=200)
+        plt.savefig(f'./plots/{campaign}dataCleaning/N_minus_1/raw/{str(run)}/except_{cut_out}_wf_max_raw_1460.png', dpi=200)
 
 
         plt.ylim(2400, 2750)
         plt.xlim(6600, 8000)
 
-        plt.savefig(f'./plots/new_normScan/dataCleaning/N_minus_1/raw/{str(run)}/except_{cut_out}_wf_max_raw_2615.png', dpi=200)
+        plt.savefig(f'./plots/{campaign}dataCleaning/N_minus_1/raw/{str(run)}/except_{cut_out}_wf_max_raw_2615.png', dpi=200)
         plt.clf()
         plt.close()
 
@@ -382,12 +376,12 @@ def n_minus_1(run, df, dg, runtype, rt_min, radius, angle_det, rotary, cut_keys)
         
         plt.tight_layout()
 
-        plt.savefig(f'./plots/new_normScan/dataCleaning/N_minus_1/raw/{str(run)}/except_{cut_out}_fit_60keV_raw.png', dpi=200)
+        plt.savefig(f'./plots/{campaign}dataCleaning/N_minus_1/raw/{str(run)}/except_{cut_out}_fit_60keV_raw.png', dpi=200)
         plt.clf()
         plt.close()
 
 
-def allCuts(run, df, dg, runtype, rt_min, radius, angle_det, rotary, cut_keys):
+def allCuts(run, campaign, df, dg, runtype, rt_min, radius, angle_det, rotary, cut_keys):
 
     with open('./cuts.json') as f:
         cuts = json.load(f)
@@ -465,7 +459,7 @@ def allCuts(run, df, dg, runtype, rt_min, radius, angle_det, rotary, cut_keys):
         
     plt.tight_layout()
 
-    plt.savefig(f'./plots/new_normScan/dataCleaning/allCuts/{str(run)}/allCuts_bl_mean_raw.png', dpi=200)
+    plt.savefig(f'./plots/{campaign}dataCleaning/allCuts/{str(run)}/allCuts_bl_mean_raw.png', dpi=200)
     plt.clf()
     plt.close()
         
@@ -507,7 +501,7 @@ def allCuts(run, df, dg, runtype, rt_min, radius, angle_det, rotary, cut_keys):
         
     plt.tight_layout()
 
-    plt.savefig(f'./plots/new_normScan/dataCleaning/allCuts/{str(run)}/allCuts_bl_slope_raw.png', dpi=200)
+    plt.savefig(f'./plots/{campaign}dataCleaning/allCuts/{str(run)}/allCuts_bl_slope_raw.png', dpi=200)
     plt.clf()
     plt.close()
 
@@ -545,7 +539,7 @@ def allCuts(run, df, dg, runtype, rt_min, radius, angle_det, rotary, cut_keys):
     plt.tight_layout()
 
 
-    plt.savefig(f'./plots/new_normScan/dataCleaning/allCuts/{str(run)}/allCuts_bl_sig_raw.png', dpi=200)
+    plt.savefig(f'./plots/{campaign}dataCleaning/allCuts/{str(run)}/allCuts_bl_sig_raw.png', dpi=200)
     plt.clf()
     plt.close()
 
@@ -582,7 +576,7 @@ def allCuts(run, df, dg, runtype, rt_min, radius, angle_det, rotary, cut_keys):
         
     plt.tight_layout()
 
-    plt.savefig(f'./plots/new_normScan/dataCleaning/allCuts/{str(run)}/allCuts_ftp_max_raw.png', dpi=200)
+    plt.savefig(f'./plots/{campaign}dataCleaning/allCuts/{str(run)}/allCuts_ftp_max_raw.png', dpi=200)
     plt.clf()
     plt.close()
 
@@ -633,18 +627,18 @@ def allCuts(run, df, dg, runtype, rt_min, radius, angle_det, rotary, cut_keys):
     plt.ylim(0, 300)
     plt.xlim(0, 800)
 
-    plt.savefig(f'./plots/new_normScan/dataCleaning/allCuts/{str(run)}/allCuts_wf_max_raw_lowE.png', dpi=200)
+    plt.savefig(f'./plots/{campaign}dataCleaning/allCuts/{str(run)}/allCuts_wf_max_raw_lowE.png', dpi=200)
 
     plt.ylim(1200, 1550)
     plt.xlim(3300, 4300)
 
-    plt.savefig(f'./plots/new_normScan/dataCleaning/allCuts/{str(run)}/allCuts_wf_max_raw_1460.png', dpi=200)
+    plt.savefig(f'./plots/{campaign}dataCleaning/allCuts/{str(run)}/allCuts_wf_max_raw_1460.png', dpi=200)
 
 
     plt.ylim(2400, 2750)
     plt.xlim(6600, 8000)
 
-    plt.savefig(f'./plots/new_normScan/dataCleaning/allCuts/{str(run)}/allCuts_wf_max_raw_2615.png', dpi=200)
+    plt.savefig(f'./plots/{campaign}dataCleaning/allCuts/{str(run)}/allCuts_wf_max_raw_2615.png', dpi=200)
     plt.clf()
     plt.close()
 
@@ -652,8 +646,8 @@ def allCuts(run, df, dg, runtype, rt_min, radius, angle_det, rotary, cut_keys):
 
     # ____________60 keV with fit________________________________________
 
-    pgfenergy_hist, pgfebins, evars = pgh.get_hist(df_cut['trapEftp_cal'], bins=50, range=[54, 65])
-    raw_pgfenergy_hist, pgfebins, evars = pgh.get_hist(df['trapEftp_cal'], bins=50, range=[54, 65])#range=[54, 65]
+    pgfenergy_hist, pgfebins, evars = pgh.get_hist(df_cut['trapEftp_cal'], bins=35, range=[54, 65])
+    raw_pgfenergy_hist, pgfebins, evars = pgh.get_hist(df['trapEftp_cal'], bins=35, range=[54, 65])#range=[54, 65]
     pars, cov = pgf.gauss_mode_width_max(pgfenergy_hist, pgfebins, evars)
     mode = pars[0]
     width = pars[1]
@@ -698,7 +692,7 @@ def allCuts(run, df, dg, runtype, rt_min, radius, angle_det, rotary, cut_keys):
         
     plt.tight_layout()
 
-    plt.savefig(f'./plots/new_normScan/dataCleaning/allCuts/{str(run)}/allCuts_fit_60keV_raw.png', dpi=200)
+    plt.savefig(f'./plots/{campaign}dataCleaning/allCuts/{str(run)}/allCuts_fit_60keV_raw.png', dpi=200)
     plt.clf()
     plt.close()
 
