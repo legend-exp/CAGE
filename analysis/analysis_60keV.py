@@ -24,18 +24,13 @@ import cage_utils
 mpl.use('Agg')
 
 def main():
-    # runs = [38]
-    # runs = [38, 60, 42, 64, 44, 66, 48, 70, 50, 72, 54]
-    # runs = [120, 121, 123, 124, 126, 128, 129, 131, 132, 134, 135, 137, 143]
-    run_list = [60, 64, 66, 70, 72] # alpha runs for dsp_id = 2
-#     runs = [62, 68, 74] #bkg runs for dsp_id = 2
-#     runs = [50]
-#     alp_runs = [137, 143]
-#     bkg_runs = [136, 136]
+    # run_list = [60, 64, 66, 70, 72] # alpha runs for dsp_id = 2
+    # run_list = [89, 91, 93, 95] # centering alpha runs for dsp_id = 1 and 2
+    # runs = [62, 68, 74] #bkg runs for dsp_id = 2
     # campaign = 'angleScan/'
-    campaign = 'new_normScan/'
+    campaign = 'new_normScan/centeringScans/'
     
-    run=72
+    run=95
 
     user = True
     hit = True
@@ -59,12 +54,12 @@ def main():
     
     df = cage_utils.apply_DC_Cuts(run, df_raw)
     
-    rateVSrad(run_list, dsp_list, user=True, hit=True, cal=True, lowE=False)
+    rateVSrad(run_list, campaign, dsp_list, norm=False, user=True, hit=True, cal=True, lowE=False)
 
-    # peakCounts_60(run, df, runtype, rt_min, radius, angle_det, rotary, energy_par=etype, bins=50, erange=[54,65], bkg_sub=True, plot=True, writeParams=True)
+    # peakCounts_60(run, campaign, df, runtype, rt_min, radius, angle_det, rotary, energy_par=etype, bins=30, erange=[54,65], bkg_sub=True, plot=True, writeParams=True)
 
     
-def rateVSrad(run_list, dsp_list, user=True, hit=True, cal=True, lowE=False):
+def rateVSrad(run_list, campaign, dsp_list, norm = False, user=True, hit=True, cal=True, lowE=False):
     
     rad_arr = []
     counts_arr = []
@@ -75,29 +70,43 @@ def rateVSrad(run_list, dsp_list, user=True, hit=True, cal=True, lowE=False):
     
         df = cage_utils.apply_DC_Cuts(run, df_raw)
         
-        counts, err = peakCounts_60(run, df, runtype, rt_min, radius, angle_det, rotary, energy_par='trapEftp_cal', bins=50, erange=[54,65], bkg_sub=True, plot=False, writeParams=False)
-                                      
-        counts_arr.append(counts)
-        err_arr.append(err)
+        counts, err = peakCounts_60(run, campaign, df, runtype, rt_min, radius, angle_det, rotary, energy_par='trapEftp_cal', bins=30, erange=[54,65], bkg_sub=True, plot=False, writeParams=False)
+        
+        if norm==True:
+            counts_arr.append(counts/rt_min)
+            err_arr.append(err/rt_min)
+            
+        else:
+            counts_arr.append(counts)
+            err_arr.append(err)
+            
         rad_arr.append(radius)
+        
+            
     
     fig, ax = plt.subplots()
     
     plt.errorbar(rad_arr, counts_arr, yerr=err_arr, marker = '.', c='b', ls='none', label=f'counts')
     
     plt.xlabel('Radial Position (mm)', fontsize=14)
-    plt.ylabel('Counts', fontsize=16)
+    if norm==True:
+        plt.ylabel('Counts/min', fontsize=14)
+    else:
+        plt.ylabel('Counts', fontsize=14)
     plt.title(f'60 keV Counts VS Radius', fontsize=14)
     plt.setp(ax.get_xticklabels(), fontsize=12)
     plt.setp(ax.get_yticklabels(), fontsize=12)
 #     plt.legend()
     plt.tight_layout()
-    plt.savefig(f'./plots/new_normScan/60keV_analysis/rate_60keV_vs_rad.png', dpi=200)
+    plt.savefig(f'./plots/{campaign}60keV_analysis/rate_60keV_vs_rad.png', dpi=200)
     
     plt.clf()
     plt.close()
+    
 
-def peakCounts_60(run, df, runtype, rt_min, radius, angle_det, rotary, energy_par='trapEftp_cal', bins=50, erange=[54,65], bkg_sub=True, plot=False, writeParams=False):
+        
+
+def peakCounts_60(run, campaign, df, runtype, rt_min, radius, angle_det, rotary, energy_par='trapEftp_cal', bins=50, erange=[54,65], bkg_sub=True, plot=False, writeParams=False):
     """
     Get the number of counts in the 60 keV peak, make plots. Can be sideband-subtracted or raw.
     Taken partially from cage_utils.py, adapted to be specific for 60 keV analysis
@@ -176,7 +185,7 @@ def peakCounts_60(run, df, runtype, rt_min, radius, angle_det, rotary, energy_pa
         
         plt.tight_layout()
 
-        plt.savefig(f'./plots/new_normScan/60keV_analysis/run{run}_fit_60keV.png', dpi=200)
+        plt.savefig(f'./plots/{campaign}60keV_analysis/run{run}_fit_60keV.png', dpi=200)
         plt.clf()
         plt.close()
     
@@ -213,7 +222,7 @@ def peakCounts_60(run, df, runtype, rt_min, radius, angle_det, rotary, energy_pa
         if plot==True:
             fig, ax = plt.subplots()
             
-            full_hist,  full_bins, full_evars = pgh.get_hist(df[{energy_par}], bins=70, range=[mean-9.*sig,
+            full_hist,  full_bins, full_evars = pgh.get_hist(df[{energy_par}], bins=bins, range=[mean-9.*sig,
                                                                                                  mean+9.*sig])
 
             plt.plot(full_bins[1:], full_hist, ds='steps', c='b', lw=1)
@@ -249,7 +258,7 @@ def peakCounts_60(run, df, runtype, rt_min, radius, angle_det, rotary, energy_pa
             
             plt.tight_layout()
             
-            plt.savefig(f'./plots/new_normScan/60keV_analysis/run{run}_bkgRegion_60keV.png', dpi=200)
+            plt.savefig(f'./plots/{campaign}60keV_analysis/run{run}_bkgRegion_60keV.png', dpi=200)
             
             plt.clf()
             plt.close()
