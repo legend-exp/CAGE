@@ -243,5 +243,8 @@
     "238":["1916-1921", "bkg", "elog 361.  ~2 hour background run, all motors zeroed"],
     "239":["1922-1926", "bkg", "elog 362.  ~2 hour background run. 1922 is noisier than usual"],
     "240":["1927-1935", "alp", "elog 362.  r=10mm, source centered"],
-    "241":["1936-1955", "bkg", "elog 362.  overnight background run, all motors zeroed"]
+    "241":["1936-1955", "bkg", "elog 362.  overnight background run, all motors zeroed"],
+    "242":["1956-1960", "alp", "elog 363.  centering runs (noisy).  rot=0, src=-180, lin=5"],
+    "243":["1961-1965", "alp", "elog 363.  centering runs (noisy).  rot=0, src=0180, lin=6"],
+    "244":["1966-1998", "alp", "elog 363.  overnight alpha run after vanquishing noise"]
 }
