@@ -15,8 +15,8 @@ import tinydb as db
 from tinydb.storages import MemoryStorage
 
 import matplotlib
-if os.environ.get('HOSTNAME'): # cenpa-rocks
-    matplotlib.use('Agg')
+# if os.environ.get('HOSTNAME'): # cenpa-rocks
+#     matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 plt.style.use('../clint.mpl')
 
