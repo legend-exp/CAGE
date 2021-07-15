@@ -5,6 +5,7 @@ import json
 import shlex
 import argparse
 from argparse import RawTextHelpFormatter as rthf
+import multiprocessing
 import gclib
 import spur
 import numpy as np
@@ -23,7 +24,7 @@ def main():
     http://www.galilmc.com/sw/pub/all/doc/gclib/html/python.html
     """
     # load configuration (uses globals, it's bad practice but who cares)
-    global gp, gc, conf, ipconf, mconf, rpins, history_df, f_history
+    global gp, gc, conf, mconf, rpins, history_df, f_history
     gp = gclib.py()
     gc = gp.GCommand
     with open('../config.json') as f:
@@ -33,8 +34,8 @@ def main():
     mconf = motorDB["mconf"]
     rpins = {key['rpi_pin'] : name for name, key in mconf.items()}
 
-    # TODO: change this when we want to do a new campaign
-    campaign_number = "6"
+    # TODO: change this when we want to do a new campaign (see motor_config.json)
+    campaign_number = "8"
 
     # parse user args
     par = argparse.ArgumentParser(description=doc, formatter_class=rthf)
@@ -44,7 +45,7 @@ def main():
     arg('--steps', nargs='*', help="get steps to move [motor_name] a [value]")
     arg('--zero', nargs=1, type=str, help="zero motor: [source,linear,rotary]")
     arg("--move", nargs='*', help="move [motor_name] a distance [value]")
-    arg("--beam_pos_move", nargs=1, help="Use source_placement.py to calculate motor movements for [oppi] or[icpc]")
+    arg("--beam_pos_move", nargs=1, help="Use source_placement.py to calculate motor movements for [oppi] or [icpc]")
     arg("--center", nargs='*', help="center source or linear motor")
 
     # encoder functions & settings
@@ -98,7 +99,7 @@ def main():
         exit()
 
     # =====================================================================
-    connect_to_controller(verbose) # check Newmark and RPi by default
+    connect_to_controller(verbose, ipconf) # check Newmark and RPi by default
 
     if not constraints:
         ans = input('WARNING: Are you sure you want constraints off? Danger of damaging system! y/n \n -->')
@@ -107,7 +108,7 @@ def main():
             exit()
 
     if args['config']:
-        connect_to_controller(verbose=True)
+        connect_to_controller(verbose=True, ipconf=ipconf)
         print("\nCredentials:")
         pprint(ipconf)
         print("\nCAGE motor system settings:")
@@ -123,11 +124,12 @@ def main():
 
     if args['read_enc']:
         rpi_pin = int(args['read_enc'][0])
-        query_encoder(rpi_pin, t_sleep, com_spd, verbose)
+        query_encoder(rpi_pin, t_sleep, com_spd, verbose, ipconf=ipconf)
 
     if args['zero_enc']:
         rpi_pin = int(args['zero_enc'][0])
-        query_encoder(rpi_pin, t_sleep, com_spd, verbose, max_reads, zero=True)
+        query_encoder(rpi_pin, t_sleep, com_spd, verbose, max_reads, zero=True,
+                      ipconf=ipconf)
 
     if args['steps']:
         # Check steps calculation w/o actually moving motors
@@ -136,7 +138,7 @@ def main():
         get_steps(motor_name, input_val, angle_check, constraints, verbose)
 
     # --- Make sure lift interlock is engaged ---
-    lift_interlock()
+    lift_interlock(ipconf)
 
     # Actually move motors!
     if args['move']:
@@ -145,6 +147,14 @@ def main():
         approve_move(history_df, motor_name, input_val, False, constraints)
         move_motor(motor_name, input_val, history_df, angle_check, constraints, verbose)
 
+    if args['zero']:
+        motor_name = args['zero'][0]
+        zero_motor(motor_name, angle_check, history_df, verbose, constraints)
+
+    if args['center']:
+        motor_name = args['center'][0]
+        approve_move(history_df, motor_name, 0, True, constraints)
+        center_motor(motor_name, angle_check, history_df, verbose, constraints)
 
     # incorporating Joule's source placement code--TEST
     if args['beam_pos_move']:
@@ -158,16 +168,6 @@ def main():
         exit()
 
 
-
-    if args['zero']:
-        motor_name = args['zero'][0]
-        zero_motor(motor_name, angle_check, history_df, verbose, constraints)
-
-    if args['center']:
-        motor_name = args['center'][0]
-        approve_move(history_df, motor_name, 0, True, constraints)
-        center_motor(motor_name, angle_check, history_df, verbose, constraints)
-
 def show_history(f_history):
     """
     $ python3 motor_movement.py --show_df
@@ -178,7 +178,7 @@ def show_history(f_history):
     print(df)
 
 
-def connect_to_controller(verbose=True):
+def connect_to_controller(verbose=True, ipconf=None):
     """
     connect to the Newmark motor controller and ping the RPi
     """
@@ -209,7 +209,7 @@ def connect_to_controller(verbose=True):
         print("CAGE RPi isn't active on the network!  Beware ...")
 
 
-def lift_interlock():
+def lift_interlock(ipconf):
     """
     Access the RPi-side routine, "read_encoders.py" via SSH.
     To read an encoder position:
@@ -266,7 +266,7 @@ def check_limit_switches(verbose=True):
     return source, linear_fwd, linear_rev, rotary
 
 
-def query_encoder(rpi_pin, t_sleep=0.01, com_spd=10000, verbose=True, max_reads=3, zero=False):
+def query_encoder(rpi_pin, t_sleep=0.01, com_spd=10000, verbose=True, max_reads=3, zero=False, ipconf=None):
     """
     Access the RPi-side routine, "read_encoders.py" via SSH.
     To read an encoder position:
@@ -285,7 +285,6 @@ def query_encoder(rpi_pin, t_sleep=0.01, com_spd=10000, verbose=True, max_reads=
             cmd += f" -z {rpi_pin} -m {max_reads} -s {t_sleep} -c {com_spd}"
         if verbose:
             cmd += " -v"
-
         # send the command and decode the output
         tmp = shell.run(shlex.split(cmd))
         ans = tmp.output.decode("utf-8")
@@ -379,105 +378,39 @@ def move_motor(motor_name, input_val, history_df, angle_check=180, constraints=T
     update_history(motor_name, 0, 0, zero, steps, move_completed=False)
 
     # zero the encoder (measure relative motion)
+    with open('../config.json') as f:
+        ipconf = json.load(f)
     result = query_encoder(mconf[motor_name]['rpi_pin'], mconf['t_sleep'],
                            mconf['com_spd'], verbose, mconf['max_reads'],
-                           zero=True)
+                           zero=True, ipconf=ipconf)
     zeroed = bool(result.split("\n")[-2].split(" ")[2]) # ugly string parse
     if not zeroed:
         print("ERROR! read_encoders was unable to zero the encoder.")
         exit()
     if verbose:
         print(f"Zeroed {motor_name} encoder.")
-    enc_pos = 0
 
-    # send initial setup commands to the controller
-    axis = mconf[motor_name]['axis']
-    mspd = mconf[motor_name]['motor_spd']
-    gc('AB')
-    gc('MO')
-    gc(f'SH{axis}')
-    gc(f'SP{axis}={mspd}')
-    gc(f'DP{axis}=0')
-    gc(f'AC{axis}={mspd}')
-    gc(f'BC{axis}={mspd}')
-
-    # useful counters
-    n_checks = int(360 / angle_check)
-    i_check = 1
-    enc_tol = mconf[motor_name]["enc_slip"]
-    enc_fail = False
-    n_cyc = abs(steps['n_cycles'])
-    n_desired = steps['n_steps']
-    n_moved = 0
-
-    # start movement
-    print("Beginning move ...")
+    pool = multiprocessing.Pool(1)
     try:
-        for i_cyc in range(1, n_cyc+1):
+        result = pool.apply_async(run_motion, args=(motor_name, mconf, ipconf, angle_check, steps, constraints), error_callback=ecb)
+        pool.close()
+        pool.join()
 
-            # goal: move this many motor steps
-            n_move = int(steps['dir'] * steps['step_check'])
+    except KeyboardInterrupt:
+        # emergency stop!
+        pool2 = multiprocessing.Pool(1)
+        pool2.apply_async(emergency_stop, args=(motor_name, mconf, ipconf),
+                          error_callback=ecb)
+        pool.terminate()
+        pool2.close()
+        pool2.join()
+        result = None
 
-            # NOTE: add actual motion
-            pct = 100 * abs(n_moved/n_desired)
-            print(f"{i_cyc}/{n_cyc}  attempting: {n_move}/{n_moved}  {pct:.1f}%  encoder: {enc_pos:6}  actual pos: XX {steps['move_type']}")
-
-            # begin motion
-            gc(f'PR{axis}={n_move}')
-            gc(f'BG{axis}')
-            gp.GMotionComplete(axis)
-            time.sleep(.1)
-            # take current reading of encoder position (quiet)
-            enc_pos = int(query_encoder(mconf[motor_name]['rpi_pin'],
-                                        mconf['t_sleep'], mconf['com_spd'],
-                                        verbose=False).rstrip())
-            enc_pos2 = int(query_encoder(mconf[motor_name]['rpi_pin'],
-                                        mconf['t_sleep'], mconf['com_spd'],
-                                        verbose=False).rstrip())
-
-            # cross-check encoder position with motor step commands
-            if constraints:
-                enc_fail = False
-                mod = i_cyc % n_checks
-                exp_pos = int(mod * 2**14 / n_checks) # expected enc position
-
-                if mod == 0:
-                    # print("full rotation --- ", exp_pos, enc_tol, enc_pos)
-                    if (enc_pos > enc_tol) and (enc_pos < 2**14 - enc_tol):
-                        enc_fail = True
-                else:
-                    # print("partial rotation --- ", exp_pos, enc_tol, enc_pos)
-                    if not (exp_pos - enc_tol) < enc_pos < (exp_pos + enc_tol) and not (exp_pos - enc_tol) < enc_pos2 < (exp_pos + enc_tol):
-                        enc_fail = True
-                if enc_fail:
-                    print("Encoder position check failed!\nAborting move ...")
-                    type = "full" if mod==0 else "partial"
-                    print(f"{type} rotation --\n Expected pos: {exp_pos}"
-                          f"\n Encoder tolerance: {enc_tol}"
-                          f"\n Encoder position: {enc_pos}")
-                    print("NOTE: if you just zeroed the motor, this is probably OK.  Check the limit switch.")
-                    break
-
-            # increment total steps counter
-            n_moved += n_move
-
-        # move the final remainder
-
-        if not enc_fail:
-            r_steps = steps['r_steps']
-            gc(f"PR{axis}={r_steps}")
-            gc(f'BG{axis}')
-            gp.GMotionComplete(axis)
-            n_moved += steps['r_steps']
-            enc_pos = int(query_encoder(mconf[motor_name]['rpi_pin'],
-                                        mconf['t_sleep'], mconf['com_spd'],
-                                        verbose=False).rstrip())
-            print(f"final move: {r_steps}/{n_moved}  encoder: {enc_pos:6}  actual pos: XX {steps['move_type']}")
-
-    except gclib.GclibError:
-        print("gclib error: The limit switch is engaged.")
-        # NOTE: this creates two "False" rows in the DataFrame.  which is OK.
-        move_completed = False
+    if result is not None:
+        n_desired, n_moved, enc_fail = result.get(timeout=1)
+    else:
+        n_desired = steps['n_steps']
+        n_moved, enc_fail = 0, True
 
     # convert back to physical units
     if motor_name == "source":
@@ -507,6 +440,154 @@ def move_motor(motor_name, input_val, history_df, angle_check=180, constraints=T
 
     # update the DF with a successful move.
     update_history(motor_name, relative_pos, n_moved, zero, steps, move_completed=move_complete)
+
+
+def ecb(this):
+    """ helper function for move_motor. """
+    print('error callback:', this)
+
+
+def run_motion(motor_name, mconf, ipconf, angle_check, steps, constraints):
+    """
+    called by move_motor.  must be global for multiprocessing to work.
+    """
+    # setup and counters
+    axis = mconf[motor_name]['axis']
+    mspd = mconf[motor_name]['motor_spd']
+    enc_tol = mconf[motor_name]["enc_slip"]
+    mip = ipconf['newmark']
+    n_checks = int(360 / angle_check)
+    i_check = 1
+    enc_fail = False
+    n_cyc = abs(steps['n_cycles'])
+    n_desired = steps['n_steps']
+    n_moved = 0
+    enc_pos = 0
+
+    # connect to controller
+    gp = gclib.py()
+    gc = gp.GCommand
+    try:
+        gp.GOpen(f"{mip} --direct")
+    except:
+        print("ERROR: couldn't connect to Newmark controller!")
+
+    # send initial setup commands to the controller
+    gc('AB')
+    gc('MO')
+    gc(f'SH{axis}')
+    gc(f'SP{axis}={mspd}')
+    gc(f'DP{axis}=0')
+    gc(f'AC{axis}={mspd}')
+    gc(f'BC{axis}={mspd}')
+
+    print("Beginning move ...")
+    try:
+        for i_cyc in range(1, n_cyc+1):
+
+            # goal: move this many motor steps
+            n_move = int(steps['dir'] * steps['step_check'])
+
+            # NOTE: add actual motion
+            pct = 100 * abs(n_moved/n_desired)
+
+            print(f"{i_cyc}/{n_cyc}  attempting: {n_move}/{n_moved}  {pct:.1f}%  encoder: {enc_pos:6}  actual pos: XX {steps['move_type']}")
+
+            # begin motion
+            gc(f'PR{axis}={n_move}')
+            gc(f'BG{axis}')
+            gp.GMotionComplete(axis)
+            time.sleep(.1)
+
+            # take current reading of encoder position (quiet)
+            enc_pos = int(query_encoder(mconf[motor_name]['rpi_pin'],
+                                        mconf['t_sleep'], mconf['com_spd'],
+                                        verbose=False, ipconf=ipconf).rstrip())
+            enc_pos2 = int(query_encoder(mconf[motor_name]['rpi_pin'],
+                                        mconf['t_sleep'], mconf['com_spd'],
+                                        verbose=False, ipconf=ipconf).rstrip())
+
+            # cross-check encoder position with motor step commands
+            if constraints:
+                enc_fail = False
+                mod = i_cyc % n_checks
+                exp_pos = int(mod * 2**14 / n_checks) # expected enc position
+
+                if mod == 0:
+                    # print("full rotation --- ", exp_pos, enc_tol, enc_pos)
+                    if (enc_pos > enc_tol) and (enc_pos < 2**14 - enc_tol):
+                        enc_fail = True
+                else:
+                    # print("partial rotation --- ", exp_pos, enc_tol, enc_pos)
+                    if not (exp_pos - enc_tol) < enc_pos < (exp_pos + enc_tol) and not (exp_pos - enc_tol) < enc_pos2 < (exp_pos + enc_tol):
+                        enc_fail = True
+                if enc_fail:
+                    print("Encoder position check failed!\nAborting move ...")
+                    type = "full" if mod==0 else "partial"
+                    print(f"{type} rotation --\n Expected pos: {exp_pos}"
+                          f"\n Encoder tolerance: {enc_tol}"
+                          f"\n Encoder position: {enc_pos}")
+                    print("NOTE: if you just zeroed the motor, this is probably OK.  Check the limit switch.")
+                    break
+
+            # increment total steps counter
+            n_moved += n_move
+
+        # move the final remainder
+        if not enc_fail:
+            r_steps = steps['r_steps']
+
+            gc(f"PR{axis}={r_steps}")
+            gc(f'BG{axis}')
+            gp.GMotionComplete(axis)
+
+            n_moved += steps['r_steps']
+
+            enc_pos = int(query_encoder(mconf[motor_name]['rpi_pin'],
+                                        mconf['t_sleep'], mconf['com_spd'],
+                                        verbose=False, ipconf=ipconf).rstrip())
+
+            print(f"final move: {r_steps}/{n_moved}  encoder: {enc_pos:6}  actual pos: XX {steps['move_type']}")
+
+    except gclib.GclibError:
+        print("gclib error: The limit switch is engaged.")
+        # NOTE: this creates two "False" rows in the DataFrame.  which is OK.
+        gp.GMotionComplete(axis)
+
+    return n_desired, n_moved, enc_fail
+
+
+def emergency_stop(motor_name, mconf, ipconf):
+    """
+    called by move_motor.  must be global for multiprocessing to work,
+    and requires we set up a whole separate communication session (because
+    this is called in an independent Python thread.)
+    """
+    print('\nGot Emergency Stop signal!  Attempting to stop motion ...')
+
+    mip = ipconf['newmark']
+    axis = mconf[motor_name]['axis']
+
+    # connect to controller
+    gp = gclib.py()
+    gc = gp.GCommand
+    try:
+        gp.GOpen(f"{mip} --direct")
+    except:
+        print("ERROR: couldn't connect to Newmark controller!")
+
+    # -- emergency stop signal --
+    res = gc(f'ST{axis}')
+    success = res is not None
+    print('Did we succeed at stopping the motion?', success)
+    gp.GMotionComplete(axis)
+    time.sleep(.1)
+
+    print("WARNING: You've just used Emergency Stop.  The motor may still be\n",
+          "   'humming', i.e. powered but not moving.  Sometimes this is\n",
+          "   audible, but not always. You can either try \n",
+          "   another (safe) motion to reset it, or reset the Newmark\n",
+          "   motor controller.")
 
 
 def beam_pos_move(detector):

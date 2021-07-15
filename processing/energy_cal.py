@@ -116,6 +116,12 @@ def main():
         if spec_id == 1:
             f_ecal = './metadata/config_ecal_ba.json'
             print(f'Loading Ba133 calibration parameters from: {f_ecal}')
+        elif spec_id == 2:
+            f_ecal = './metadata/config_ecal_60keV.json'
+            print(f'Loading 60 keV 241Am calibration parameters from: {f_ecal}')
+        elif spec_id == 3:
+            f_ecal = './metadata/config_ecal_bkg_LowE.json'
+            print(f'Loading calibration parameters for low-energy calibration of bkg run from: {f_ecal}')
         else:
             print('Error, unknown calib mode:', args.spec[0])
     else:
@@ -216,6 +222,9 @@ def init_ecaldb(config):
     one-time set up of primary database file.
     You probably DON'T want to run this, it will wipe ecalDB.json
     """
+    f_db = config['ecaldb']
+    print(f'ecal db {f_db}')
+
     ans = input('(Re)create main ecal JSON file?  Are you really sure? (y/n) ')
     if ans.lower() != 'y':
         exit()
@@ -693,7 +702,8 @@ def peakdet_input(df_group, config):
         pk_list = {k:v for k,v in pk_inputs[inp_id][et].items()}
         yv = [pk_list[k][0] for k in pk_list] # true peaks (keV)
         xv_input = [pk_list[k][1] for k in pk_list] # raw peaks (uncalib.)
-        # pprint(pk_list)
+
+        pprint(pk_list)
 
         # To make the input_peaks method more robust, add a step to refine
         # the input peak guess that can catch small changes in gain.
@@ -898,6 +908,7 @@ def peakfit(df_group, config, db_ecal):
                        ff_name = config['fit_func'], show_plot = False,
                        batch = config['batch_mode'])
         df_fits = pd.DataFrame(f1).T
+        print(df_fits)
 
         pfit, pcov = np.polyfit(df_fits['mu_raw'], df_fits['epk'], config['pol'][0], cov=True)
         perr = np.sqrt(np.diag(pcov))
