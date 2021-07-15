@@ -1,10 +1,10 @@
 {
   "outputs": [
     "channel", "timestamp",
-    "bl", "bl_sig", "bl_slope", "bl_fit_mean", "bl_fit_sigma", "bl_fit_slope", "bl_fit_intercept",
+    "bl", "bl_sig", "bl_slope", 
     "energy", "trapEftp", "trapEmax", "triE",
     "tp_max", "tp_0", "tp_02", "tp_05", "tp_10", "tp_20", "tp_30", "tp_40", "tp_50", "tp_60", "tp_70", "tp_80", "tp_90", "tp_96", 
-    "A_10", "AoE", "dcr", "wf_max", "wf_argmax", "trapE_argmax", "hf_max", "lf_max", "ToE", "log_tail_fit_mean", "log_tail_fit_sigma", "log_tail_fit_slope", "log_tail_fit_intercept"
+    "A_10", "AoE", "dcr", "wf_max", "wf_argmax", "trapE_argmax", "hf_max", "lf_max", "ToE", 
   ],
   "processors":{
     "bl, bl_sig":{
