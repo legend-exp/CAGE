@@ -237,6 +237,7 @@ def d2h(dg, overwrite=False, nwfs=None, verbose=False, user=False, lowE=False):
 
     # dg.config['dsp_input_dir'] = dg.lh5_dir # using dsp files in CAGE LH5 directory
     dg.config['dsp_input_dir'] = dg.lh5_user_dir if user else dg.lh5_dir # comment in if using dsp files in user directory
+    print('input DSP file dir: ', dg.config['dsp_input_dir'])
 
     dg.config['hit_output_dir'] = dg.lh5_user_dir if user else dg.lh5_dir
 
