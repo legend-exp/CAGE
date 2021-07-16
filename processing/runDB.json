@@ -236,8 +236,8 @@
     "231":["1893", "alp", "elog 308. r=28, source at -150, IA=60, rotary -145"],
     "232":["1894", "alp", "elog 308. r=30, source at -150, IA=60, rotary -145"],
     "233":["1895-1905", "bkg", "elog 308. ~ 5 hour background runs, linear 11.3 mm (r=30 position for IA=60), rotary -145. ORCA crashed overnight. 1905 junk"],
-    "234":["1906-1908", "ba133", "elog 312-313.  About 10 min Ba run to end scan campaign, debug energy_cal at low E"]
-    "235":["1914", "ba133", "elog 361.  Ba run before tuning preamp"]
-    "236":["1915", "ba133", "elog 361.  Ba run after tuning preamp"]
+    "234":["1906-1908", "ba133", "elog 312-313.  About 10 min Ba run to end scan campaign, debug energy_cal at low E"],
+    "235":["1914", "ba133", "elog 361.  Ba run before tuning preamp"],
+    "236":["1915", "ba133", "elog 361.  Ba run after tuning preamp"],
     "237":["1916-1921", "bkg", "elog 361.  ~2 hour background run, all motors zeroed"]
 }

@@ -77,7 +77,7 @@ def find_1460(timestamps, trapEftp):
     ind = np.unravel_index(np.argmax(ehist), ehist.shape)
     return e_edges[ind[1]]
 
-def hist_jump_in_run(run):
+def hist_jump_in_run(run, lh5_dir=lh5_dir):
     ehists = []
     blhists = []
     r = run['run'].iloc[0]

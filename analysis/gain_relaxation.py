@@ -89,7 +89,7 @@ def find_1460(timestamps, trapEftp):
     ind = np.unravel_index(np.argmax(ehist), ehist.shape)
     return e_edges[ind[1]]
 
-def hist_1460_in_run(dg, plot=False):    
+def hist_1460_in_run(dg, lh5_dir=lh5_dir, plot=False):    
     cycles = dg['cycle'].unique()
 
     f_dsp = f"{lh5_dir}/dsp/{dg['dsp_file'].iloc[-1]}"
@@ -155,7 +155,7 @@ def hist_1460_in_run(dg, plot=False):
 
 #dates should be a string in the format YYYY-MM-DDTHH:MM in UTC (will maybe support timezones later)
 #e.g. 2021-06-26T15:00
-def hist_1460_over_time(dg, start_date, end_date, plot=True):
+def hist_1460_over_time(dg, start_date, end_date, lh5_dir=lh5_dir, plot=True):
     time_intervals = 900 
     dt_start = dt.fromisoformat(start_date)
     dt_start = dt_start.replace(tzinfo=timezone.utc)
@@ -290,7 +290,7 @@ def find_slope_in_run(time_bins, e_total, b_total):
     
     
 #a drift is a list [run, e_fit, b_fit]
-def find_drifts(dg, plot=False):
+def find_drifts(dg,  plot=False):
     drifts = []
     
     runs = dg.fileDB['run'].unique()      
