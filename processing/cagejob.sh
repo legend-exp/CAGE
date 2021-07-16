@@ -29,7 +29,8 @@ fi
 # shifter python setup.py --update --orca -b
 
 # -- Campaign 2 workspace --
-shifter python processing.py -q 'run >= 242' --d2r --r2d
+shifter python processing.py -q 'run >= 245 and run <= 250' --d2r --r2d
+shifter python setup.py --orca --rt -b
 
 # shifter python processing.py -q 'run >= 235' --d2r -o
 # shifter python processing.py -q 'run >= 235' --r2d -o
