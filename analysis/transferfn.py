@@ -10,9 +10,15 @@ import matplotlib.pyplot as plt
 plt.style.use('../clint.mpl')
 
 from pygama import DataGroup
-import pygama.io.lh5 as lh5
+import pygama.lh5 as lh5
 import pygama.analysis.histograms as pgh
 import pygama.analysis.peak_fitting as pgf
+
+import matplotlib as mpl
+mpl.use('Agg')
+
+import cage_utils
+
 
 import warnings
 warnings.filterwarnings('ignore', category=pd.io.pytables.PerformanceWarning)
@@ -21,23 +27,25 @@ def main():
     """
     """
     # set output file
-    # f_super = './data/superpulses_oct2020.h5' # todo
-    f_super = './data/superpulses_dec2020.h5'
+    f_super = './data/superpulses_oct2020.h5' # todo
+    # f_super = './data/superpulses_dec2020.h5'
 
     # Set 1 (Oct 2020)
     # https://elog.legend-exp.org/UWScanner/249 (one file per run)
     tb1 = StringIO("""
     V_pulser  run  E_keV  mV_firststage
-    3.786 824  1460  300
-    5.2   826  2000  420
-    6.77  828  2615  544
-    8.27  830  3180  660
-    10    832  3840  800
-    2.5   834  967   200
-    1.3   836  500   106
-    0.55  837  212   44
     0.16  838  60    13.2
     """)
+    
+    # 3.786 824  1460  300
+    # 5.2   826  2000  420
+    # 6.77  828  2615  544
+    # 8.27  830  3180  660
+    # 10    832  3840  800
+    # 2.5   834  967   200
+    # 1.3   836  500   106
+    # 0.55  837  212   44
+    # removed from tb1 because most of them had no events? what? :sweat:
     dfp1 = pd.read_csv(tb1, delim_whitespace=True)
 
     # Set 2 (Dec 2020)
@@ -67,16 +75,16 @@ def main():
     os.chdir(pwd)
 
     # merge with fileDB
-    cycles = dfp2['run'].tolist()
+    cycles = dfp1['run'].tolist()
     df_pulsDB = dg.fileDB.loc[dg.fileDB['cycle'].isin(cycles)]
     df_pulsDB.reset_index(inplace=True)
-    dfp2 = pd.concat([dfp2, df_pulsDB], axis=1)
+    dfp1 = pd.concat([dfp1, df_pulsDB], axis=1)
 
     # -- run routines --
     # show_gain(dfp1, dfp2)
     # show_spectra(dfp2, dg)
-    get_superpulses(dfp2, dg, f_super)
-    get_transferfn(f_super)
+    get_superpulses(dfp1, dg, f_super)
+    # get_transferfn(f_super)
 
 
 def show_gain(dfp1, dfp2):
@@ -205,7 +213,7 @@ def get_superpulses(dfp, dg, f_super):
     write_output = True
     nwfs = 1000 # limit number to go fast.  1000 is enough for a good measurement
     tp_align = 0.5 # pct timepoint to align wfs at
-    e_window = 10 # plot (in keV) this window around each pulser peak
+    e_window = 20 # plot (in keV) this window around each pulser peak
     n_pre, n_post = 50, 100 # num samples before/after tp_align
     bl_thresh = 10 # allowable baseline ADC deviation
 
@@ -235,7 +243,7 @@ def get_superpulses(dfp, dg, f_super):
 
         plo, phi, ppb = pctr - e_window, pctr + e_window, 0.1
         pdata_pk = pdata[(pdata > plo) & (pdata < phi)]
-        hp, bp, _ = pgh.get_hist(pdata_pk, range=(plo, phi), dx=ppb)
+        hp, bp, bpvars = pgh.get_hist(pdata_pk, range=(plo, phi), dx=ppb)
         hp_rt = np.divide(hp, rt)
         hp_var = np.array([np.sqrt(h / (rt)) for h in hp])
 
@@ -249,10 +257,17 @@ def get_superpulses(dfp, dg, f_super):
         fwhm = upr_half - bot_half
         sig0 = fwhm / 2.355
         amp0 = np.amax(hp_rt) * fwhm
-        p_init = [amp0, bp[imax], sig0, bkg0]
-        p_fit, p_cov = pgf.fit_hist(pgf.gauss_bkg, hp_rt, bp,
+        
+        # 14 July 2021 Joule changed p_init to use outputs gauss_mode_with_max() b/c fit wasn't 
+        # working with previous initial guess
+        # p_init = [amp0, bp[imax], sig0, bkg0]
+        
+        pars, cov = pgf.gauss_mode_width_max(hp, bp, bpvars, n_bins=50)
+        p_init = [pars[2], pars[0], pars[1], 1]
+        p_fit, p_cov = pgf.fit_hist(pgf.gauss_bkg, hp, bp,
                                     var=hp_var, guess=p_init)
         amp, mu, sigma, bkg = p_fit
+        
 
         # select events within 1 sigma of the maximum
         # and pull the waveforms from the raw file to make a superpulse.
@@ -275,22 +290,25 @@ def get_superpulses(dfp, dg, f_super):
         idx_dc = np.where(np.abs(bl_ctr) < bl_thresh)
         pwfs = pwfs[idx_dc[0],:]
         bl_means = bl_means[idx_dc]
-        # print(pwfs.shape, bl_means.shape)
+        print(pwfs.shape, bl_means.shape)
 
         # baseline subtract (trp when leading (not trailing) dim is the same)
         wfs = (pwfs.transpose() - bl_means).transpose()
+        
+        # !!!!15 July 2021: Joule commented this out because somehow it makes superpulses 150 instead of 8192 samples!!!!
 
         # time-align all wfs at their 50% timepoint (tricky!).
         # adapted from pygama/sandbox/old_dsp/[calculators,transforms].py
         # an alternate approach would be to use ProcessingChain here
-        wf_maxes = np.amax(wfs, axis=1)
-        timepoints = np.argmax(wfs >= wf_maxes[:, None]*tp_align, axis=1)
-        wf_idxs = np.zeros([wfs.shape[0], n_pre + n_post], dtype=int)
-        row_idxs = np.zeros_like(wf_idxs)
-        for i, tp in enumerate(timepoints):
-            wf_idxs[i, :] = np.arange(tp - n_pre, tp + n_post)
-            row_idxs[i, :] = i
-        wfs = wfs[row_idxs, wf_idxs]
+        # wf_maxes = np.amax(wfs, axis=1)
+        # timepoints = np.argmax(wfs >= wf_maxes[:, None]*tp_align, axis=1)
+        # wf_idxs = np.zeros([wfs.shape[0], n_pre + n_post], dtype=int)
+        # row_idxs = np.zeros_like(wf_idxs)
+        # for i, tp in enumerate(timepoints):
+            # wf_idxs[i, :] = np.arange(tp - n_pre, tp + n_post)
+            # row_idxs[i, :] = i
+        # wfs = wfs[row_idxs, wf_idxs]
+        # print(f'len wfs: {len(wfs[1])}')
 
         # take the average to get the superpulse
         superpulse = np.mean(wfs, axis=0)
@@ -336,6 +354,7 @@ def get_superpulses(dfp, dg, f_super):
             plt.cla()
 
         # save the superpulse to our output file
+        print(f'length of superpulse: {len(superpulse)}')
         return superpulse
 
     dfp['superpulse'] = dfp.apply(analyze_pulser_run, axis=1)
