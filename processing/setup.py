@@ -227,7 +227,8 @@ def get_cyc_info(row, dg):
         2 : [57, 78],
         3 : [79, 84],
         4 : [85, 96],
-        5 : [97, 9999]
+        5 : [97, 235],
+        6 : [236, 9999]
         }
     row['dsp_id'] = 0
     for id, (rlo, rhi) in dsp_map.items():

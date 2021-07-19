@@ -59,6 +59,7 @@ def main():
     # pole_zero(dg)
     label_alpha_runs(dg)
     # power_spectrum(dg)
+    print('done.')
 
 
 def show_raw_spectrum(dg):
@@ -152,8 +153,8 @@ def show_cal_spectrum(dg):
     plt.ylabel('cts / sec', ha='right', y=1)
     plt.legend(loc=1, fontsize=12)
     plt.tight_layout()
-    plt.savefig('./plots/CalSpectrum.png')
     # plt.show()
+    plt.savefig('./plots/CalSpectrum.png')
 
 
 def show_wfs(dg):
@@ -185,7 +186,7 @@ def show_wfs(dg):
     # elo, ehi, epb = 0, 20, 0.2 # noise region
     elo, ehi, epb = 351, 355, 1 # 351 peak, cal
     # elo, ehi, epb = 1452, 1468, 1 # good physics events
-#     elo, ehi, epb = 7100, 7200, 1 # good physics events, uncal
+    # elo, ehi, epb = 7100, 7200, 1 # good physics events, uncal
     # elo, ehi, epb = 6175, 6250, 1 # overflow peak
     # elo, ehi, epb = 5000, 5200, 0.2 # lower overflow peak
 
@@ -239,11 +240,11 @@ def show_wfs(dg):
     plt.xlabel('time (clock ticks)', ha='right', x=1)
     plt.ylabel('ADC', ha='right', y=1)
 
-#     # plot alpha wfs
-#     for aiwf in range(alpha_wfs.shape[0]):
-#         plt.plot(ats, alpha_wfs[aiwf,:len(alpha_wfs[aiwf])-1], lw=1, color = 'red', label = 'Alpha')
-
-#     plt.title('Alpha versus bulk events')
+    # # plot alpha wfs
+    # for aiwf in range(alpha_wfs.shape[0]):
+    #     plt.plot(ats, alpha_wfs[aiwf,:len(alpha_wfs[aiwf])-1], lw=1, color = 'red', label = 'Alpha')
+    #
+    # plt.title('Alpha versus bulk events')
     plt.title('right 351 Wfs run 82')
     plt.xlabel('time (clock ticks)', ha='right', x=1)
     plt.ylabel('ADC', ha='right', y=1)
@@ -251,8 +252,8 @@ def show_wfs(dg):
     plt.ylim(9100, 10300)
     # plt.legend(loc='upper left')
     # plt.show()
-    plt.savefig('./plots/normScan/zoom_350_right_waveforms_run82.png', dpi=300)
     # plt.cla()
+    plt.savefig('./plots/normScan/zoom_350_right_waveforms_run82.png', dpi=300)
 
 
 def data_cleaning(dg):
