@@ -266,5 +266,21 @@
     "260":["2102-2105", "alp", "elog 363.  lin=8"],
     "261":["2106-2108", "alp", "elog 363.  lin=9"],
     "262":["2109-2114", "alp", "elog 363.  lin=10"],
-    "263":["2115-2138", "bkg", "elog 363.  overnight bkg at lin=10"]
+    "263":["2115-2138", "bkg", "elog 363.  overnight bkg at lin=10"],
+    "264":["2139", "alp", "elog 364. rotary centering scans.  rot=-20, lin=12, src=-180."],
+    "265":["2140", "alp", "elog 364. rot=-15"],
+    "266":["2141", "alp", "elog 364. rot=-30"],
+    "267":["2142", "alp", "elog 364. rot=-40"],
+    "268":["2143", "alp", "elog 364. rot=-50"],
+    "269":["2144", "alp", "elog 364. rot=-60"],
+    "270":["2145", "alp", "elog 364. rot=-70"],
+    "271":["2146", "alp", "elog 364. rot=-80"],
+    "272":["2147", "alp", "elog 364. rot=-90"],
+    "273":["2148", "alp", "elog 364. rot=-100"],
+    "274":["2149", "alp", "elog 364. rot=-110"],
+    "275":["2150", "alp", "elog 364. rot=-120"],
+    "276":["2151", "alp", "elog 364. rot=-130"],
+    "277":["2152-2182", "bkg", "elog 364. overnight background runs, rot=-130, source zeroed"],
+    "278":["2183", "alp", "elog 364. next day. rot=-140, src=-180"],
+    "279":["2184", "alp", "elog 364. rot=-10"]
 }
