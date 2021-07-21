@@ -128,7 +128,7 @@ def update(dg, batch_mode=False):
     """
     print('Updating fileDB ...')
 
-    dbg_cols = ['unique_key', 'run', 'cycle', 'daq_file']
+    dbg_cols = ['run', 'cycle', 'daq_file', 'raw_path', 'raw_file']
 
     # load existing file keys
     dg.load_df()
@@ -155,12 +155,11 @@ def update(dg, batch_mode=False):
     new_idx = new_keys.index
 
     if len(new_keys) > 0:
-        print('Found new files:')
-        print(new_keys)
 
-        print('Merging with existing fileDB:')
+        print('New addtions to fileDB:')
+        print(dg_new.fileDB.loc[new_idx][dbg_cols].to_string())
+
         df_upd = pd.concat([dg.fileDB, dg_new.fileDB.loc[new_idx]])
-        print(df_upd[dbg_cols])
 
         if not batch_mode:
             print("RunDB Check -- did you update runDB.json?  Are there any NaN's in filenames/paths above?")
