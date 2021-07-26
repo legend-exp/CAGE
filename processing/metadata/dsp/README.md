@@ -9,9 +9,9 @@ Common wf windows:
 ```
 
 Priority to optimize:
-1. wf_pz & wf_pzDCR
-2. wf_trap & trapEftp
-3. dcr_trap & dcr
+1. wf_pz (for energy) & wf_pzDCR (for DCR)
+3. wf_trap & trapEftp (both for energy)
+4. dcr_trap & dcr (for DCR)
 
 ```
 name --      -- function --      -- default inputs --
