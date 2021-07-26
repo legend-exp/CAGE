@@ -36,7 +36,7 @@ def main():
 
     # TODO: add a "delete existing entries matching this query" mode,
     # so we don't have to rescan the whole fileDB if we make a change to
-    # runDB.
+    # runDB. --> this is addressed by "fixit mode" below.
 
     # options
     arg('-b', '--batch', action=st, help='batch mode, do not ask for user y/n')
@@ -192,7 +192,6 @@ def get_cyc_info(row, dg):
                 if clo <= cyc <= chi:
                     row['run'] = run
                     row['runtype'] = cycles[1]
-                    # print(cyc, run)
                     break
             else:
                 clo = int(rng)
@@ -200,6 +199,10 @@ def get_cyc_info(row, dg):
                     row['run'] = run
                     row['runtype'] = cycles[1]
                     break
+
+    # if row.cycle > 2255:
+        # print(f'end of loop.  clo {clo}  cyc {cyc}  chi {chi}  run {run}')
+        # print(row.to_frame().T)
 
     # label the detector (when hardware iteration changes)
     det_name = 'none'
