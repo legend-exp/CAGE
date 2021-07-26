@@ -2,13 +2,14 @@
   "outputs": [
     "channel", "timestamp", "energy",
     "bl", "bl_sig", "bl_slope_ftp", "bl_mean", "bl_sig", "bl_slope", "bl_int",
-
-    "trapEftp", "trapEmax", "triE",
-    "tp_max", "tp_0", "tp_02", "tp_05", "tp_10", "tp_20", "tp_30", "tp_40", "tp_50", "tp_60", "tp_70", "tp_80", "tp_90", "tp_96",
-    "A_10", "AoE", "dcr", "wf_max", "wf_argmax", "trapE_argmax", "hf_max", "lf_max", "ToE",
-
-
-    "logtail_mean", "logtail_sig", "logtail_slope", "logtail_int"
+    "wf_max", "wf_argmax", "fltp2", "fltp2_sig", "fltpDCR", "fltpDCR_sig",
+    "trapEmax", "trapE_argmax", "atrap_max", "tp_0", "trapEftp",
+    "dcr", "dcr_trap_max", "ct_corr",  "lt_mean", "lt_sig", "lt_slope", "lt_int",
+    "A_10", "AoE", "triE", "ToE",
+    "hf_max", "lf_max",
+    "tp_max", "tp_02", "tp_05", "tp_10", "tp_20", "tp_30", "tp_40", "tp_50",
+    "tp_60", "tp_70", "tp_80", "tp_90", "tp_96",
+    ""
   ],
   "processors":{
     "bl, bl_sig":{
@@ -187,10 +188,10 @@
       "unit": "ADC",
       "prereqs": ["wf_blsub"]
     },
-    "logtail_mean, logtail_sig, logtail_slope, logtail_int": {
+    "lt_mean, lt_sig, lt_slope, lt_int": {
         "function": "linear_slope_fit",
         "module": "pygama.dsp.processors",
-        "args": ["log_tail", "logtail_mean", "logtail_sig", "logtail_slope", "logtail_int"],
+        "args": ["log_tail", "lt_mean", "lt_sig", "lt_slope", "lt_int"],
         "unit": ["ADC", "ADC", "ADC", "ADC"],
         "prereqs": ["log_tail"]
     },
