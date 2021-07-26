@@ -3,7 +3,7 @@ import os, sys
 import json
 import numpy as np
 from pprint import pprint
-import matplotlib as mpl
+# import matplotlib as mpl
 # mpl.use('Agg')
 import matplotlib.pyplot as plt
 
@@ -34,18 +34,22 @@ pz2_grid = ParGrid()
 # -- RC time constant, main component --
 # tau1_values = np.linspace(180, 190, 10)
 # tau1_values = np.linspace(45, 48, 5)
-tau1_values = np.linspace(49, 53, 10) # july 2021 -- campaign 2
+# tau1_values = np.linspace(50, 53, 8) # campaign 2
+tau1_values = np.linspace(50, 53, 4) # campaign 2 -- quick
 tau1_values = [ f'{tau:.2f}*us' for tau in tau1_values]
 pz2_grid.add_dimension('wf_pz2', 1, tau1_values)
 
 # -- RC time constant #2, fast component --
-tau2_values = np.linspace(2, 6, 5)
+# tau2_values = np.linspace(2, 6, 5)
+# tau2_values = np.linspace(2, 5, 8) # campaign 2
+tau2_values = np.linspace(2, 5, 2) # campaign 2 -- quick
 tau2_values = [ f'{tau:.2f}*us' for tau in tau2_values]
 pz2_grid.add_dimension('wf_pz2', 2, tau2_values)
 
 # -- fraction that time constant #2 should contribute --
 # frac_values = np.linspace(0.025, 0.045, 6)
-frac_values = np.linspace(0.2, 0.6, 5)
+# frac_values = np.linspace(0.2, 0.6, 5) # campaign 2
+frac_values = np.linspace(0.2, 0.6, 2) # campaign 2 -- quick
 frac_values = [ f'{frac:.3f}' for frac in frac_values]
 pz2_grid.add_dimension('wf_pz2', 3, frac_values)
 
@@ -60,10 +64,8 @@ def fltp_sig_mean(tb_out, verbosity):
 energy_name = 'energy'
 range_name = '40K_1460'
 
-print('Setup complete!  ParGrid is:')
-# print(pz2_grid.get_par_meshgrid())
-print(pz2_grid)
-# exit()
+ngrid = pz2_grid.get_n_grid_points()
+print(f'Setup complete!  ParGrid will simulate {ngrid} points.')
 
 # loop over detectors
 detectors = [f'oppi_{dsp_id}']
@@ -86,8 +88,6 @@ for detector in detectors:
     # pprint(db_dict)
     # exit()
 
-    print('Running grid scan over', pz2_grid.get_n_grid_points(), 'points ...')
-    exit()
     grid_values = run_grid(tb_data, dsp_config, pz2_grid, fltp_sig_mean, db_dict=db_dict, verbosity=1)
 
     # analyze the results
