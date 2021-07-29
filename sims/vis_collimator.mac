@@ -9,7 +9,7 @@
 
 # Use RayTracerX
 #/vis/open RayTracerX
-/vis/open OGLSXm
+/vis/open OGLSX
 
 #/vis/drawVolume
 
@@ -71,9 +71,9 @@
 /gps/pos/halfy 3.5 mm
 /gps/pos/halfz 0.0005 mm
 
-/gps/pos/rot1 1 0 0
-/gps/pos/rot2 0 0.70711 0.70711
-/gps/pos/centre 0.0 -15.182 3.182 mm
+/gps/pos/rot1 1 0 0 
+/gps/pos/rot2 0 1.00000 0.00000
+/gps/pos/centre 0.0 12.000 4.500 mm 
 
 /run/beamOn 5
 
@@ -87,7 +87,7 @@
 
 
 
-/vis/ogl/printEPS
+#/vis/ogl/printEPS
 /vis/ogl/set/printMode vectored
 /vis/ogl/set/printFilename ogPrint.pdf
 /vis/ogl/export

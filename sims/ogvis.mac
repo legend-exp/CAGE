@@ -1,7 +1,8 @@
 # use QGSP_BERT just to have something - this one loads fast.
 /g4simple/setReferencePhysList QGSP_BERT
 
-/g4simple/setDetectorGDML ./geometries/OPPI_ring_y10_45deg_241Am.gdml false
+
+/g4simple/setDetectorGDML ./geometries/mothers/oppi/centering_scan/y12_thetaDet90_rotary-100_241Am_100000000.gdml false
 #/g4simple/setDetectorGDML ./geometries/translations_gscanner_241Am.gdml false
 
 /run/initialize
@@ -9,7 +10,7 @@
 # Use RayTracerX
 #/vis/open RayTracerX
 #/vis/open OGL
-/vis/open OGLSXm
+/vis/open OGLSX
 
 
 
@@ -23,7 +24,7 @@
 # Camera setting
 /vis/viewer/set/style surface
 /vis/viewer/set/upVector 0 0 1
-/vis/viewer/set/viewpointThetaPhi 90 17.9
+/vis/viewer/set/viewpointThetaPhi 70 17.9
 #/vis/viewer/set/viewpointThetaPhi 0 0
 #/vis/viewer/set/viewpointThetaPhi 90 0
 /vis/viewer/set/background white 1.
@@ -59,9 +60,9 @@
 /gps/pos/halfy 3.5 mm
 /gps/pos/halfz 0.0005 mm
 
-/gps/pos/rot1 1 0 0
-/gps/pos/rot2 0 0.70711 0.70711
-/gps/pos/centre 0.0 -15.182 3.182 mm
+/gps/pos/rot1 1 0 0 
+/gps/pos/rot2 0 1.00000 0.00000
+/gps/pos/centre 0.0 12.000 4.500 mm 
 
 /run/beamOn 5
 
@@ -75,7 +76,7 @@
 
 
 
-/vis/ogl/printEPS
-/vis/ogl/set/printMode vectored
+#/vis/ogl/printEPS
+#/vis/ogl/set/printMode vectored
 /vis/ogl/set/printFilename ogPrint.pdf
 /vis/ogl/export

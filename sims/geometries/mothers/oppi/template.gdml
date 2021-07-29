@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no" ?>
 <gdml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://service-spi.web.cern.ch/service-spi/app/releases/GDML/schema/gdml.xsd">
 
-##########################################
+<!--##########################################
 
 This file is a "mother file" to insert other gdml file geometries into.
 This file itself contains a vacuum inside of a larger world. GDML Modules are inserted as physical volumes
@@ -14,7 +14,7 @@ In the simulations, the rotation axis of the source is the 'x-axis'. Depending o
 
 See these elogs for more diagrams and information: https://elog.legend-exp.org/UWScanner/159; https://elog.legend-exp.org/UWScanner/182
 
-##########################################
+########################################## -->
 
  <define>
 
@@ -54,7 +54,7 @@ See these elogs for more diagrams and information: https://elog.legend-exp.org/U
 
  </define>
 
-##########################################
+<!--##########################################-->
 
  <materials>
 
@@ -67,7 +67,7 @@ See these elogs for more diagrams and information: https://elog.legend-exp.org/U
 
  </materials>
 
-##########################################
+<!--##########################################-->
 
 <solids>
 
@@ -77,7 +77,7 @@ See these elogs for more diagrams and information: https://elog.legend-exp.org/U
 
  </solids>
 
-##########################################
+<!--##########################################-->
 
  <structure>
 
@@ -170,7 +170,7 @@ See these elogs for more diagrams and information: https://elog.legend-exp.org/U
 
  </structure>
 
-##########################################
+<!--##########################################-->
 
  <setup name="Default" version="1.0">
   <world ref="world"/>

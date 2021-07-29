@@ -18,10 +18,10 @@ def main():
 
     calculate_CollClearances()
 
-    # positionCalc(y_final=31, theta_det=60., icpc=False)
+    positionCalc(y_final=12, theta_det=90., icpc=False)
     # rotaryCalc(radius=12.0, d_theta = 10.0)
     # maxRotation(min_clearance_toLMFE=5.0, icpc=False)
-    checkRotation(theta_det=45., min_clearance_toLMFE=4.0)
+    # checkRotation(theta_det=63.89, min_clearance_toLMFE=5.0)
     # thetaCalc(y_final=12., icpc=False)
 
 def positionCalc(y_final, theta_det, icpc=True):
@@ -38,7 +38,7 @@ def positionCalc(y_final, theta_det, icpc=True):
     ditch_depth = 2. # ditch depth for ICPC in mm
     rotAxis_toSource_height = 4.5 # height difference in mm from the rotation axis to where the activity is located
     if icpc==False:
-        rotAxis_height = 22.0 # height for OPPI in mm from top of detector to rotation axis, which is (0, 0, 0) in the mother geometry of the simulation
+        rotAxis_height = 24.8 # height for OPPI in mm from top of detector to rotation axis, which is (0, 0, 0) in the mother geometry of the simulation
         print('Using OPPI axis height: % .1f' %rotAxis_height)
     else:
         rotAxis_height = 22.5 # height in mm from top of detector to rotation axis, which is (0, 0, 0) in the mother geometry of the simulation
