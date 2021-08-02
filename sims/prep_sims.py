@@ -15,9 +15,9 @@ def main():
 
     G. Othman
     """
-    radius = [12]
+    radius = [5, 6, 7, 8, 9, 10]
     source_angle = [90]
-    rotary = [-10, -15, -20,-30, -40, -50, -60, -70, -80, -90, -100, -110, -120, -130, -140]
+    rotary = [0, 180, 145]
 #     rotary = np.linspace(4, 144, 15)
     # print(rotary)
     # exit()

@@ -2,7 +2,7 @@
 /g4simple/setReferencePhysList QGSP_BERT
 
 
-/g4simple/setDetectorGDML ./geometries/mothers/oppi/centering_scan/y12_thetaDet90_rotary-100_241Am_100000000.gdml false
+/g4simple/setDetectorGDML ./geometries/mothers/oppi/centering_scan/y5_thetaDet90_rotary-145_241Am_100000000.gdml false
 #/g4simple/setDetectorGDML ./geometries/translations_gscanner_241Am.gdml false
 
 /run/initialize
