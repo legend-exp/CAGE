@@ -6,7 +6,7 @@ import pandas as pd
 from datetime import datetime
 
 import matplotlib.pyplot as plt
-plt.style.use("clint.mpl")
+#plt.style.use("clint.mpl")
 import matplotlib.dates as md
 
 # silence annoying warning about plotting pd.datetime objects with mpl

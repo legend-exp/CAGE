@@ -237,6 +237,11 @@
     "232":["1894", "alp", "elog 308. r=30, source at -150, IA=60, rotary -145"],
     "233":["1895-1905", "bkg", "elog 308. ~ 5 hour background runs, linear 11.3 mm (r=30 position for IA=60), rotary -145. ORCA crashed overnight. 1905 junk"],
     "234":["1906-1908", "ba133", "elog 312-313.  About 10 min Ba run to end scan campaign, debug energy_cal at low E"],
+<<<<<<< HEAD
+    "235":["1914", "ba133", "elog 361.  Ba run before tuning preamp"],
+    "236":["1915", "ba133", "elog 361.  Ba run after tuning preamp"],
+    "237":["1916-1921", "bkg", "elog 361.  ~2 hour background run, all motors zeroed"]
+=======
     "235":["1909-1913", "bkg", "elog 334.  Noise test runs"],
 
     "236":["1914", "ba133", "elog 361.  Ba run before tuning preamp"],
@@ -309,4 +314,5 @@
     "302":["2266-2272", "alp", "elog 364. rot=-90 skip 2266-2271, noise issues."],
     "303":["2273", "alp", "elog 364. rot=-80"],
     "304":["2274", "alp", "elog 364. rot=-70.  detector was noisy, decided to discontinue scan"]
+>>>>>>> 71cd49c729af8c2cb6edc54fb014e2591df8a98a
 }
