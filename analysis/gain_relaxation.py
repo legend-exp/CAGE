@@ -89,7 +89,7 @@ def find_1460(timestamps, trapEftp):
     ind = np.unravel_index(np.argmax(ehist), ehist.shape)
     return e_edges[ind[1]]
 
-def hist_1460_in_run(dg, lh5_dir=lh5_dir, plot=False):    
+def hist_1460_in_run(dg, plot=False):    
     cycles = dg['cycle'].unique()
 
     f_dsp = f"{lh5_dir}/dsp/{dg['dsp_file'].iloc[-1]}"
@@ -149,13 +149,14 @@ def hist_1460_in_run(dg, lh5_dir=lh5_dir, plot=False):
 
         ax2.hist2d(bx, by, bins=[time_bins, bl_bins], weights=np.ravel(blhists))
         ax2.set(xlabel='Timestamp (s)', ylabel='Baseline (adu)')
-        
+
         plt.show()
+        
     return ehists, blhists, time_bins, energy_bins, bl_bins
 
 #dates should be a string in the format YYYY-MM-DDTHH:MM in UTC (will maybe support timezones later)
 #e.g. 2021-06-26T15:00
-def hist_1460_over_time(dg, start_date, end_date, lh5_dir=lh5_dir, plot=True):
+def hist_1460_over_time(dg, start_date, end_date, plot=True):
     time_intervals = 900 
     dt_start = dt.fromisoformat(start_date)
     dt_start = dt_start.replace(tzinfo=timezone.utc)
@@ -221,10 +222,11 @@ def hist_1460_over_time(dg, start_date, end_date, lh5_dir=lh5_dir, plot=True):
             start_label = start_label.replace(day=(dt_start.date().day+1), hour=0, minute=0)
             
         start_label = start_label.replace(tzinfo=None)
-        xlabels = [start_label + timedelta(hours=j*24) for j in range(int((time_end-time_start)/(24*3600)))]
+        xlabels = [start_label + timedelta(hours=j*12) for j in range(int((time_end-time_start)/(12*3600)))]
         xticks = [dt.timestamp(xlabels[j]) for j in range(len(xlabels))]
         ax.set_xticks(xticks)
         ax.set_xticklabels([xlabels[j].strftime('%Y-%m-%dT%H:%M') for j in range(len(xlabels))], rotation=45, ha='right')
+        plt.savefig(f'plots/1460_{start_date}_{end_date}.jpg')
  
     return ehists
 
