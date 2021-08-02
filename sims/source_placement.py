@@ -16,12 +16,12 @@ def main():
     # set icpc=False if scanning a PPC (or other detector with no ditch)-- But note, all other dimensions must be updated first for the output to be correct!!
     # All dimensions in mm, angles in deg
 
-    # calculate_CollClearances()
+    calculate_CollClearances()
 
-    # positionCalc(y_final=31, theta_det=60., icpc=False)
+    positionCalc(y_final=12, theta_det=90., icpc=False)
     # rotaryCalc(radius=12.0, d_theta = 10.0)
     # maxRotation(min_clearance_toLMFE=5.0, icpc=False)
-    checkRotation(theta_det=45., min_clearance_toLMFE=4.0)
+    # checkRotation(theta_det=63.89, min_clearance_toLMFE=5.0)
     # thetaCalc(y_final=12., icpc=False)
 
 def positionCalc(y_final, theta_det, icpc=True):
@@ -38,7 +38,7 @@ def positionCalc(y_final, theta_det, icpc=True):
     ditch_depth = 2. # ditch depth for ICPC in mm
     rotAxis_toSource_height = 4.5 # height difference in mm from the rotation axis to where the activity is located
     if icpc==False:
-        rotAxis_height = 22.0 # height for OPPI in mm from top of detector to rotation axis, which is (0, 0, 0) in the mother geometry of the simulation
+        rotAxis_height = 24.8 # height for OPPI in mm from top of detector to rotation axis, which is (0, 0, 0) in the mother geometry of the simulation
         print('Using OPPI axis height: % .1f' %rotAxis_height)
     else:
         rotAxis_height = 22.5 # height in mm from top of detector to rotation axis, which is (0, 0, 0) in the mother geometry of the simulation
@@ -112,7 +112,7 @@ def thetaCalc(y_final, icpc=True):
     rad_to_deg = 180./pi
 
     if icpc==False:
-        rotAxis_height = 22.0 # height for OPPI in mm from top of detector to rotation axis, which is (0, 0, 0) in the mother geometry of the simulation
+        rotAxis_height = 24.8 # height for OPPI in mm from top of detector to rotation axis, which is (0, 0, 0) in the mother geometry of the simulation
         print('Using OPPI axis height: % .1f' %rotAxis_height)
     else:
         rotAxis_height = 22.5 # height in mm from top of detector to rotation axis, which is (0, 0, 0) in the mother geometry of the simulation
@@ -207,7 +207,7 @@ def checkRotation(theta_det, min_clearance_toLMFE=5.0, icpc=False):
         height_det_to_LMFE = 7.0 # height in mm between hieghest point of LMFE and detector surface
         print('Calculating maximum ratoation angle for ICPC')
     else:
-        rotAxis_height = 22.0 # height in mm from top of detector to rotation axis, which is (0, 0, 0) in the mother geometry of the simulation
+        rotAxis_height = 24.8 # height in mm from top of detector to rotation axis, which is (0, 0, 0) in the mother geometry of the simulation
         height_det_to_LMFE = 8.0 # height in mm between hieghest point of LMFE and detector surface. Jason estimated 7.89 ± 0.26 mm in elog 324
         print('Calculating maximum rotation angle for OPPI')
 
@@ -233,10 +233,10 @@ def calculate_CollClearances():
     # Longest distances between G10 shaft and various points of collimator.
     # Already taken care of in other parts of the code, so not necessary for other functions.
     # I just got tired of doing this manually.
-    shaft_to_attenuator = 1. #mm. since G10 shaft, hence rotation axis, is actually about 1 mm below lower part of "attenuator" part of collimator
-    shaft_to_bottom = 7. #mm Perpendicular distance between bottom edge of collimator and g10 shaft
-    shaft_to_top = 10. # mm. Perpendicular distance between top part of attenuator and g10 shaft
-    atten_Radius = 16. # mm.radius of the attenuator part of collimator
+    shaft_to_attenuator = 0.125 #mm. since G10 shaft, hence rotation axis, is actually about 1 mm below lower part of "attenuator" part of collimator
+    shaft_to_bottom = 6.75-0.125 #mm Perpendicular distance between bottom edge of collimator and g10 shaft
+    shaft_to_top = 9.875 # mm. Perpendicular distance between top part of attenuator and g10 shaft
+    atten_Radius = 15.875 # mm.radius of the attenuator part of collimator
     coll_radius = 5. # mm. radius of lower (collimator) part of collimator
 
 

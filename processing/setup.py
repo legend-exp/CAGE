@@ -15,6 +15,7 @@ with warnings.catch_warnings():
     from tqdm import tqdm
     tqdm.pandas() # suppress annoying FutureWarning
 
+
 def main():
     doc="""
     Create and maintain the 'fileDB' needed by DataGroup.
@@ -32,16 +33,17 @@ def main():
     arg('-u', '--update', action=st, help='rescan DAQ dir, update existing fileDB')
     arg('--orca', action=st, help='scan ORCA XML headers of DAQ files')
     arg('--rt', action=st, help='get runtimes (requires dsp file)')
-    
-    # TODO: add a "delete existing entries matching this query" mode, 
-    # so we don't have to rescan the whole fileDB if we make a change to 
-    # runDB.
+
+    # TODO: add a "delete existing entries matching this query" mode,
+    # so we don't have to rescan the whole fileDB if we make a change to
+    # runDB. --> this is addressed by "fixit mode" below.
 
     # options
     arg('-b', '--batch', action=st, help='batch mode, do not ask for user y/n')
     arg('--show', action=st, help='show current on-disk fileDB')
     arg('-o', '--over', action=st, help='overwrite existing fileDB')
     arg('--lh5_user', action=st, help='use $CAGE_LH5_USER over $CAGE_LH5')
+    arg('-ff', '--fixit', action=st, help='special: run fix-it mode for fileDB')
 
     args = par.parse_args()
 
@@ -55,6 +57,7 @@ def main():
     if args.update: update(dg, args.batch)
     if args.orca: scan_orca_headers(dg, args.over, args.batch)
     if args.rt: get_runtimes(dg, args.over, args.batch)
+    if args.fixit: fix_fileDB(dg)
 
 
 def show_fileDB(dg):
@@ -73,6 +76,7 @@ def show_fileDB(dg):
     dg.load_df()
 
     dbg_cols = ['run', 'cycle', 'unique_key', 'runtype', 'dsp_id']
+    dbg_cols.extend(['daq_dir', 'raw_path', 'raw_file'])
 
     if 'startTime' in dg.fileDB.columns:
         dbg_cols += ['startTime']
@@ -124,7 +128,7 @@ def update(dg, batch_mode=False):
     """
     print('Updating fileDB ...')
 
-    dbg_cols = ['unique_key', 'run', 'cycle', 'daq_file']
+    dbg_cols = ['run', 'cycle', 'daq_file', 'raw_path', 'raw_file']
 
     # load existing file keys
     dg.load_df()
@@ -135,11 +139,14 @@ def update(dg, batch_mode=False):
     dg_new.scan_daq_dir()
     dg_new.fileDB.sort_values(['cycle'], inplace=True)
     dg_new.fileDB.reset_index(drop=True, inplace=True)
+
+    # add standard columns
     dg_new.fileDB = dg_new.fileDB.apply(get_cyc_info, args=[dg_new], axis=1)
     dg_new.get_lh5_cols()
+
     for col in ['run', 'cycle']:
         dg_new.fileDB[col] = pd.to_numeric(dg_new.fileDB[col])
-    # print(dg_new.fileDB[dbg_cols])
+    print(dg_new.fileDB[dbg_cols])
 
     # identify new keys, save new indexes
     df1 = dg.fileDB['unique_key']
@@ -148,12 +155,11 @@ def update(dg, batch_mode=False):
     new_idx = new_keys.index
 
     if len(new_keys) > 0:
-        print('Found new files:')
-        print(new_keys)
 
-        print('Merging with existing fileDB:')
+        print('New addtions to fileDB:')
+        print(dg_new.fileDB.loc[new_idx][dbg_cols].to_string())
+
         df_upd = pd.concat([dg.fileDB, dg_new.fileDB.loc[new_idx]])
-        print(df_upd[dbg_cols])
 
         if not batch_mode:
             print("RunDB Check -- did you update runDB.json?  Are there any NaN's in filenames/paths above?")
@@ -194,6 +200,10 @@ def get_cyc_info(row, dg):
                     row['runtype'] = cycles[1]
                     break
 
+    # if row.cycle > 2255:
+        # print(f'end of loop.  clo {clo}  cyc {cyc}  chi {chi}  run {run}')
+        # print(row.to_frame().T)
+
     # label the detector (when hardware iteration changes)
     det_name = 'none'
     det_map = {
@@ -209,7 +219,7 @@ def get_cyc_info(row, dg):
     # apply file selection
     skips = dg.runSelectionDB['daq_junk_cycles']
     row['skip'] = cyc in skips
-    
+
     # apply DSP config labeling by run (when electronics config changes)
     # elog: https://elog.legend-exp.org/UWScanner/320
     # Ideally these boundaries are continuous, but if the current run isn't
@@ -217,9 +227,10 @@ def get_cyc_info(row, dg):
     dsp_map = {
         1 : [36, 56],
         2 : [57, 78],
-        3 : [79, 84], 
+        3 : [79, 84],
         4 : [85, 96],
-        5 : [97, 9999]
+        5 : [97, 235],
+        6 : [236, 9999]
         }
     row['dsp_id'] = 0
     for id, (rlo, rhi) in dsp_map.items():
@@ -426,6 +437,70 @@ def get_runtimes(dg, overwrite=False, batch_mode=False):
         dg.fileDB = df_keys
         dg.save_df(os.path.expandvars(dg.config['fileDB']))
         print('fileDB updated.')
+
+
+def fix_fileDB(dg):
+    """
+    ./setup.py -ff
+    sometimes the fileDB can get corrupted in places.
+    here's a function which can be modified to fix various issues without
+    deleting the existing fileDB.
+    """
+    # load existing fileDB
+    dg.load_df()
+
+    # accidentally forgot to run get_lh5_columns when I updated the fileDB.
+    # print(dg.fileDB.columns)
+
+    df1 = dg.fileDB.query('raw_path == raw_path') # no nan's
+    df2 = dg.fileDB.query('raw_path != raw_path') # nan's
+
+    dg2 = DataGroup('$CAGE_SW/processing/cage.json')
+    dg2.fileDB = df2
+
+    # clone of pygama/analysis/datagroup.py :: get_lh5_columns
+    def get_files(row):
+        tmp = row.to_dict()
+        for tier in dg2.tier_dirs:
+
+            # get filename
+            tmp['tier'] = tier
+
+            # leave subsystem unspecified
+            if dg2.subsystems != ['']:
+                tmp['sysn'] = '{sysn}'
+
+            # set the filename.  might have a '{sysn}' string present
+            row[f'{tier}_file'] = dg2.lh5_template.format_map(tmp)
+
+            # compute file path.
+            # daq_to_raw outputs a file for each subsystem, and we
+            # handle this here by leaving a regex in the file string
+            path = f'/{tier}'
+            if dg2.subsystems != [""]:
+                path += '/{sysn}'
+            if row['runtype'] in dg2.run_types:
+                path += f"/{row['runtype']}"
+
+            row[f'{tier}_path'] = path
+        return row
+
+    dg2.fileDB = dg2.fileDB.apply(get_files, axis=1)
+    # print(dg2.fileDB)
+
+    tmp = pd.concat([df1, dg2.fileDB])
+    dg.fileDB = tmp
+
+    print('New fileDB:')
+    print(dg.fileDB)
+
+    print('Ready to save.  This will overwrite any existing fileDB.')
+    ans = input('Save updated fileDB? (y/n):')
+    if ans.lower() == 'y':
+        dg.save_df(os.path.expandvars(dg.config['fileDB']))
+        print('fileDB updated.')
+
+
 
 
 if __name__=='__main__':
