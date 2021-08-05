@@ -308,5 +308,7 @@
     "301":["2264-2265", "alp", "elog 364. rot=-100.  2264 may have a noise burst at end of run"],
     "302":["2266-2272", "alp", "elog 364. rot=-90 skip 2266-2271, noise issues."],
     "303":["2273", "alp", "elog 364. rot=-80"],
-    "304":["2274", "alp", "elog 364. rot=-70.  detector was noisy, decided to discontinue scan"]
+    "304":["2274", "alp", "elog 364. rot=-70.  detector was noisy, decided to discontinue scan"],
+    "305":["2275-2276", "alp", "elog 371. rot=0, centered linear, normal source. C23 tuned to give slow pulses"],
+    "306":["2277-2282", "bkg", "elog 371. C23 tuned back to fast pulses, long waveforms"]
 }
