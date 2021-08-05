@@ -44,6 +44,8 @@ fi
 # shifter python processing.py -q 'run >= 297 and run <= 304' --d2r
 # shifter python setup.py --orca --rt -b
 
+# energy cal command (doesn't really need a whole job, but for posterity this is what i did)
+# shifter python energy_cal.py -q 'run>=238 and run <=303' -b -p --all
 
 # -- Campaign 1 workspace --
 
