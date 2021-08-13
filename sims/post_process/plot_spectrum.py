@@ -7,30 +7,36 @@ from scipy.optimize import curve_fit
 import matplotlib.pyplot as plt
 import h5py
 import pandas as pd
-import ROOT
 import sys
 from particle import PDGID
-matplotlib.rcParams['text.usetex'] = True
+#matplotlib.rcParams['text.usetex'] = True
+import matplotlib as mpl
+mpl.use('Agg') # if on Cori
 
 def main():
 
-	processed_dir = '../alpha/processed_out/oppi/source_angle_scan/'
-	file = 'processed_y15_thetaDet90_rotary0_241Am_100000000.hdf5'
+	# processed_dir = '../alpha/processed_out/oppi/source_angle_scan/'
+	# file = 'processed_y15_thetaDet90_rotary0_241Am_100000000.hdf5'
 
-	processed_filename = processed_dir + file
+	# processed_filename = processed_dir + file
+    
+#     processed_filename = '../alpha/processed_out/oppi/centering_scan/processed_y10_norm_rotary0_241Am_100000000.hdf5'
+    
+    processed_filename = '../alpha/processed_out/oppi/systematics/processed_oppi_ring_y10_norm_241Am_100000000.hdf5'
+#     processed_filename = '../alpha/processed_out/oppi/source_angle_scan/processed_y15_thetaDet90_rotary0_241Am_100000000.hdf5'
 
 
 
+    plotDepth_alpGamma(processed_filename)
 
-
-	# plotHist(processed_filename)
+    # plotHist(processed_filename)
 	# post_process(filename, processed_filename, source=False)
 	# plotSpot(processed_filename, source=False, plot_title = 'Spot Size from $^{241}$Am (10$^8$ Primaries) \n90 deg at 15 mm', particle = 'all')
 	# ZplotSpot(filename)
 	# spot_curve()
-	plot1DSpot(processed_filename, axis='y', particle='alpha')
+	# plot1DSpot(processed_filename, axis='y', particle='alpha')
 	# plot2Dhist(processed_filename, nbins=500, plot_title = 'Spot Size from $^{241}$Am (10$^8$ Primaries) \nalphas only; 90 deg at 15 mm', source=False, particle = 'alpha')
-	# plotDepth(processed_filename, source=False, particle = 'all', plot_title='65 deg, 14mm, $10^8$ primaries')
+    # plotDepth(processed_filename, source=False, hist=True, particle = 'alpha', plot_title='normal incidence, 10 mm, $10^8$ primaries \nalphas')
 	# plotContour(processed_filename, source=False, particle = 'all')
 	# testFit(filename)
 	# getCounts(processed_filename)
@@ -169,43 +175,28 @@ def plotRate(radius, elo, ehi):
 	plt.show()
 
 def plotHist(filename):
-	# df = pandarize(filename)
-	pctResAt1MeV = 0.5 #0.5% energy resolution
-	df = pd.read_hdf(filename, keys='procdf')
-	# apply energy resolution function
-	# df['energy'] = df['energy'] + np.sqrt(df['energy'])*pctResAt1MeV/100.*np.random.randn(len(df['energy']))
-	energy = np.array(df['energy']*1000)
-
-	# print(energy)
-	# exit()
-	# pid = np.array(df['pid'])
-
-
-	# alpha_df = df.loc[df.energy > 5]
-	# energy = np.array(alpha_df['energy']*1000)
-	# energy = np.array(df['energy']*1000)
-	# print(tmp['pid'].astype(int).unique)
-	# print(df['pid'].astype(int).unique)
-	# exit()
-	# x = np.array(df['x'])
-	# y = np.array(df['y'])
-	# z = np.array(df['z'])
-
-	# x = np.array(alpha_df['x'])
-	# y = np.array(alpha_df['y'])
-	# z = np.array(alpha_df['z'])
-
-	# fig, ax = plt.subplots()
-	fig, ax = plt.subplots(figsize=(10,8))
-	plt.hist(energy, range = [0, 100], bins=200)
-	plt.yscale('log')
-	ax.set_xlabel('Energy (keV)', fontsize=16)
-	ax.set_ylabel('Counts/2 keV', fontsize=16)
-	plt.setp(ax.get_xticklabels(), fontsize=14)
-	plt.setp(ax.get_yticklabels(), fontsize=14)
-	# plt.title('Collimated, $^{241}$Am 7*10$^5$ Primaries, 16 mm above detector', fontsize=18)
-	plt.title('$^{241}$Am 10$^8$ Primaries, normal incidence at 9 mm, 0.5 keV bins, assuming 0.5\% resolution', fontsize=18)
-	plt.show()
+    pctResAt1MeV = 0.1 #0.5% energy resolution
+    df = pd.read_hdf(filename, keys='procdf')
+    # apply energy resolution function
+#     df['energy'] = df['energy'] + np.sqrt(df['energy'])*pctResAt1MeV/100.*np.random.randn(len(df['energy']))
+    energy = np.array(df['energy']*1000)
+    
+    fig, ax = plt.subplots(figsize=(10,8))
+    
+    elo, ehi, epb = 5000, 6000, 10 
+    nbx = int((ehi-elo)/epb)
+    
+    energy_hist, ebins = np.histogram(energy, bins=nbx,
+                range=[elo, ehi])
+    plt.plot(ebins[1:], energy_hist, ds='steps', c='b', lw=1) 
+    ax.set_xlabel('Energy (keV)', fontsize=16)
+    ax.set_ylabel('Counts/10 keV', fontsize=16)
+    plt.setp(ax.get_xticklabels(), fontsize=14)
+    plt.setp(ax.get_yticklabels(), fontsize=14)
+    # plt.title('Collimated, $^{241}$Am 7*10$^5$ Primaries, 16 mm above detector', fontsize=18)
+    plt.title('$^{241}$Am 10$^8$ Primaries, normal incidence at 10 mm \nassuming 0.5% resolution', fontsize=18)
+    # plt.show()
+    plt.savefig('./energy_hist_alphas_res.png')
 
 def ZplotSpot(filename):
 	# df = pandarize(filename)
@@ -532,63 +523,140 @@ def old_plotContour(filename, source=False, particle = 'all'):
 		x_source = np.array(source_df['x'])
 		print(len(x_source))
 
-def plotDepth(filename, plot_title, source=False, particle = 'all'):
-
-	df = pd.read_hdf(filename, keys='procdf')
-	df = df.loc[(df.x > -0.25) & (df.x < 0.25) & df.energy > 0.01]
-
-
-	if particle == 'all':
-		x = np.array(df['x'])
-		y = np.array(df['y'])
-		z = np.array(df['z'])
-		energy = np.array(df['energy']*1000)
-
-	elif particle == 'alpha':
-		alpha_df = df.loc[df.energy > 5]
-		x = np.array(alpha_df['x'])
-		y = np.array(alpha_df['y'])
-		z = np.array(alpha_df['z'])
-		energy = np.array(alpha_df['energy']*1000)
-
-	elif particle == 'gamma':
-		gamma_df = df.loc[(df.energy > .04) & (df.energy < 0.08)]
-		x = np.array(gamma_df['x'])
-		y = np.array(gamma_df['y'])
-		z = np.array(gamma_df['z'])
-		energy = np.array(gamma_df['energy']*1000)
-
-
-	else:
-		print('specify particle type!')
-		exit()
-
-	z = z + 22.5 #make surface at 0 z depth
+def plotDepth(filename, plot_title, source=False, particle = 'all', hist=True):
+    df = pd.read_hdf(filename, keys='procdf')
+    # df = df.loc[(df.x > -0.25) & (df.x < 0.25) & df.energy > 0.01]
+    
+    if particle == 'all':
+        x = np.array(df['x'])
+        y = np.array(df['y'])
+        z = np.array(df['z'])
+        energy = np.array(df['energy']*1000)
+        
+    elif particle == 'alpha':
+        alpha_df = df.query('(energy > 5.3) and (energy < 5.6)').copy()
+        x = np.array(alpha_df['x'])
+        y = np.array(alpha_df['y'])
+        z = np.array(alpha_df['z'])
+        energy = np.array(alpha_df['energy'])
+        
+    elif particle == 'gamma':
+        gamma_df = df.query('(energy > .0585) and (energy < 0.0605)').copy()
+        x = np.array(gamma_df['x'])
+        y = np.array(gamma_df['y'])
+        z = np.array(gamma_df['z'])
+        energy = np.array(gamma_df['energy']*1000)
+        
+    else:
+        print('specify particle type!')
+        exit()
+        
+    z = z + 22.0 #make surface at 0 z depth of OPPI1
 
 
-	fig, ax = plt.subplots(figsize=(9,8))
-	# plot_title = 'Spot Size from $^{241}$Am, 10$^7$ Primaries'
-	plt.scatter(y, z, c=energy, s=1, cmap='plasma', norm=LogNorm(10,6000))
-	# plt.scatter(x, y, c=energy, s=1, cmap='plasma')
-	cb = plt.colorbar()
-	cb.set_label("Energy (keV)", ha = 'right', va='center', rotation=270, fontsize=20)
-	cb.ax.tick_params(labelsize=18)
-	plt.xlim(-31,31)
-	# plt.ylim(-0.05,0.01)
-	# plt.xlim(8,21)
-	plt.ylim(-2.5,0.5)
-	ax.set_xlabel('y position (mm)', fontsize=20)
-	ax.set_ylabel('z position (mm)', fontsize=20)
-	plt.setp(ax.get_xticklabels(), fontsize=18)
-	plt.setp(ax.get_yticklabels(), fontsize=18)
-	plt.title('Depth for: ' + plot_title, fontsize=20)
-	plt.show()
+    fig, ax = plt.subplots(figsize=(9,8))
+    # plot_title = 'Spot Size from $^{241}$Am, 10$^7$ Primaries'
+    plt.scatter(y, z*1000, c=energy, s=1, cmap='plasma', vmin = 5.3, vmax =5.6) #
+    # plt.scatter(x, y, c=energy, s=1, cmap='plasma')
+    cb = plt.colorbar()
+    cb.set_label("Energy (MeV)", ha = 'right', va='center', rotation=270, fontsize=18, labelpad = 20)
+    cb.ax.tick_params(labelsize=16)
+    plt.xlim(5., 15.)
+    # plt.xlim(10., 20.)
+    #plt.ylim(-1., 0.25)
+    plt.ylim(-20, -15)
+    # plt.xlim(-31,31)
+    # plt.ylim(-0.05,0.01)
+    # plt.xlim(8,21)
+    # plt.ylim(-2.5,0.5)
+    ax.axhline(y=0, c='k', alpha=0.5, lw=0.5)
+    ax.set_xlabel('y position (mm)', fontsize=18)
+    ax.set_ylabel('z position ($\mu$m)', fontsize=18)
+    plt.setp(ax.get_xticklabels(), fontsize=16)
+    plt.setp(ax.get_yticklabels(), fontsize=16)
+    plt.title('Depth for: ' + plot_title, fontsize=20)
+    plt.savefig(f'./depth_{particle}.png', dpi=200)
+    # plt.show()
+    plt.clf()
+    plt.close()
+    
+    if source==True:
+        source_df = pd.read_hdf(filename, keys='sourcePV_df')
+        sourceEnergy = np.array(source_df['energy']*1000)
+        x_source = np.array(source_df['x'])
+        print(len(x_source))
+        
+    if hist == True:
+        fig, ax = plt.subplots(figsize=(9,8))
+        # zlo, zhi, zpb = -1., 0.05, 0.05
+        zlo, zhi, zpb = -0.025, 0.01, 0.005
+        xlo, xhi, xpb = 8., 12., 0.5
+        # xlo, xhi, xpb = 13., 17., 0.25
+        nbx = int((xhi-xlo)/xpb)
+        nby = int((zhi-zlo)/zpb)
+        
+        depth_hist, xedges, yedges = np.histogram2d(alpha_df['y'], alpha_df['z']+22., bins=[nbx, nby], 
+                                                    range=([xlo, xhi], [zlo, zhi]))
+        X, Y = np.mgrid[xlo:xhi:nbx*1j, zlo:zhi:nby*1j]
+        
+        pcm = plt.pcolormesh(X, Y, depth_hist, norm=LogNorm(), shading='nearest') #0.002, 0.2
 
-	if source==True:
-		source_df = pd.read_hdf(filename, keys='sourcePV_df')
-		sourceEnergy = np.array(source_df['energy']*1000)
-		x_source = np.array(source_df['x'])
-		print(len(x_source))
+        cb = plt.colorbar()
+        cb.set_label("counts", ha = 'right', va='center', rotation=270, fontsize=14, labelpad = 20)
+        cb.ax.tick_params(labelsize=12)
+        ax.set_xlabel(f'Radial position (mm)', fontsize=16)
+        ax.set_ylabel('Depth (mm)', fontsize=16)
+        plt.setp(ax.get_xticklabels(), fontsize=14)
+        plt.setp(ax.get_yticklabels(), fontsize=14)
+        plt.title('Depth for: ' + plot_title, fontsize=20)
+        plt.savefig(f'./depth_hist_{particle}.png', dpi=200)
+        
+def plotDepth_alpGamma(filename):
+    df = pd.read_hdf(filename, keys='procdf')
+    # df = df.loc[(df.x > -0.25) & (df.x < 0.25) & df.energy > 0.01]
+    alpha_df = df.query('(energy > 5)').copy()
+    alp_x = np.array(alpha_df['x'])
+    alp_y = np.array(alpha_df['y'])
+    alp_z = np.array(alpha_df['z'])
+    alp_energy = np.array(alpha_df['energy'])
+        
+    gamma_df = df.query('(energy > .059) and (energy < 0.060)').copy()
+    gamma_x = np.array(gamma_df['x'])
+    gamma_y = np.array(gamma_df['y'])
+    gamma_z = np.array(gamma_df['z'])
+    gamma_energy = np.array(gamma_df['energy'])
+
+    alp_z = alp_z + 22.0 #make surface at 0 z depth of OPPI1
+    gamma_z = gamma_z + 22.0 
+
+
+    fig, ax = plt.subplots(figsize=(9,8))
+    # plot_title = 'Spot Size from $^{241}$Am, 10$^7$ Primaries'
+    plt.scatter(alp_y, alp_z, c=alp_energy, s=1, cmap='plasma', vmin = 0.059, vmax =6)
+    plt.scatter(gamma_y, gamma_z, c=gamma_energy, s=1, cmap='plasma', vmin = 0.059, vmax =6)#
+    # plt.scatter(x, y, c=energy, s=1, cmap='plasma')
+    cb = plt.colorbar()
+    cb.set_label("Energy (MeV)", ha = 'right', va='center',  rotation=270, fontsize=18, labelpad=20)
+    cb.ax.tick_params(labelsize=16, pad = 1)
+    plt.xlim(5., 15.)
+    # plt.xlim(10., 20.)
+    plt.ylim(-10., 0.25)
+    ax.axhline(y=0, c='k', alpha=0.5, lw=0.5)
+    # plt.ylim(-0.025, 0.01)
+    # plt.xlim(-31,31)
+    # plt.ylim(-0.05,0.01)
+    # plt.xlim(8,21)
+    # plt.ylim(-2.5,0.5)
+    plt.xlabel('y position (mm)', fontsize=18)
+    plt.ylabel('z position (mm)', fontsize=18)
+    plt.setp(ax.get_xticklabels(), fontsize=16)
+    plt.setp(ax.get_yticklabels(), fontsize=16)
+    plt.title('Depth for 59.5 keV gamma and alpha', fontsize=20)
+    plt.savefig(f'./depth_alpGamma.png', dpi=200)
+    plt.savefig(f'./depth_alpGamma.pdf', dpi=200)
+    # plt.show()
+    plt.clf()
+    plt.close()
 
 def plotSpot(filename, source=False, plot_title = '', particle = 'all'):
 
