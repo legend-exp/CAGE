@@ -167,6 +167,9 @@ def r2d(dg, overwrite=False, nwfs=None, verbose=False, user=False):
                 dsp_config = json.load(f, object_pairs_hook=OrderedDict)
             print(f'Using DSP config: {dsp_dir}' + f'/dsp/dsp_{row.dsp_id:02d}.json')
 
+        # NOTE: there is currently no smart DSP DB lookup here,
+        # so the "db defaults" values in each of the JSON files will be used.
+
         print(f'Processing cycle {cyc}')
         raw_to_dsp(f_raw, f_dsp, dsp_config, n_max=nwfs, verbose=verbose,
                    overwrite=overwrite)

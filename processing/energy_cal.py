@@ -350,7 +350,9 @@ def check_raw_spectrum(dg, config, db_ecal):
         plt.ylabel(f'cts/sec, {xpb}/bin', ha='right', y=1)
 
         if config['batch_mode']:
-            plt.savefig('./plots/energy_cal/cal_spec_test.png')
+            f_plot = './plots/energy_cal/cal_spec_test.png'
+            print('Saving figure:', f_plot)
+            plt.savefig(f_plot)
         else:
             plt.show()
         plt.close()
@@ -533,7 +535,9 @@ def peakdet_auto(df_group, config):
             p1.legend(fontsize=10)
 
             if config['batch_mode']:
-                plt.savefig(f'./plots/energy_cal/peakdet_{et}_run{run}_clo{cyclo}_chi{cychi}.pdf')
+                f_plot = f'./plots/energy_cal/peakdet_{et}_run{run}_clo{cyclo}_chi{cychi}.pdf'
+                print('Saving figure:', f_plot)
+                plt.savefig(f_plot)
             else:
                 plt.show()
             plt.close()
@@ -554,7 +558,7 @@ def match_peaks(maxes, exp_pks, tst_pks, mode='first', ene_tol=10):
     - 'first' : pin the first expected peak, search for the first test peak
     - 'ratio' : compute ratio match
     """
-    print('running autopeak matching.  mode is:', mode)
+    print('Running autopeak matching.  mode is:', mode)
 
     if mode == 'first':
 
@@ -770,7 +774,9 @@ def peakdet_input(df_group, config):
             p1.legend(fontsize=10)
 
             if config['batch_mode']:
-                plt.savefig(f'./plots/energy_cal/peakinput_{et}_run{run}_clo{cyclo}_chi{cychi}.pdf')
+                f_plot = f'./plots/energy_cal/peakinput_{et}_run{run}_clo{cyclo}_chi{cychi}.pdf'
+                print('Saving figure:', f_plot)
+                plt.savefig(f_plot)
             else:
                 plt.show()
             plt.close()
@@ -1052,7 +1058,9 @@ def peakfit(df_group, config, db_ecal):
             p3.legend(fontsize=15)
 
             if config['batch_mode']:
-                plt.savefig(f'./plots/energy_cal/peakfit_{et}_run{run}_clo{cyclo}_chi{cychi}.pdf')
+                f_plot = f'./plots/energy_cal/peakfit_{et}_run{run}_clo{cyclo}_chi{cychi}.pdf'
+                print('Saving figure:', f_plot)
+                plt.savefig(f_plot)
             else:
                 plt.show()
             plt.close('all')
