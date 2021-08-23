@@ -311,7 +311,7 @@
     "304":["2274", "alp", "elog 364. rot=-70.  detector was noisy, decided to discontinue scan"],
 
     "305":["2275-2276", "alp", "elog 371. slow wfs, varcap set to max"],
-    "306":["2277-2282", "bkg", "elog 371. slow wfs, LONG wf length (40k) for RC const study"],
+    "306":["2277-2282", "bkg", "elog 371. varcap tuned back to fast wfs, LONG wf length (40k) for RC const study"],
     "307":["2283", "alp", "elog 377. linear centering scan w/ slightly slow wfs.  R=0, L=0, S=-180"],
     "308": ["2284", "alp", "elog 377, L=15"],
     "309": ["2285", "alp", "elog 377, L=10"],
