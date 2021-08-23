@@ -29,6 +29,9 @@ fi
 # shifter python setup.py --update --orca -b
 
 # -- Campaign 2 workspace --
+shifter python processing.py -q 'run >= 304 and run <= 331' --d2r --r2d
+shifter python setup.py --orca --rt -b
+
 # run a bunch of DSP in parallel (lazy method, comment each line in & submit)
 # shifter python processing.py -q 'run == 236' --r2d -o
 # shifter python processing.py -q 'run >= 237 and run <= 241' --r2d -o
