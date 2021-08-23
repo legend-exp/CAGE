@@ -15,23 +15,25 @@ def main():
 
     G. Othman
     """
-    radius = [10., 15., 18.]
-    source_angle = [90., 75., 60., 45.]
-    rotary = [0.]
+    # radius = [5, 6, 7, 8, 9, 10, 15]
+    radius = [15]
+    source_angle = [90]
+    rotary = [0]
 #     rotary = np.linspace(4, 144, 15)
     # print(rotary)
     # exit()
     mac_dir = './macros/'
     gdml_dir = './geometries/mothers/'
-    hdf5_dir = './alpha/raw_out/'
-    run = 'source_angle_scan/' #ex 'centering_scan/'
+    hdf5_dir = './'
+    sim_dir = '/data/eliza1/LEGEND/users/grsong/CAGE/sims/'
+    run = 'centering_scan/' #ex 'centering_scan/'
     det = 'oppi'
-    primaries = 100000000
+    primaries = 100
     # print(f'./geometries/mothers/{det}/{run}test.gdml')
-    writeFiles(radius, source_angle, rotary, det, run, primaries, write_shell=True, run_job=False)
+    writeFiles(radius, source_angle, rotary, det, run, primaries, mac_dir, gdml_dir, hdf5_dir, sim_dir, write_shell=False, run_job=False)
 
 
-def writeFiles(radius, source_angle, rotary='0', det='oppi', run = '', primaries=100000000, mac_dir = './macros/', gdml_dir = './geometries/mothers/', hdf5_dir = './alpha/raw_out/', write_shell=False, run_job=False):
+def writeFiles(radius, source_angle, rotary='0', det='oppi', run = '', primaries=1000000, mac_dir = './macros/', gdml_dir = './geometries/mothers/', hdf5_dir = './alpha/raw_out/', sim_dir='./', write_shell=False, run_job=False):
     batch_job = []
     for r in radius:
         for theta_det in source_angle:
@@ -39,12 +41,12 @@ def writeFiles(radius, source_angle, rotary='0', det='oppi', run = '', primaries
                 print(f'prepping sims files for {det}: r: {r}, theta_det {theta_det}, theta_rot: {theta_rot}')
                 gdml_out_file = gdml_dir + f'{det}/{run}y{int(r)}_thetaDet{int(theta_det)}_rotary{int(theta_rot)}_241Am_{primaries}.gdml'
                 mac_out_file = mac_dir + f'{det}/{run}y{int(r)}_thetaDet{int(theta_det)}_rotary{int(theta_rot)}_241Am_{primaries}.mac'
-                hdf5_out_file = hdf5_dir+ f'{det}/{run}y{int(r)}_thetaDet{int(theta_det)}_rotary{int(theta_rot)}_241Am_{primaries}.hdf5'
+                hdf5_out_file = hdf5_dir + f'/y{int(r)}_thetaDet{int(theta_det)}_rotary{int(theta_rot)}_241Am_{primaries}.hdf5'
 
                 #Create directory for hdf5 output if doesn't alreasy exist
-                if not os.path.isdir(hdf5_dir +f'{det}/{run}'):
-                    print(f'Creating directory for hdf5 output file: {gdml_dir + det +"/"+run}')
-                    os.mkdir(hdf5_dir +f'{det}/{run}')
+                if not os.path.isdir(hdf5_dir):
+                    print(f'Creating directory for hdf5 output file: {hdf5_dir}')
+                    os.mkdir(hdf5_dir)
                     
                 with open(gdml_dir + f'{det}/template.gdml', 'r') as file:
                     # read a list of lines into data
@@ -55,15 +57,15 @@ def writeFiles(radius, source_angle, rotary='0', det='oppi', run = '', primaries
                     mac = file.readlines()
 
                 mac_rotation, gdml_source_center, gdml_source_rotation = positionCalc(r, theta_det)
-                gdml_divingBoard_rotation = f'     <rotation name="OPPI1_diving_board_volume_Rotation" z="(180-17.92)-{theta_rot}" unit="deg"/> <!-- diving board rotation. linear motor drive \n'
-                gdml_det_rotation = f'     <rotation name="OPPI_Rotation" x="0" y="0" z="-{theta_rot}" unit="deg"/> <!--Add same additional rotation to "OPPI1_diving_board_volume_Rotation" here to simulte rotating rotary motor--> \n'
+                gdml_divingBoard_rotation = f'      <rotation name="OPPI1_diving_board_volume_Rotation" z="(180-17.92)-{theta_rot}" unit="deg"/> <!-- diving board rotation. linear motor drive--> \n'
+                gdml_det_rotation = f'      <rotation name="OPPI_Rotation" x="0" y="0" z="-{theta_rot}" unit="deg"/> <!--Add same additional rotation to "OPPI1_diving_board_volume_Rotation" here to simulte rotating rotary motor--> \n'
 
                 gdml[89] = gdml_source_center
                 gdml[90] = gdml_source_rotation
                 gdml[102] = gdml_divingBoard_rotation
                 gdml[109] = gdml_det_rotation
 
-                mac[9] = '/g4simple/setDetectorGDML ' + gdml_out_file + ' \n'
+                mac[9] = '/g4simple/setDetectorGDML ' + sim_dir + gdml_out_file + ' \n'
                 mac[13] = '/analysis/setFileName ' + hdf5_out_file + ' \n'
 
                 if int(theta_det)==90:
@@ -133,9 +135,9 @@ def positionCalc(y_final, theta_det, det='oppi'):
         # exit()
 
     ditch_depth = 2. # ditch depth for ICPC in mm
-    rotAxis_toSource_height = 4.5 # height difference in mm from the rotation axis to where the activity is located
+    rotAxis_toSource_height = 4.125+0.25 # height difference in mm from the rotation axis to where the activity is located
     if det=='oppi':
-        rotAxis_height = 22.0 # height for OPPI in mm from top of detector to rotation axis, which is (0, 0, 0) in the mother geometry of the simulation
+        rotAxis_height = 24.8 # height for OPPI in mm from top of detector to rotation axis, which is (0, 0, 0) in the mother geometry of the simulation
         print('Using OPPI axis height: % .1f' %rotAxis_height)
     elif det=='icpc':
         rotAxis_height = 22.5 # height in mm from top of detector to rotation axis, which is (0, 0, 0) in the mother geometry of the simulation
@@ -225,8 +227,8 @@ def checkRotation(theta_det, min_clearance_toLMFE=5.0, det='oppi'):
         height_det_to_LMFE = 7.0 # height in mm between hieghest point of LMFE and detector surface
         print('Calculating maximum ratoation angle for ICPC')
     elif det=='oppi':
-        rotAxis_height = 22.0 # height in mm from top of detector to rotation axis, which is (0, 0, 0) in the mother geometry of the simulation
-        height_det_to_LMFE = 6.0 # height in mm between hieghest point of LMFE and detector surface
+        rotAxis_height = 24.8 # height in mm from top of detector to rotation axis, which is (0, 0, 0) in the mother geometry of the simulation
+        height_det_to_LMFE = 7.89 # height in mm between hieghest point of LMFE and detector surface
         print('Calculating maximum rotation angle for OPPI')
     else:
         print('Need to specify a detector!')
@@ -235,7 +237,7 @@ def checkRotation(theta_det, min_clearance_toLMFE=5.0, det='oppi'):
     height_LMFE_to_ax = rotAxis_height - height_det_to_LMFE # height in mm between top of LMFE and rotation axis
     #min_clearance_toLMFE = 5. # minimum height in mm to maintain of collimator above LMFE
 
-    coll_Radius = 16 # mm
+    coll_Radius = 31.75/2 # mm
     coll_eff_Radius = np.sqrt(coll_Radius**2+1.0**2) # in mm. since G10 shaft, hence rotation axis, is actually about 1 mm below lower part of "attenuator" part of collimator, offset by 1 mm, get the hypotenuse for "effective radius"
     delta_z = coll_eff_Radius*math.sin(theta_rot*deg_to_rad) # z-distance in mm the bottom edge of the (attenuator part of the) collimator moves downward due to rotation
     z_final = rotAxis_height - delta_z # final z-distance in mm between the top of the detector and the bottom edge of the (attenuator part of the) collimator

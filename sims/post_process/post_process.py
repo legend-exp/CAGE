@@ -15,8 +15,8 @@ import os
 
 def main():
 
-    raw_dir = '../alpha/raw_out/oppi/source_angle_scan/'
-    processed_dir = '../alpha/processed_out/oppi/source_angle_scan/'
+    raw_dir = '../../../jobs/data/614159/'
+    processed_dir = '../alpha/processed_out/oppi/centering_scan/'
     base_filenames = os.listdir(raw_dir)
     # print(base_filenames)
     # exit()

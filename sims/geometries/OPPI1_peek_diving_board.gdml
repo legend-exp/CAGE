@@ -19,9 +19,9 @@
   <position name="center" x="0" y="0" z="0"/>
   <rotation name="identity" x="0" y="0" z="0" />
 
-  <quantity name="board_width" type="length" value="12.52" unit="mm"/>
-  <quantity name="board_length" type="length" value="35.5+6.5" unit="mm"/> <!-- extends 6.5 mm over PC -->
-  <quantity name="board_thickness" type="length" value="1.5" unit="mm"/>
+  <quantity name="board_width" type="length" value="12.76" unit="mm"/>
+  <quantity name="board_length" type="length" value="35.5+5.1" unit="mm"/> <!-- extends 5.1 mm over PC -->
+  <quantity name="board_thickness" type="length" value="1.65" unit="mm"/>
 
   <quantity name="joiner_length" type="length" value="10." unit="mm"/> <!--ie ring max thickness -->
   <quantity name="joiner_thickness" type="length" value="1.51" unit="mm"/>

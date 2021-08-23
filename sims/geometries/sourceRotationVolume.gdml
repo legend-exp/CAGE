@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no" ?>
 <gdml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://service-spi.web.cern.ch/service-spi/app/releases/GDML/schema/gdml.xsd">
 
-##########################################
+<!--#########################################
 
 This file is a "mother file" that contains everything relevant to the source: collimator, ss disk on which the activity is deposited, in a vacuum volume so they can be rotated as one volume. Done this way so that the rotation axis corresponds to (0,0,0) in this geometry. When this geometry is places in the mother geometry new_gscanner_241Am.gdml, first, it is the origin of the rest of the geometry, as desired.
 
-##########################################
+##########################################-->
 
  <define>
 
@@ -22,11 +22,11 @@ This file is a "mother file" that contains everything relevant to the source: co
 
  </define>
 
-##########################################
+<!--#########################################-->
 
 
 
-##########################################
+<!--#########################################-->
 
 <solids>
 
@@ -34,7 +34,7 @@ This file is a "mother file" that contains everything relevant to the source: co
 
  </solids>
 
-##########################################
+<!--#########################################-->
 
  <structure>
 
@@ -45,14 +45,14 @@ This file is a "mother file" that contains everything relevant to the source: co
    <rotationref ref="identity"/>
 
    <physvol>
-     <file name="./geometries/Am_Collimator_new.gdml"/>
-     <position name="Am_Collimator_Position" x="0" y="0" z="-4.+1." unit="mm"/> --> <!-- make the rotation axis of the collimator correspond with (0,0,0) in this volume: "body_bottom_height"/2 in Am_collimator_new.gdml, + 1 mm since in reality the G10 axis is about 1 mm below where the attenuator part meets the collimator (see elog referenced above)-->
+     <file name="/data/eliza1/LEGEND/users/grsong/CAGE/sims/geometries/Am_Collimator_new.gdml"/>
+     <position name="Am_Collimator_Position" x="0" y="0" z="-6.75/2+0.125" unit="mm"/> --> <!-- make the rotation axis of the collimator correspond with (0,0,0) in this volume: "body_bottom_height"/2 in Am_collimator_new.gdml, + 1 mm since in reality the G10 axis is about 1 mm below where the attenuator part meets the collimator (see elog referenced above)-->
      <rotation name="Am_Collimator_Rotation" x="0" y="0" z="0" unit="deg"/>
    </physvol>
 
    <physvol>
-     <file name="./geometries/ss_sourceDisk_ezag.gdml"/>
-     <position name="ss_sourceDisk_ezag_Position" x="0" y="0" z="4.5 + 0.5/2 + 0.0015" unit="mm"/>  <!--offset by the SS thickness so the center of the disk sits just above (0,0,4.5) at (0,0,4.75), + 0.001 mm since the source (assuming no rotation) will be placed at (0,0,4.5) with /gps/pos/halfz 0.0005 -->
+     <file name="/data/eliza1/LEGEND/users/grsong/CAGE/sims/geometries/ss_sourceDisk_ezag.gdml"/>
+     <position name="ss_sourceDisk_ezag_Position" x="0" y="0" z="4.125 + 0.25 + 0.5/2 + 0.0015" unit="mm"/>  <!--offset by the SS thickness so the center of the disk sits just above (0,0,4.5) at (0,0,4.75), + 0.001 mm since the source (assuming no rotation) will be placed at (0,0,4.5) with /gps/pos/halfz 0.0005 -->
      <rotation name="ss_sourceDisk_ezag_Rotation" x="0" y="0" z="0" unit="deg"/>
    </physvol>
 
@@ -66,7 +66,7 @@ This file is a "mother file" that contains everything relevant to the source: co
 
  </structure>
 
-##########################################
+<!--#########################################-->
 
  <setup name="Default" version="1.0">
   <world ref="source_volume"/>
