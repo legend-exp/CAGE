@@ -61,6 +61,7 @@ def main():
     arg('-c', '--com_spd', nargs=1, type=int, help='set RPi comm speed (Hz)')
     arg('-m', '--max_reads', nargs=1, type=int, help='set num. tries to zero encoder')
     arg('--constraints', action=sf, help="DISABLE constraints (bad idea!)")
+    arg('--history', action=sf, help="zero using full range of motor motion rather than using history")
     arg('--init_df', action=st, help='initialize the motor history dataframe')
     arg('--show_df', action=st, help='print motor history df and exit')
 
@@ -73,6 +74,7 @@ def main():
     angle_check = args['angle_check'][0] if args['angle_check'] else 180 # degrees
     verbose = args['verbose'] # overall verbosity (currently T/F)
     constraints = args['constraints'] # DISABLE motor step checks (DON'T!)
+    history = args['history'] # zero motors using full range of motion
 
     # update motor config (variable names must match)
     for key, val in locals().items():
@@ -149,7 +151,7 @@ def main():
 
     if args['zero']:
         motor_name = args['zero'][0]
-        zero_motor(motor_name, angle_check, history_df, verbose, constraints)
+        zero_motor(motor_name, angle_check, history_df, verbose, constraints, history)
 
     if args['center']:
         motor_name = args['center'][0]
@@ -607,7 +609,7 @@ def beam_pos_move(detector):
     return source_rot, linear_move
 
 
-def zero_motor(motor_name, angle_check, history_df, verbose, constraints=True):
+def zero_motor(motor_name, angle_check, history_df, verbose, constraints=True, history=True):
     """
     run the motors backwards (or forwards) to their limit switches
     """
@@ -616,6 +618,18 @@ def zero_motor(motor_name, angle_check, history_df, verbose, constraints=True):
         'linear' : -51,  # the full backwards travel (2 inches)
         'rotary' : 360  # go FORWARDS 360 degrees (b/c of our convention)
         }
+    if history:
+        print('Zeroing from history...')
+        zeros = {
+                'source' : -1*history_df.iloc[-1,:][f'source_total'] + 1,
+                'linear' : -1*history_df.iloc[-1,:][f'linear_total'] - 1,
+                'rotary' : -1*history_df.iloc[-1,:][f'rotary_total'] + 1
+        }
+    else:
+        print('Zeroing full amount...')
+
+    unit = 'mm' if motor_name == 'linear' else 'deg'
+    print(f'Moving {zeros[motor_name]} {unit}')
     move_motor(motor_name, zeros[motor_name], history_df, angle_check,
                 constraints, verbose, zero=True)
 
