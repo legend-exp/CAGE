@@ -13,22 +13,40 @@ mpl.rcParams['text.usetex'] = True
 mpl.use('Agg')
 
 def main():
-    base_filename = '../alpha/processed_out/oppi/'
-    processed_filename = '../alpha/processed_out/oppi/centering_scan/processed_y10_norm_rotary0_241Am_100000000.hdf5'
-    run = 'angled_rotary_centering_scan/'
-    processed_dir = f'{base_filename}{run}'
+    base_filename = '../alpha/processed_out/oppi/centering_scan'
+    elo = 0.058 # in MeV
+    ehi = 0.062 # in MeV
+    primaries = 1e6
+    runs = 0
+    tot_count = 0
+    for i in np.arange(1,101):
+        try:
+            processed_filename = f'{base_filename}/processed_y9_thetaDet90_rotary0_{i}.hdf5'
+            # tot_count += getCounts_cut(processed_filename, elo, ehi)
+            tot_count += getCounts(processed_filename)
+            runs += 1
+        except OSError as e:
+            print(e)
+            continue
 
-    primaries = 100000000
-    radius = [10] # in mm
+    source_activity = 4.0e4 #40 kBq = 4e4 decays/s
+    time_seconds = runs*primaries/(source_activity)
+    rate = tot_count/time_seconds #(rate in counts/s)
+    rate_err = np.sqrt(tot_count)/time_seconds
+    print(f'{rate} counts/second in region {elo} to {ehi} MeV')
+    print(f'{tot_count} counts in total')
+
+#    return(rate, rate_err)
+
+    
+    # radius = [10] # in mm
 #     rotary_angles = np.linspace(4, 144, 15)
-    elo = 5.4 # in MeV
-    ehi = 5.6 # in MeV
 #     elo = 0. # in MeV
 #     ehi = 6. # in MeV
 
-    getCounts(processed_filename) # get all counts in physical volume for this file. Useful for debugging if sim was successful
-    getCounts_cut(processed_filename, elo, ehi) # get counts within specific energy region
-    getRate(processed_filename, primaries, elo, ehi) # get rate in counts/sec for specific energy region
+    # getCounts(processed_filename) # get all counts in physical volume for this file. Useful for debugging if sim was successful
+    # getCounts_cut(processed_filename, elo, ehi) # get counts within specific energy region
+    # getRate(processed_filename, primaries, elo, ehi) # get rate in counts/sec for specific energy region
     # plotRate(radius, rotary_angles, elo, ehi, rotary=True) # plot rates for multiple source positions (sims files) on one plot
     # rotary_plotRate(radius, rotary_angles, elo, ehi, processed_dir) # for rotary scans, plot rates for multiple source positions (sims files) on one plot
 
@@ -36,7 +54,8 @@ def getCounts(processed_filename):
     df = pd.read_hdf(processed_filename, keys='procdf')
     energy = np.array(df['energy'])
     counts = len(energy)
-    print('%f counts in PV' %counts)
+    # print('%f counts in PV' %counts)
+    return counts
 
 def getCounts_cut(processed_filename, elo, ehi):
     df = pd.read_hdf(processed_filename, keys='procdf')
@@ -44,7 +63,7 @@ def getCounts_cut(processed_filename, elo, ehi):
     cut_df = df.loc[(df.energy > elo) & (df.energy < ehi)]
     cut_energy_keV = np.array(cut_df['energy']*1000)
     counts = len(cut_energy_keV)
-    print(f'{counts} counts in region {elo} to {ehi} keV')
+    # print(f'{counts} counts in region {elo} to {ehi} keV')
 
     return(counts)
 

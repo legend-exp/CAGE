@@ -12,7 +12,7 @@ of the rest of the geometry to simulate different positions of the source, as wi
 
 In the simulations, the rotation axis of the source is the 'x-axis'. Depending on the rotation angle of the collimator and the point on the surface we want to scan, both the y-position of the "sourceRotationVolume" and it's rotation angle need to be changed in this gdml file. The position and rotation angle of the activity in the run macro must also be changed accordingly. Run '../source_placement.py' to determine both of these values.
 
-See these elogs for more diagrams and information: https://elog.legend-exp.org/UWScanner/159; https://elog.legend-exp.org/UWScanner/182
+See these elogs for more diagrams and information: https://elog.legend-exp.org/UWScanner/324; https://elog.legend-exp.org/UWScanner/355
 
 ########################################## -->
 
@@ -29,12 +29,12 @@ See these elogs for more diagrams and information: https://elog.legend-exp.org/U
   <quantity name="vacuum_radius" type="length" value="1" unit="m"/>
   <quantity name="vacuum_height" type="length" value="2" unit="m"/>
 
-  <quantity name="rotAxis_to_detSurface_oppi" type="length" value="22.0" unit="mm"/>
+  <quantity name="rotAxis_to_detSurface_oppi" type="length" value="24.8" unit="mm"/>
 
   <!-- Dimenstions relevant to diving board (peek part only, not LMFE) -->
-  <quantity name="board_width" type="length" value="12.52" unit="mm"/>
-  <quantity name="board_length" type="length" value="35.5+6.5" unit="mm"/> <!-- extends 6.5 mm over PC -->
-  <quantity name="board_thickness" type="length" value="1.5" unit="mm"/>
+  <quantity name="board_width" type="length" value="12.76" unit="mm"/>
+  <quantity name="board_length" type="length" value="35.5+5.1" unit="mm"/> <!-- extends 5.1 mm over PC -->
+  <quantity name="board_thickness" type="length" value="1.65" unit="mm"/>
 
   <!-- LMFE substrate board dimensions for reference -->
   <quantity name="substrate_board_thickness" type="length" value="0.5" unit="mm"/>
@@ -47,10 +47,6 @@ See these elogs for more diagrams and information: https://elog.legend-exp.org/U
   <quantity name="diving_board_vacuum_vol_height" type="length" value="board_thickness + 2*substrate_board_thickness + 0.5" unit="mm"/> <!-- the vacuum volume where the diving board and LMFE are placed in extends 0.125 mm on all sides, seen as 0.25 mm in dims in OPPI1_diving_board_volume.gdml-->
 
   <quantity name="OPPI1_diving_board_height" type="length" value="diving_board_vacuum_vol_height/2 + board_thickness/2 + joiner_thickness" unit="mm"/> <!-- diving board z-placement. the vertical distance the diving board is off from the  ring with offsets accounted for-->
-
-
-
-
 
  </define>
 
@@ -100,8 +96,7 @@ See these elogs for more diagrams and information: https://elog.legend-exp.org/U
    <physvol>
      <file name="./geometries/OPPI1_diving_board_volume.gdml"/>
      <position name= "LMFE_center" x="0." y="0." z="ring_height + cone_height/2 + OPPI1_diving_board_height" unit="mm"/>
-     <rotation name="OPPI1_diving_board_volume_Rotation" z="(180-17.92)" unit="deg"/> <!-- diving board rotation. linear motor drive
-     is not perpendiculat to LMFE diving board in real life, (180-17.92) ccount for this. Additional rotation is to simulate rotating rotary motor -->
+     <rotation name="OPPI1_diving_board_volume_Rotation" z="(180-17.92)" unit="deg"/> <!-- diving board rotation. linear motor drive is not perpendiculat to LMFE diving board in real life, (180-17.92) ccount for this. Additional rotation is to simulate rotating rotary motor -->
    </physvol>
 
    <physvol>
