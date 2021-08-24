@@ -19,9 +19,9 @@ def main():
     # calculate_CollClearances()
 
     # positionCalc(y_final=12, theta_det=90., icpc=False)
-    # rotaryCalc(radius=12.0, d_theta = 10.0)
+    rotaryCalc(radius=12.0, d_theta=10)
     # maxRotation(min_clearance_toLMFE=5.0, icpc=False)
-    checkRotation(theta_det=40, min_clearance_toLMFE=5.0)
+    # checkRotation(theta_det=40, min_clearance_toLMFE=5.0)
     # thetaCalc(y_final=12., icpc=False)
 
 def positionCalc(y_final, theta_det, icpc=True):
@@ -147,9 +147,8 @@ def thetaCalc(y_final, icpc=True):
 def rotaryCalc(radius=1.0, d_theta = 2.):
     rad_to_deg = 180/np.pi
     deg_to_rad = np.pi/180
-    board_width = 12.52 # in mm
-    theta_tot = (2*np.arctan((board_width/2)/radius))*rad_to_deg
-    # d_theta = (d_s/radius)*rad_to_deg
+    board_width = 12.76 # in mm
+    theta_tot = (2*np.arcsin((board_width/2)/radius))*rad_to_deg
     d_s = (d_theta*deg_to_rad)*radius
 
     if d_theta >= 10:
@@ -161,8 +160,8 @@ def rotaryCalc(radius=1.0, d_theta = 2.):
 
 
 
-    scan_points = (theta_max - theta_min)/d_theta
-    print(f'for r={radius}: \ntheta_tot = {theta_tot} \nd_s = {d_s} \nd_theta = {d_theta} \ntheta_min = {theta_min} \ntheta_max = {theta_max} \nscan points = {scan_points}')
+    scan_points = np.arange(theta_min, theta_max, d_theta)
+    print(f'for r={radius}: \ntheta_tot = {theta_tot} \nd_theta = {d_theta} \ntheta_min = {theta_min} \ntheta_max = {theta_max} \nscan points = {scan_points}')
 
 
 
