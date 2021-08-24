@@ -28,7 +28,7 @@
   <quantity name="body_sourceOffset_radius" type="length" value="13./2" unit="mm"/>
   <quantity name="body_sourceOffset_height" type="length" value="0.25" unit="mm"/>
 
-  <quantity name="body_middle_innerradius" type="length" value="1./2" unit="mm"/>
+  <quantity name="body_middle_innerradius" type="length" value="1./2 - 0.000001" unit="mm"/>
   <quantity name="body_middle_radius" type="length" value="31.75/2" unit="mm"/>
   <quantity name="body_middle_height" type="length" value="2." unit="mm"/>
 
@@ -55,7 +55,7 @@
 
 <!--##########################################-->
 
-# with the union done in this way, the identity (0,0) corresponds to the center point of the body_bottom
+<!-- with the union done in this way, the identity (0,0) corresponds to the center point of the body_bottom -->
 
  <solids>
 
@@ -64,7 +64,7 @@
 
     <cone name="body_lip" rmin1="body_lip_innerradius" rmax1="body_lip_radius" rmin2="body_lip_innerradius" rmax2="body_lip_radius" z="body_lip_height" startphi="0" deltaphi="TWOPI" aunit="rad" />
 
-    <cone name="body_middle" rmin1="body_middle_innerradius-0.000001" rmax1="body_middle_radius" rmin2="body_middle_innerradius-0.000001" rmax2="body_middle_radius" z="body_middle_height" startphi="0" deltaphi="TWOPI" aunit="rad" /> <!-- the 0.000001 offset is a bandaid for a bug (or feature) that is making a gap between the top of the of the collimator portion and the attenuator body to prevent what it thinks are accidental overlapping geometries -->
+    <cone name="body_middle" rmin1="body_middle_innerradius" rmax1="body_middle_radius" rmin2="body_middle_innerradius" rmax2="body_middle_radius" z="body_middle_height" startphi="0" deltaphi="TWOPI" aunit="rad" /> <!-- the 0.000001 offset is a bandaid for a bug (or feature) that is making a gap between the top of the of the collimator portion and the attenuator body to prevent what it thinks are accidental overlapping geometries -->
 
     <cone name="body_top" rmin1="0.0" rmax1="body_top_radius" rmin2="0.0" rmax2="body_top_radius" z="body_top_height" startphi="0" deltaphi="TWOPI" aunit="rad" />
 
@@ -73,54 +73,42 @@
     <!-- subtraction solids -->
     <cone name="body_sourceOffset" rmin1="0.0" rmax1="body_sourceOffset_radius" rmin2="0.0" rmax2="body_sourceOffset_radius" z="body_sourceOffset_height" startphi="0" deltaphi="TWOPI" aunit="rad" />
     <cone name="innerVolume" rmin1="0.0" rmax1="innerVolume_radius" rmin2="0.0" rmax2="innerVolume_radius" z="innerVolume_height" startphi="0" deltaphi="TWOPI" aunit="rad" />
-    <!-- <cone name="body_bottomSubtraction" rmin1="body_bottomSubtraction_innerradius" rmax1="body_bottomSubtraction_radius" rmin2="body_bottomSubtraction_innerradius" rmax2="body_bottomSubtraction_radius" z="body_bottomSubtraction_height" startphi="0" deltaphi="TWOPI" aunit="rad" /> -->
 
 
     <union name="body_bottom_collimator">
       <first ref="body_bottom" />
       <second ref="body_lip" />
-      <!-- <position x="0" y="0" z="body_bottom_height" /> -->
-      <position x="0" y="0" z="(body_bottom_height/2)+(body_lip_height/2)-0.000001" /> <!-- the 0.000001 offset is a bandaid for a bug (or feature) that is making a gap between the top of the of the collimator portion and the attenuator body to prevent what it thinks are accidental overlapping geometries -->
+      <position name="lip_bottom_pos" x="0" y="0" z="(body_bottom_height/2)+(body_lip_height/2)-0.000001" /> <!-- the 0.000001 offset is a bandaid for a bug (or feature) that is making a gap between the top of the of the collimator portion and the attenuator body to prevent what it thinks are accidental overlapping geometries -->
       <rotationref ref="identity"/>
     </union>
 
     <union name="body_lip_collimator">
       <first ref="body_bottom_collimator" />
       <second ref="body_middle" />
-      <!-- <position x="0" y="0" z="body_bottom_height" /> -->
-      <position x="0" y="0" z="(body_bottom_height/2)+body_lip_height+(body_middle_height/2)-0.000001" /> <!-- the 0.000001 offset is a bandaid for a bug (or feature) that is making a gap between the top of the of the collimator portion and the attenuator body to prevent what it thinks are accidental overlapping geometries -->
+      <position name="bottom_mid_pos" x="0" y="0" z="(body_bottom_height/2)+body_lip_height+(body_middle_height/2)-0.000001" /> <!-- the 0.000001 offset is a bandaid for a bug (or feature) that is making a gap between the top of the of the collimator portion and the attenuator body to prevent what it thinks are accidental overlapping geometries -->
       <rotationref ref="identity"/>
     </union>
 
     <union name="body_collimator">
       <first ref="body_lip_collimator" />
       <second ref="body_top" />
-      <position x="0" y="0" z="(body_bottom_height/2)+body_lip_height+body_middle_height+(body_top_height/2)" />
+      <position name="mid_top_pos" x="0" y="0" z="(body_bottom_height/2)+body_lip_height+body_middle_height+(body_top_height/2)" />
       <rotationref ref="identity"/>
     </union>
 
     <subtraction name="body_innerVolume_subtraction">
       <first ref="body_collimator" />
       <second ref="innerVolume" />
-      <position x="0" y="0" z="(body_bottom_height/2)+(body_middle_height)+(innerVolume_height/2)" />
-      <!-- <position x="0" y="0" z="(body_bottom_height/2)+(body_middle_height)+(body_top_height/2)" /> -->
+      <position name="inner_pos" x="0" y="0" z="(body_bottom_height/2)+(body_middle_height)+(innerVolume_height/2)" />
       <rotationref ref="identity"/>
     </subtraction>
 
-    <!-- <subtraction name="body_allSubtractions"> -->
    <subtraction name="am_collimator">
       <first ref="body_innerVolume_subtraction" />
       <second ref="body_sourceOffset" />
-      <position x="0" y="0" z="(body_bottom_height/2)+(body_middle_height)-(body_sourceOffset_height/2)" />
+      <position name="coll_pos" x="0" y="0" z="(body_bottom_height/2)+(body_middle_height)-(body_sourceOffset_height/2)" />
       <rotationref ref="identity"/>
     </subtraction>
-
-    <!-- <subtraction name="body_bottom_subtraction">
-      <first ref="body_bottom" />
-      <second ref="body_bottomSubtraction" />
-      <position x="0" y="0" z="(body_bottom_height/2)" />
-      <rotationref ref="identity"/>
-    </subtraction> -->
 
 
  </solids>

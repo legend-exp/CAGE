@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no" ?>
 <gdml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://service-spi.web.cern.ch/service-spi/app/releases/GDML/schema/gdml.xsd">
 
-##########################################
+<!--##########################################
 
 #cylinder_height = top hat's height
 #cylinder_inner_radius = top hat's inner radius
 #cylinder_outer_radius = top hat's outer radius
 #cylinder2_height = thickness of cylinder at top of hat to close the top of the hat off
 
-##########################################
+##########################################-->
 
  <define>
 
@@ -29,14 +29,14 @@
 
  </define>
 
-##########################################
+<!--##########################################-->
 
  <materials>
 
 
  </materials>
 
-##########################################
+<!--##########################################-->
 
  <solids>
 
@@ -53,7 +53,7 @@
 
  </solids>
 
-##########################################
+<!--##########################################-->
 
  <structure>
 
@@ -64,7 +64,7 @@
 
  </structure>
 
-##########################################
+<!--##########################################-->
 
  <setup name="Default" version="1.0">
   <world ref="Top_Hat"/>

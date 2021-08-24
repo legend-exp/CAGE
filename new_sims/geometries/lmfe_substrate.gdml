@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no" ?>
 <gdml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://service-spi.web.cern.ch/service-spi/app/releases/GDML/schema/gdml.xsd">
 
-##########################################
+<!--##########################################
 
 #This is the LMFE substrate. It's really made of "Duroid 5880", which is a mixture of glass and PTFE, but I went with full PTFE
 
-##########################################
+##########################################-->
 
  <define>
 
@@ -23,7 +23,7 @@
 
  </define>
 
-##########################################
+<!--##########################################-->
 <materials>
 
   <material name="ptfe" formula="C2F4">
@@ -34,7 +34,7 @@
 
 </materials>
 
-##########################################
+<!--##########################################-->
 
  <solids>
 
@@ -42,7 +42,7 @@
 
  </solids>
 
-##########################################
+<!--##########################################-->
 
  <structure>
 
@@ -53,7 +53,7 @@
 
  </structure>
 
-##########################################
+<!--##########################################-->
 
  <setup name="Default" version="1.0">
   <world ref="lmfe_substrate"/>

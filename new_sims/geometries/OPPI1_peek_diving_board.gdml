@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no" ?>
 <gdml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://service-spi.web.cern.ch/service-spi/app/releases/GDML/schema/gdml.xsd">
 
-##########################################
+<!--##########################################
 
 #cylinder_height + cone_height = detector height
 #cylinder_radius = cone's larger radius = detector radius
 #cone_radius1 = cone's smaller radius
 #cone_radius2 = cone's larger radius
 
-##########################################
+##########################################-->
 
  <define>
 
@@ -29,7 +29,7 @@
 
  </define>
 
-##########################################
+<!--##########################################-->
 <materials>
 
   <material name="peek" formula="C19H12O3">
@@ -41,7 +41,7 @@
 
 </materials>
 
-##########################################
+<!--##########################################-->
 
  <solids>
 
@@ -58,7 +58,7 @@
 
  </solids>
 
-##########################################
+<!--##########################################-->
 
  <structure>
 
@@ -69,7 +69,7 @@
 
  </structure>
 
-##########################################
+<!--##########################################-->
 
  <setup name="Default" version="1.0">
   <world ref="OPPI1_peek_diving_board"/>

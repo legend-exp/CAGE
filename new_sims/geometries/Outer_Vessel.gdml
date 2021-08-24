@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no" ?>
 <gdml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://service-spi.web.cern.ch/service-spi/app/releases/GDML/schema/gdml.xsd">
 
-##########################################
+<!--##########################################
 
 #cylinder_height = vessel's height
 #cylinder_inner_radius = vessel's inner radius
@@ -10,7 +10,7 @@
 #cylinder3_height = thickness of cylinder at bottom of vessel to close the bottom of the vessel off
 #cylinder4_height = thickness of outer lip on vessel
 
-##########################################
+##########################################-->
 
  <define>
 
@@ -39,14 +39,14 @@
 
  </define>
 
-##########################################
+<!--##########################################-->
 
  <materials>
 
 
  </materials>
 
-##########################################
+<!--##########################################-->
 
  <solids>
 
@@ -61,28 +61,28 @@
   <union name="vessel_with_top">
     <first ref="vessel_edge" />
     <second ref="vessel_top" />
-    <position x="0" y="0" z="cylinder_height/2.0 - cylinder2_height/2.0" />
+    <position name="pos1" x="0" y="0" z="cylinder_height/2.0 - cylinder2_height/2.0" />
     <rotationref ref="identity"/>
   </union>
 
   <union name="vessel_with_top_and_bottom">
     <first ref="vessel_with_top" />
     <second ref="vessel_bottom" />
-    <position x="0" y="0" z="-cylinder_height/2.0 + cylinder3_height/2.0" />
+    <position name="pos2" x="0" y="0" z="-cylinder_height/2.0 + cylinder3_height/2.0" />
     <rotationref ref="identity"/>
   </union>
 
   <union name="vessel_with_top_lip">
     <first ref="vessel_with_top_and_bottom" />
     <second ref="vessel_lip" />
-    <position x="0" y="0" z="cylinder_height/2.0 - cylinder3_height - cylinder4_height/2.0" />
+    <position name="pos3" x="0" y="0" z="cylinder_height/2.0 - cylinder3_height - cylinder4_height/2.0" />
     <rotationref ref="identity"/>
   </union>
 
   <union name="outer_vessel">
     <first ref="vessel_with_top_lip" />
     <second ref="vessel_lip" />
-    <position x="0" y="0" z="-cylinder_height/2.0 + cylinder3_height + cylinder4_height/2.0" />
+    <position name="pos4" x="0" y="0" z="-cylinder_height/2.0 + cylinder3_height + cylinder4_height/2.0" />
     <rotationref ref="identity"/>
   </union>
 
@@ -90,7 +90,7 @@
 
  </solids>
 
-##########################################
+<!--##########################################-->
 
  <structure>
 
@@ -101,7 +101,7 @@
 
  </structure>
 
-##########################################
+<!--##########################################-->
 
  <setup name="Default" version="1.0">
   <world ref="Outer_Vessel"/>

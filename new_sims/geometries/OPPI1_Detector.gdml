@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no" ?>
 <gdml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://service-spi.web.cern.ch/service-spi/app/releases/GDML/schema/gdml.xsd">
 
-##########################################
+<!--##########################################
 
 #cylinder_height + cone_height = detector height
 #cylinder_radius = cone's larger radius = detector radius
 #cone_radius1 = cone's smaller radius
 #cone_radius2 = cone's larger radius
 
-##########################################
+##########################################-->
 
  <define>
 
@@ -32,7 +32,7 @@
 
  </define>
 
-##########################################
+<!--##########################################-->
 
  <materials>
 
@@ -40,7 +40,7 @@
 
  </materials>
 
-##########################################
+<!--##########################################-->
 
  <solids>
 
@@ -53,21 +53,20 @@
   <union name="detector_noPC">
     <first ref="cylinder" />
     <second ref="cone" />
-    <position x="0" y="0" z="cylinder_height/2.0 + cone_height/2.0" />
+    <position name="det_pos" x="0" y="0" z="cylinder_height/2.0 + cone_height/2.0" />
     <rotationref ref="identity"/>
   </union>
 
   <subtraction name="detector">
     <first ref="detector_noPC" />
     <second ref="pc_subtraction" />
-    <position x="0" y="0" z="((cylinder_height/2)+ cone_height + (pc_radius-pc_depth))" />
-    <!-- <position x="0" y="0" z="(body_bottom_height/2)+(body_middle_height)+(body_top_height/2)" /> -->
+    <position name="pc_pos" x="0" y="0" z="((cylinder_height/2)+ cone_height + (pc_radius-pc_depth))" />
     <rotationref ref="identity"/>
   </subtraction>
 
  </solids>
 
-##########################################
+<!--##########################################-->
 
  <structure>
 
@@ -78,7 +77,7 @@
 
  </structure>
 
-##########################################
+<!--##########################################-->
 
  <setup name="Default" version="1.0">
   <world ref="OPPI1_Detector"/>
