@@ -20,8 +20,8 @@ def main():
 
     # positionCalc(y_final=12, theta_det=90., icpc=False)
     # rotaryCalc(radius=12.0, d_theta = 10.0)
-    maxRotation(min_clearance_toLMFE=5.0, icpc=False)
-    # checkRotation(theta_det=63.89, min_clearance_toLMFE=5.0)
+    # maxRotation(min_clearance_toLMFE=5.0, icpc=False)
+    checkRotation(theta_det=40, min_clearance_toLMFE=5.0)
     # thetaCalc(y_final=12., icpc=False)
 
 def positionCalc(y_final, theta_det, icpc=True):
@@ -220,21 +220,36 @@ def checkRotation(theta_det, min_clearance_toLMFE=5.0, icpc=False):
         height_det_to_LMFE = 7.0 # height in mm between hieghest point of LMFE and detector surface
         print('Calculating maximum ratoation angle for ICPC')
     else:
-        rotAxis_height = 24.8 # height in mm from top of detector to rotation axis, which is (0, 0, 0) in the mother geometry of the simulation
-        height_det_to_LMFE = 8.0 # height in mm between hieghest point of LMFE and detector surface. Jason estimated 7.89 ± 0.26 mm in elog 324
+        rotAxis_height = 23.8 # height in mm from top of detector to rotation axis, which is (0, 0, 0) in the mother geometry of the simulation
+        height_det_to_LMFE = 7.89 # height in mm between hieghest point of LMFE and detector surface. Jason estimated 7.89 ± 0.26 mm in elog 324
         print('Calculating maximum rotation angle for OPPI')
 
     height_LMFE_to_ax = rotAxis_height - height_det_to_LMFE # height in mm between top of LMFE and rotation axis
     #min_clearance_toLMFE = 5. # minimum height in mm to maintain of collimator above LMFE
 
-    coll_Radius = 16 # mm 17.5 with copper thermal ring
-    coll_eff_Radius = np.sqrt(coll_Radius**2+1.0**2) # in mm. since G10 shaft, hence rotation axis, is actually about 1 mm below lower part of "attenuator" part of collimator, offset by 1 mm, get the hypotenuse for "effective radius"
-    delta_z = coll_eff_Radius*math.sin(theta_rot*deg_to_rad) # z-distance in mm the bottom edge of the (attenuator part of the) collimator moves downward due to rotation
+    coll_Radius_solder =  15.04 # mm
+    coll_solder_to_ax = 0.125 # mm
+    coll_eff_Radius_solder = np.sqrt(coll_Radius_solder**2+coll_solder_to_ax**2) # in mm. since G10 shaft, hence rotation axis, is actually about 0.125 mm below part soldered onto collimator, get the hypotenuse for "effective radius"
+    coll_Radius =  31.75/2 # mm
+    coll_to_ax = 1.75 + 0.125 # mm
+    coll_eff_Radius = np.sqrt(coll_Radius**2+coll_to_ax**2) # in mm. since G10 shaft, hence rotation axis, is actually about (1.75 + 0.125) mm below lower part of "attenuator" part of collimator, get the hypotenuse for "effective radius"
+
+    theta_i_solder = math.atan(coll_solder_to_ax/coll_Radius_solder)*rad_to_deg 
+    theta_i = math.atan(coll_to_ax/coll_Radius)*rad_to_deg
+
+    delta_z = coll_eff_Radius*math.sin(theta_rot*deg_to_rad - theta_i*deg_to_rad) # z-distance in mm the bottom edge of the (attenuator part of the) collimator moves downward due to rotation
     z_final = rotAxis_height - delta_z # final z-distance in mm between the top of the detector and the bottom edge of the (attenuator part of the) collimator
     z_lmfe = height_LMFE_to_ax - delta_z
+    delta_z_solder = coll_eff_Radius_solder*math.sin(theta_rot*deg_to_rad - theta_i_solder*deg_to_rad) # z-distance in mm the bottom edge of the (attenuator part of the) collimator moves downward due to rotation
+    z_final_solder = rotAxis_height - delta_z_solder # final z-distance in mm between the top of the detector and the bottom edge of the (attenuator part of the) collimator
+    z_lmfe_solder = height_LMFE_to_ax - delta_z_solder
+
+    if z_lmfe > z_lmfe_solder:
+        print('Limiting portion is the piece soldered onto the collimator')
+        z_lmfe = z_lmfe_solder
 
     if z_lmfe < min_clearance_toLMFE:
-        print('The rotation angle theta_det= %.1f (theta_rot = %.1f) does not maintain the maximum clearance of %.2f mm between LMFE and lowest edge of collimator when top-hat is down! \nActual clearance: %.2f mm' %(theta_det, theta_rot, min_clearance_toLMFE, z_lmfe))
+        print('The rotation angle theta_det= %.1f (theta_rot = %.1f) DOES NOT maintain the maximum clearance of %.2f mm between LMFE and lowest edge of collimator when top-hat is down! \nActual clearance: %.2f mm' %(theta_det, theta_rot, min_clearance_toLMFE, z_lmfe))
         # print('theta_rot must be less than %.2f deg \ntheta_det must be more than %.2f deg' %(maxRotation(min_clearance_toLMFE=5.0)[0], maxRotation(min_clearance_toLMFE=5.0)[1]))
         return(False, min_clearance_toLMFE, z_lmfe)
     else:
