@@ -16,11 +16,11 @@ def main():
     # set icpc=False if scanning a PPC (or other detector with no ditch)-- But note, all other dimensions must be updated first for the output to be correct!!
     # All dimensions in mm, angles in deg
 
-    calculate_CollClearances()
+    # calculate_CollClearances()
 
-    positionCalc(y_final=12, theta_det=90., icpc=False)
+    # positionCalc(y_final=12, theta_det=90., icpc=False)
     # rotaryCalc(radius=12.0, d_theta = 10.0)
-    # maxRotation(min_clearance_toLMFE=5.0, icpc=False)
+    maxRotation(min_clearance_toLMFE=5.0, icpc=False)
     # checkRotation(theta_det=63.89, min_clearance_toLMFE=5.0)
     # thetaCalc(y_final=12., icpc=False)
 
@@ -38,7 +38,7 @@ def positionCalc(y_final, theta_det, icpc=True):
     ditch_depth = 2. # ditch depth for ICPC in mm
     rotAxis_toSource_height = 4.5 # height difference in mm from the rotation axis to where the activity is located
     if icpc==False:
-        rotAxis_height = 24.8 # height for OPPI in mm from top of detector to rotation axis, which is (0, 0, 0) in the mother geometry of the simulation
+        rotAxis_height = 23.8 # height for OPPI in mm from top of detector to rotation axis, which is (0, 0, 0) in the mother geometry of the simulation
         print('Using OPPI axis height: % .1f' %rotAxis_height)
     else:
         rotAxis_height = 22.5 # height in mm from top of detector to rotation axis, which is (0, 0, 0) in the mother geometry of the simulation
@@ -174,19 +174,32 @@ def maxRotation(min_clearance_toLMFE=5.0, icpc=False):
     if icpc==True:
         rotAxis_height = 22.5 # height in mm from top of detector to rotation axis, which is (0, 0, 0) in the mother geometry of the simulation
         height_det_to_LMFE = 7.0 # height in mm between hieghest point of LMFE and detector surface
-        print('Calculating maximum ratoation angle for ICPC')
+        print('Calculating maximum rotation angle for ICPC')
     else:
-        rotAxis_height = 22.0 # height in mm from top of detector to rotation axis, which is (0, 0, 0) in the mother geometry of the simulation
-        height_det_to_LMFE = 8.0 # height in mm between hieghest point of LMFE and detector surface. Jason estimated 7.89 ± 0.26 mm in elog 324
+        rotAxis_height = 23.8 # height in mm from top of detector to rotation axis, which is (0, 0, 0) in the mother geometry of the simulation
+        height_det_to_LMFE = 7.89 # height in mm between hieghest point of LMFE and detector surface. Jason estimated 7.89 ± 0.26 mm in elog 324
         print('Calculating maximum rotation angle for OPPI')
 
     height_LMFE_to_ax = rotAxis_height - height_det_to_LMFE # height in mm between top of LMFE and rotation axis
-    #min_clearance_toLMFE = 5. # minimum height in mm to maintain of collimator above LMFE
-    coll_Radius =  16 # mm
-    coll_eff_Radius = np.sqrt(coll_Radius**2+1.0**2) # in mm. since G10 shaft, hence rotation axis, is actually about 1 mm below lower part of "attenuator" part of collimator, offset by 1 mm, get the hypotenuse for "effective radius"
-    print(coll_eff_Radius)
+    coll_Radius_solder =  15.04 # mm
+    coll_solder_to_ax = 0.125 # mm
+    coll_eff_Radius_solder = np.sqrt(coll_Radius_solder**2+coll_solder_to_ax**2) # in mm. since G10 shaft, hence rotation axis, is actually about 0.125 mm below part soldered onto collimator, get the hypotenuse for "effective radius"
+    coll_Radius =  31.75/2 # mm
+    coll_to_ax = 1.75 + 0.125 # mm
+    coll_eff_Radius = np.sqrt(coll_Radius**2+coll_to_ax**2) # in mm. since G10 shaft, hence rotation axis, is actually about (1.75 + 0.125) mm below lower part of "attenuator" part of collimator, get the hypotenuse for "effective radius"
 
-    theta_rot_max = math.asin((height_LMFE_to_ax-min_clearance_toLMFE)/coll_eff_Radius)*rad_to_deg
+    theta_i_solder = math.atan(coll_solder_to_ax/coll_Radius_solder)*rad_to_deg 
+    theta_i = math.atan(coll_to_ax/coll_Radius)*rad_to_deg
+
+    theta_rot_max = math.asin((height_LMFE_to_ax-min_clearance_toLMFE)/coll_eff_Radius)*rad_to_deg + theta_i
+    theta_rot_max_solder = math.asin((height_LMFE_to_ax-min_clearance_toLMFE)/coll_eff_Radius_solder)*rad_to_deg +theta_i_solder
+
+    if theta_rot_max < theta_rot_max_solder:
+        print('Limiting dimension is from rotation center to full collimator width')
+    else:
+        print('Limiting dimension is from rotation center to piece soldered onto collimator')
+        theta_rot_max = theta_rot_max_solder
+
     theta_det_min = 90 - theta_rot_max
 
     print('Maximum rotation angle of the collimator to maintain %.2f mm clearance between the bottom edge of the (attenuator part of the) collimator and LMFE: \n%.2f deg' %(min_clearance_toLMFE, theta_rot_max))
