@@ -16,7 +16,7 @@ def main():
     # set icpc=False if scanning a PPC (or other detector with no ditch)-- But note, all other dimensions must be updated first for the output to be correct!!
     # All dimensions in mm, angles in deg
 
-    # calculate_CollClearances()
+    calculate_CollClearances()
 
     # positionCalc(y_final=12, theta_det=90., icpc=False)
     rotaryCalc(radius=12.0, d_theta=10)
@@ -24,19 +24,19 @@ def main():
     # checkRotation(theta_det=40, min_clearance_toLMFE=5.0)
     # thetaCalc(y_final=12., icpc=False)
 
-def positionCalc(y_final, theta_det, icpc=True):
+def positionCalc(y_final, theta_det, icpc=False):
     theta_rot = 90.-theta_det #rotation angle of the collimator with respect to the horizontal. Used in calculations, where 0 deg theta_rot is normal incidence on the detector surface
     theta_rot_motor = theta_rot - 180. #rotation angle of the collimator with respect to the horizontal. Should be the real-life rotation angle of the source motor, where -180 deg is normal incidence on the detector surface
     pi = math.pi
     deg_to_rad = pi/180.
 
     # First check that it's safe to rotate to this angle
-    rotCheck = checkRotation(theta_det)
+    rotCheck = checkRotation(theta_det, icpc=icpc)
     # if rotCheck[0]==False:
         # exit()
 
     ditch_depth = 2. # ditch depth for ICPC in mm
-    rotAxis_toSource_height = 4.5 # height difference in mm from the rotation axis to where the activity is located
+    rotAxis_toSource_height = 4.475 # height difference in mm from the rotation axis to where the activity is located
     if icpc==False:
         rotAxis_height = 23.8 # height for OPPI in mm from top of detector to rotation axis, which is (0, 0, 0) in the mother geometry of the simulation
         print('Using OPPI axis height: % .1f' %rotAxis_height)
@@ -88,6 +88,10 @@ def positionCalc(y_final, theta_det, icpc=True):
     else:
         rotary_motor_theta = 0.
 
+    macro_rotation = f'/gps/pos/rot1 1 0 0 \n/gps/pos/rot2 0 {rotUnitVec_y:.5f} {rotUnitVec_z:.5f} \n/gps/pos/centre 0.0 {source_yPos:.3f} {source_zPos:.3f} mm \n'
+    gdml_source_center = f'     <position name= "source_center" x="0.0" y="{axis_yPos:.3f}" z="0.0" unit="mm"/>\n'
+    gdml_source_rotation = f'     <rotation name="source{theta_rot:.0f}" x="-{theta_rot:.2f}" unit="deg"/>\n'
+
 
     print('For theta_det= %.1f deg, radius= %.1f mm:' %(theta_det, y_final))
     print('Source activity in the run macro should be rotated to and centered according to: \n/gps/pos/rot1 1 0 0 \n/gps/pos/rot2 0 %.5f %.5f' %(rotUnitVec_y, rotUnitVec_z))
@@ -99,20 +103,20 @@ def positionCalc(y_final, theta_det, icpc=True):
     # print('In the lab, to correspond to theta_det= %.1f deg, at radius= %.1f mm: \nsource motor should be rotated to %.1f deg \nsource should be translated to %.3f mm from center' %(theta_det, y_final, theta_rot_motor, axis_yPos))
     print(f'In the lab, to correspond to theta_det= {theta_det:.1f} deg, at radius= {y_final:.1f} mm: \nrotary motor should be rotated to {rotary_motor_theta:.1f} deg \nsource should be translated to {lab_axis_yPos:.3f} mm from center \nsource motor should be rotated to {theta_rot_motor:.1f} deg ')
 
-    return theta_rot_motor, axis_yPos
+    return macro_rotation, gdml_source_center, gdml_source_rotation
 
 
-def thetaCalc(y_final, icpc=True):
+def thetaCalc(y_final, icpc=False):
     # Caluclate the rotation angle to rotate the source WHILE KEEPING IT CENTERED OVER P+ CONTACT to reach desired "y_final" radius in mm on detector surface
     ditch_depth = 2. # ditch depth for ICPC in mm
-    rotAxis_toSource_height = 4.5 # height difference in mm from the rotation axis to where the activity is located
+    rotAxis_toSource_height = 4.475 # height difference in mm from the rotation axis to where the activity is located
     # rotAxis_height = 22.5 # height in mm from top of detector to rotation axis, which is (0, 0, 0) in the mother geometry of the simulation
     pi = math.pi
     deg_to_rad = pi/180.
     rad_to_deg = 180./pi
 
     if icpc==False:
-        rotAxis_height = 24.8 # height for OPPI in mm from top of detector to rotation axis, which is (0, 0, 0) in the mother geometry of the simulation
+        rotAxis_height = 23.8 # height for OPPI in mm from top of detector to rotation axis, which is (0, 0, 0) in the mother geometry of the simulation
         print('Using OPPI axis height: % .1f' %rotAxis_height)
     else:
         rotAxis_height = 22.5 # height in mm from top of detector to rotation axis, which is (0, 0, 0) in the mother geometry of the simulation
@@ -262,7 +266,7 @@ def calculate_CollClearances():
     # I just got tired of doing this manually.
     shaft_to_attenuator = 0.125 #mm. since G10 shaft, hence rotation axis, is actually about 1 mm below lower part of "attenuator" part of collimator
     shaft_to_bottom = 6.75-0.125 #mm Perpendicular distance between bottom edge of collimator and g10 shaft
-    shaft_to_top = 9.875 # mm. Perpendicular distance between top part of attenuator and g10 shaft
+    shaft_to_top = 10.125 # mm. Perpendicular distance between top part of attenuator and g10 shaft
     atten_Radius = 15.875 # mm.radius of the attenuator part of collimator
     coll_radius = 5. # mm. radius of lower (collimator) part of collimator
 
