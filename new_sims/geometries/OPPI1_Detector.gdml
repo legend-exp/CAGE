@@ -19,11 +19,11 @@
   <position name="center" x="0" y="0" z="0"/>
   <rotation name="identity" x="0" y="0" z="0" />
 
-  <quantity name="cylinder_radius" type="length" value="31" unit="mm"/>
+  <quantity name="cylinder_radius" type="length" value="30.8" unit="mm"/>
   <quantity name="cylinder_height" type="length" value="45.0" unit="mm"/>
 
-  <quantity name="cone_radius1" type="length" value="25.0" unit="mm"/>
-  <quantity name="cone_radius2" type="length" value="31" unit="mm"/>
+  <quantity name="cone_radius1" type="length" value="24.8" unit="mm"/>
+  <quantity name="cone_radius2" type="length" value="30.8" unit="mm"/>
   <quantity name="cone_height" type="length" value="6" unit="mm"/>
 
   <quantity name="pc_depth" type="length" value="1.9" unit="mm"/>

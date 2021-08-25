@@ -8,6 +8,10 @@
 # New collimator to be made of Pb. Drawing in this elog: https://elog.legend-exp.org/UWScanner/180
 # This way of unioning/differencing seems to work correctly
 
+# Aug 25, 2021
+# Grace Song
+# New-new collimator to be made of Pb. Dimensions in this elog: https://elog.legend-exp.org/UWScanner/380
+# This way of unioning/differencing seems to work correctly
 ##########################################-->
 
  <define>
@@ -20,7 +24,7 @@
   <rotation name="identity" x="0" y="0" z="0"/>
 
   <quantity name="body_top_radius" type="length" value="31.75/2" unit="mm"/>
-  <quantity name="body_top_height" type="length" value="6." unit="mm"/>
+  <quantity name="body_top_height" type="length" value="6.15" unit="mm"/> <!-- top of collimator to bottom of source offset -->
 
   <quantity name="innerVolume_radius" type="length" value="25.5/2" unit="mm"/>
   <quantity name="innerVolume_height" type="length" value="2.4" unit="mm"/>
@@ -28,21 +32,17 @@
   <quantity name="body_sourceOffset_radius" type="length" value="13./2" unit="mm"/>
   <quantity name="body_sourceOffset_height" type="length" value="0.25" unit="mm"/>
 
-  <quantity name="body_middle_innerradius" type="length" value="1./2 - 0.000001" unit="mm"/>
+  <quantity name="body_middle_innerradius" type="length" value="1./2" unit="mm"/>
   <quantity name="body_middle_radius" type="length" value="31.75/2" unit="mm"/>
-  <quantity name="body_middle_height" type="length" value="2." unit="mm"/>
+  <quantity name="body_middle_height" type="length" value="2.1" unit="mm"/> <!-- bottom of source offset to soldered lip -->
 
   <quantity name="body_lip_innerradius" type="length" value="1./2" unit="mm"/>
   <quantity name="body_lip_radius" type="length" value="30/2" unit="mm"/>
-  <quantity name="body_lip_height" type="length" value="1.75" unit="mm"/>
+  <quantity name="body_lip_height" type="length" value="1.75" unit="mm"/> <!-- soldered lip -->
 
   <quantity name="body_bottom_innerradius" type="length" value="1./2" unit="mm"/>
   <quantity name="body_bottom_radius" type="length" value="10./2" unit="mm"/>
-  <quantity name="body_bottom_height" type="length" value="6.75" unit="mm"/>
-
-  <!-- <quantity name="body_bottomSubtraction_innerradius" type="length" value="10./2" unit="mm"/>
-  <quantity name="body_bottomSubtraction_radius" type="length" value="32./2" unit="mm"/>
-  <quantity name="body_bottomSubtraction_height" type="length" value="8." unit="mm"/> -->
+  <quantity name="body_bottom_height" type="length" value="6.75" unit="mm"/> 
 
  </define>
 
@@ -64,7 +64,7 @@
 
     <cone name="body_lip" rmin1="body_lip_innerradius" rmax1="body_lip_radius" rmin2="body_lip_innerradius" rmax2="body_lip_radius" z="body_lip_height" startphi="0" deltaphi="TWOPI" aunit="rad" />
 
-    <cone name="body_middle" rmin1="body_middle_innerradius" rmax1="body_middle_radius" rmin2="body_middle_innerradius" rmax2="body_middle_radius" z="body_middle_height" startphi="0" deltaphi="TWOPI" aunit="rad" /> <!-- the 0.000001 offset is a bandaid for a bug (or feature) that is making a gap between the top of the of the collimator portion and the attenuator body to prevent what it thinks are accidental overlapping geometries -->
+    <cone name="body_middle" rmin1="body_middle_innerradius" rmax1="body_middle_radius" rmin2="body_middle_innerradius" rmax2="body_middle_radius" z="body_middle_height" startphi="0" deltaphi="TWOPI" aunit="rad" /> 
 
     <cone name="body_top" rmin1="0.0" rmax1="body_top_radius" rmin2="0.0" rmax2="body_top_radius" z="body_top_height" startphi="0" deltaphi="TWOPI" aunit="rad" />
 
@@ -78,14 +78,14 @@
     <union name="body_bottom_collimator">
       <first ref="body_bottom" />
       <second ref="body_lip" />
-      <position name="lip_bottom_pos" x="0" y="0" z="(body_bottom_height/2)+(body_lip_height/2)-0.000001" /> <!-- the 0.000001 offset is a bandaid for a bug (or feature) that is making a gap between the top of the of the collimator portion and the attenuator body to prevent what it thinks are accidental overlapping geometries -->
+      <position name="lip_bottom_pos" x="0" y="0" z="(body_bottom_height/2)+(body_lip_height/2)" /> 
       <rotationref ref="identity"/>
     </union>
 
     <union name="body_lip_collimator">
       <first ref="body_bottom_collimator" />
       <second ref="body_middle" />
-      <position name="bottom_mid_pos" x="0" y="0" z="(body_bottom_height/2)+body_lip_height+(body_middle_height/2)-0.000001" /> <!-- the 0.000001 offset is a bandaid for a bug (or feature) that is making a gap between the top of the of the collimator portion and the attenuator body to prevent what it thinks are accidental overlapping geometries -->
+      <position name="bottom_mid_pos" x="0" y="0" z="(body_bottom_height/2)+body_lip_height+(body_middle_height/2)" /> 
       <rotationref ref="identity"/>
     </union>
 
@@ -99,14 +99,14 @@
     <subtraction name="body_innerVolume_subtraction">
       <first ref="body_collimator" />
       <second ref="innerVolume" />
-      <position name="inner_pos" x="0" y="0" z="(body_bottom_height/2)+(body_middle_height)+(innerVolume_height/2)" />
+      <position name="inner_pos" x="0" y="0" z="(body_bottom_height/2)+ body_lip_height + (body_middle_height)+ body_sourceOffset_height + (innerVolume_height/2)" />
       <rotationref ref="identity"/>
     </subtraction>
 
    <subtraction name="am_collimator">
       <first ref="body_innerVolume_subtraction" />
       <second ref="body_sourceOffset" />
-      <position name="coll_pos" x="0" y="0" z="(body_bottom_height/2)+(body_middle_height)-(body_sourceOffset_height/2)" />
+      <position name="coll_pos" x="0" y="0" z="(body_bottom_height/2)+(body_middle_height) + body_lip_height +(body_sourceOffset_height/2)" />
       <rotationref ref="identity"/>
     </subtraction>
 
@@ -120,8 +120,6 @@
  <volume name="Am_Collimator_new">
    <materialref ref="G4_Pb"/>
    <solidref ref="am_collimator"/>
-   <!-- <solidref ref="body_collimator"/> -->
-   <!-- <solidref ref="body_bottomSourceOffset_collimator"/> -->
   </volume>
 
  </structure>

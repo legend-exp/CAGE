@@ -42,8 +42,8 @@ This file is a "mother file" that contains everything relevant to the source: co
   <volume name="source_volume">
    <materialref ref="G4_Galactic"/>
    <solidref ref="vacuum_cylinder"/>
-   <positionref ref="center"/>
-   <rotationref ref="identity"/>
+   <!--<positionref ref="center"/>
+   <rotationref ref="identity"/>-->
 
    <physvol>
      <file name="./geometries/Am_Collimator_new.gdml"/>
