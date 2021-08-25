@@ -11,7 +11,7 @@
 
 ##Specify output file
 /g4simple/setOutputFormat hdf5
-/analysis/setFileName /state/partition1/newDet_sourceRot45_thetaDet45_y6mm_ICPC_Pb_241Am_100000000.hdf5
+/g4simple/setFileName /state/partition1/newDet_sourceRot45_thetaDet45_y6mm_ICPC_Pb_241Am_100000000.hdf5
 
 ##Set Volume ID's for Geometry Volumes (volume.in.geometry.file_PV volID)
 /g4simple/setVolID OPPI1_Detector_PV 1
@@ -46,5 +46,5 @@
 #rotate source when appropriate
 
 
-##set number of primaries
+# set number of primaries
 /run/beamOn 100000000
