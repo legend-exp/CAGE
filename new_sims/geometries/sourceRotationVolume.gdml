@@ -47,13 +47,13 @@ This file is a "mother file" that contains everything relevant to the source: co
 
    <physvol>
      <file name="./geometries/Am_Collimator_new.gdml"/>
-     <position name="Am_Collimator_Position" x="0" y="0" z="-4.+1." unit="mm"/> --> <!-- make the rotation axis of the collimator correspond with (0,0,0) in this volume: "body_bottom_height"/2 in Am_collimator_new.gdml, + 1 mm since in reality the G10 axis is about 1 mm below where the attenuator part meets the collimator (see elog referenced above)-->
+     <position name="Am_Collimator_Position" x="0" y="0" z="-6.75/2+ 0.125" unit="mm"/> <!-- make the rotation axis of the collimator correspond with (0,0,0) in this volume: "body_bottom_height"/2 in Am_collimator_new.gdml, + 0.125 mm since in reality the G10 axis is about 1 mm below where the attenuator part meets the collimator (see elog referenced above)-->
      <rotation name="Am_Collimator_Rotation" x="0" y="0" z="0" unit="deg"/>
    </physvol>
 
    <physvol>
      <file name="./geometries/ss_sourceDisk_ezag.gdml"/>
-     <position name="ss_sourceDisk_ezag_Position" x="0" y="0" z="4.5 + 0.5/2 + 0.0015" unit="mm"/>  <!--offset by the SS thickness so the center of the disk sits just above (0,0,4.5) at (0,0,4.75), + 0.001 mm since the source (assuming no rotation) will be placed at (0,0,4.5) with /gps/pos/halfz 0.0005 -->
+     <position name="ss_sourceDisk_ezag_Position" x="0" y="0" z="4.475 + 0.25" unit="mm"/>  <!--offset by the SS thickness so the center of the disk sits just above (0,0,4.5) at (0,0,4.75), + 0.001 mm since the source (assuming no rotation) will be placed at (0,0,4.5) with /gps/pos/halfz 0.0005 -->
      <rotation name="ss_sourceDisk_ezag_Rotation" x="0" y="0" z="0" unit="deg"/>
    </physvol>
 

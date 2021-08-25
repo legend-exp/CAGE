@@ -31,6 +31,12 @@ See these elogs for more diagrams and information: https://elog.legend-exp.org/U
 
   <quantity name="rotAxis_to_detSurface_oppi" type="length" value="23.8" unit="mm"/>
 
+  <!-- Dimenstions relevant to diving board (peek part only, not LMFE) -->
+  <quantity name="board_thickness" type="length" value="1.5" unit="mm"/>
+
+  <!-- LMFE substrate board dimensions for reference -->
+  <quantity name="substrate_board_thickness" type="length" value="0.5" unit="mm"/>
+
 
   <!-- Dimenstions relevant to ring and diving board -->
   <quantity name="cone_height" type="length" value="6.0" unit="mm"/> <!-- see OPPI1_ring.gdml -->
@@ -134,7 +140,7 @@ See these elogs for more diagrams and information: https://elog.legend-exp.org/U
      <position name="LN_Dewar_Position" x="0" y="0" z="-567.5" unit="mm"/>
      <rotationref ref="identity"/>
    </physvol> -->
-   <!-- <physvol> --> -->
+   <!-- <physvol> --> 
      <!-- <file name="./geometries/Muon_Veto_02.gdml"/> -->
      <!-- <position name="Muon_Veto_01_Position" x="0" y="0" z="352" unit="mm"/> -->
      <!-- <rotationref ref="identity"/> -->

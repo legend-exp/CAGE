@@ -62,10 +62,10 @@ def writeFiles(radius, source_angle, rotary='0', det='oppi', run = '', primaries
                 gdml_divingBoard_rotation = f'     <rotation name="OPPI1_diving_board_volume_Rotation" z="(180-17.92)-{theta_rot}" unit="deg"/> <!-- diving board rotation. linear motor drive --> \n'
                 gdml_det_rotation = f'     <rotation name="OPPI_Rotation" x="0" y="0" z="-{theta_rot}" unit="deg"/> <!--Add same additional rotation to "OPPI1_diving_board_volume_Rotation" here to simulte rotating rotary motor--> \n'
 
-                gdml[78] = gdml_source_center
-                gdml[79] = gdml_source_rotation
-                gdml[91] = gdml_divingBoard_rotation
-                gdml[97] = gdml_det_rotation
+                gdml[84] = gdml_source_center
+                gdml[85] = gdml_source_rotation
+                gdml[97] = gdml_divingBoard_rotation
+                gdml[103] = gdml_det_rotation
 
                 mac[9] = '/g4simple/setDetectorGDML ' + gdml_out_file + ' \n'
                 mac[13] = '/g4simple/setFileName ' + hdf5_out_file + ' \n'
@@ -105,23 +105,23 @@ def writeFiles(radius, source_angle, rotary='0', det='oppi', run = '', primaries
                 if write_shell:
                     with open(f'./submission/run_template.sh', 'r') as file:
                         # read a list of lines into data
-                        run = file.readlines()
+                        runsh = file.readlines()
                     with open(f'./submission/submit_template.sh', 'r') as file:
                         # read a list of lines into data
                         sub = file.readlines()
                     run_name = f'run_y{int(r)}_thetaDet{int(theta_det)}_rot{int(theta_rot)}.sh'
                     sub_name = f'sub_y{int(r)}_thetaDet{int(theta_det)}_rot{int(theta_rot)}.sh'
 
-                    run[7] = f'g4simple {mac_out_file} \n'
-                    run[9] = f'h5repack -v -f GZIP=5 y{int(r)}_thetaDet{int(theta_det)}_rotary{int(theta_rot)}_241Am_{primaries}.hdf5 ' + '${DATADIR}/' + f'y{int(r)}_thetaDet{int(theta_det)}_rotary{int(theta_rot)}_' + '${SGE_TASK_ID}.hdf5 \n'
+                    runsh[7] = f'g4simple {mac_out_file} \n'
+                    runsh[9] = f'h5repack -v -f GZIP=5 y{int(r)}_thetaDet{int(theta_det)}_rotary{int(theta_rot)}_241Am_{primaries}.hdf5 ' + '${DATADIR}/' + f'y{int(r)}_thetaDet{int(theta_det)}_rotary{int(theta_rot)}_' + '${SGE_TASK_ID}.hdf5 \n'
 
                     sub[6] = f'#$ -N y{int(r)}_thetaDet{int(theta_det)}_rotary{int(theta_rot)} #job name \n'
                     sub[12] = f'#$ -t 1-{jobs} #give me N identical jobs, labelled by variable SGE_TASK_ID \n'
-                    sub[16] = f'singularity exec --bind /data/eliza1/LEGEND,$TMPDIR /data/eliza1/LEGEND/sw/containers/legend-base.sif /data/eliza1/LEGEND/users/grsong/CAGE/new_sims/submissions/{run_name} \n'
+                    sub[16] = f'singularity exec --bind /data/eliza1/LEGEND,$TMPDIR /data/eliza1/LEGEND/sw/containers/legend-base.sif /data/eliza1/LEGEND/users/grsong/CAGE/new_sims/submission/{run_name} \n'
 
                     with open(f'./submission/{run_name}', 'w') as file:
                         # read a list of lines into data
-                        file.writelines(run)
+                        file.writelines(runsh)
                     with open(f'./submission/{sub_name}', 'w') as file:
                         # read a list of lines into data
                         file.writelines(sub)

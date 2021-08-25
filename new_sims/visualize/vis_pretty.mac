@@ -1,7 +1,7 @@
 # use QGSP_BERT just to have something - this one loads fast.
 /g4simple/setReferencePhysList QGSP_BERT
 
-/g4simple/setDetectorGDML ./geometries/mothers/oppi/centering_scan/y15_thetaDet90_rotary0_241Am_100.gdml false
+/g4simple/setDetectorGDML ./geometries/mothers/oppi/centering_scan/y10_thetaDet45_rotary0_241Am_10.gdml false
 #/g4simple/setDetectorGDML ./geometries/translations_gscanner_241Am.gdml false
 
 /run/initialize
