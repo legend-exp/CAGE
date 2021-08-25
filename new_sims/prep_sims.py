@@ -122,6 +122,8 @@ def writeFiles(radius, source_angle, rotary='0', det='oppi', run = '', primaries
                     with open(f'./submission/{run_name}', 'w') as file:
                         # read a list of lines into data
                         file.writelines(runsh)
+                    result = subprocess.run([f'chmod a+x ./submission/{run_name}'], shell=True, check=True, capture_output=True, text=True).stdout.strip("\n")
+                    print(result)
                     with open(f'./submission/{sub_name}', 'w') as file:
                         # read a list of lines into data
                         file.writelines(sub)
