@@ -18,21 +18,21 @@ def main():
 
     G. Othman
     """
-    radius = [10, 15.]
-    source_angle = [45.]
-    rotary = [0.]
+    radius = [5, 6, 7, 8, 9, 10]
+    source_angle = [90]
+    rotary = [0., 180, 145]
 #     rotary = np.linspace(4, 144, 15)
     # print(rotary)
     # exit()
     mac_dir = './macros/'
     gdml_dir = './geometries/mothers/'
-    hdf5_dir = '$[TMPDIR]/' #enclose environment variables in square brackets [] 
+    hdf5_dir = '$[TMPDIR]/' #format environment variables as $[VARNAME] 
     run = 'centering_scan/' #ex 'centering_scan/'
     det = 'oppi'
-    primaries = 10
-    jobs = 1
+    primaries = 1000000
+    jobs = 100
     # print(f'./geometries/mothers/{det}/{run}test.gdml')
-    writeFiles(radius, source_angle, rotary, det, run, primaries, jobs, hdf5_dir=hdf5_dir, write_shell=True, run_job=True)
+    writeFiles(radius, source_angle, rotary, det, run, primaries, jobs, hdf5_dir=hdf5_dir, write_shell=True, run_job=False)
 
 
 def writeFiles(radius, source_angle, rotary='0', det='oppi', run = '', primaries=100000000, jobs=10, mac_dir = './macros/', gdml_dir = './geometries/mothers/', hdf5_dir = './alpha/raw_out/', write_shell=False, run_job=False):
@@ -67,11 +67,11 @@ def writeFiles(radius, source_angle, rotary='0', det='oppi', run = '', primaries
                 gdml[97] = gdml_divingBoard_rotation
                 gdml[103] = gdml_det_rotation
 
-                mac[9] = '/g4simple/setDetectorGDML ' + gdml_out_file + ' \n'
+                mac[9] = '/g4simple/setDetectorGDML ' + gdml_out_file + ' 0 \n'
                 mac[13] = '/g4simple/setFileName ' + hdf5_out_file + ' \n'
 
                 if int(theta_det)==90:
-                    mac[43] = f'/gps/pos/centre 0.0 {float(r)} 4.5 mm \n'
+                    mac[43] = f'/gps/pos/centre 0.0 {float(r)} 4.475 mm \n'
 
                 else:
                     mac[43] = ''
