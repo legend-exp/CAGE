@@ -16,7 +16,7 @@ mpl.use('Agg')
 def main():
     radius = [5, 6, 7, 8, 9, 10]
     thetaDet = [90]
-    rotAngle = [0]
+    rotAngle = [0, 180, 145]
     scan = 'centering_scan'
     processed_dir = f'../data/oppi/{scan}'
     primaries = 1e8

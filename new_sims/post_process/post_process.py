@@ -17,7 +17,7 @@ def main():
 
     radius = [5, 6, 7, 8, 9, 10]
     thetaDet = [90]
-    rotAngle = [0]
+    rotAngle = [0, 145, 180]
     scan = 'centering_scan'
     
     if not os.path.isdir(f'../data/oppi/{scan}/'):
@@ -31,9 +31,13 @@ def main():
                 raw_dir = f'../../../jobs/data/{name}/'
                 processed_dir = f'../data/oppi/{scan}/{name}/'
                 base_filenames = os.listdir(raw_dir)
-
+                
                 for file in range(len(base_filenames)):
-                    post_process(raw_dir, processed_dir, base_filenames[file])
+                    if os.path.isfile(processed_dir+'processed_'+ base_filenames[file]):
+                        print(base_filenames[file] + ' has been processed')
+                        continue
+                    else:
+                        post_process(raw_dir, processed_dir, base_filenames[file])
         
 
 
