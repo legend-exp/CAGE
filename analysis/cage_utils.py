@@ -170,23 +170,38 @@ def getStartStop(run):
     print(f'start: {t_start}\n stop: {t_stop}')
     return(t_start, t_stop)
 
-def corrDCR(df, etype, e_bins=300, elo=0, ehi=6000, dcr_fit_lo=-30, dcr_fit_hi=30):
+def corrDCR(df, etype, e_bins=300, elo=0, ehi=6000, dcr_fit_lo=-30, dcr_fit_hi=30, quad=False, dcr_fit_qlo=5000, dcr_fit_qhi=5800):
 
     df_dcr_cut = df.query(f'dcr >{dcr_fit_lo} and dcr < {dcr_fit_hi} and {etype} > {elo} and {etype} < {ehi}').copy()
 
-
+    
     median, xedges, binnumber = stats.binned_statistic(df_dcr_cut[etype], df_dcr_cut['dcr'], statistic = "median", bins = e_bins)
 
     en_bin_centers = pgh.get_bin_centers(xedges)
+    print(en_bin_centers.shape)
 
-    fit_raw, cov = np.polyfit(en_bin_centers, median, deg=1, cov=True)
+    if quad:
+        df_dcr_qcut = df.query(f'dcr >{dcr_fit_qlo} and dcr < {dcr_fit_qhi} and {etype} > {elo} and {etype} < {ehi}').copy()
+        qmedian, qxedges, qbinnumber = stats.binned_statistic(df_dcr_qcut[etype], df_dcr_qcut['dcr'], statistic = "median", bins = e_bins)
+        print(qxedges)
+        qen_bin_centers = pgh.get_bin_centers(qxedges)
+        xen = np.concatenate((en_bin_centers, qen_bin_centers))
+        ymed = np.concatenate((median, qmedian))
+        fit_raw, cov = np.polyfit(xen, ymed, deg=2, cov=True)
+        qconst = fit_raw[0]
+        qlin = fit_raw[1]
+        qoffset = fit_raw[2]
+        err = np.sqrt(np.diag(cov)) 
+        df['dcr_corr'] = df_dcr_cut['dcr'] - (qconst*(df_dcr_cut[etype]**2) + qlin*df_dcr_cut[etype] + qoffset)
+    else:
+        fit_raw, cov = np.polyfit(en_bin_centers, median, deg=1, cov=True)
+        const = fit_raw[0]
+        offset = fit_raw[1]
+        err = np.sqrt(np.diag(cov))
 
-    const = fit_raw[0]
-    offset = fit_raw[1]
-    err = np.sqrt(np.diag(cov))
-
-    print(f'Fit results\n slope: {const}\n offset: {offset}')
-    return(const, offset, err)
+        df['dcr_corr'] = df_dcr_cut['dcr'] - (const*(df_dcr_cut[etype]) + offset)
+        
+    return df
 
 def mode_hist(df, param, a_bins=1000, alo=0.005, ahi=0.075, cut=False, cut_str=''):
     # get the mode of a section of a histogram. Default params based on AoE values
