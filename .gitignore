@@ -1,4 +1,6 @@
 # New additions go at the top!
+new_sims/submission/sub_*
+new_sims/submission/run_*
 config.json
 controls/project8_authentications.json
 *.c
