@@ -15,11 +15,15 @@ import os
 
 def main():
 
-    radius = [5, 6, 7, 8, 9, 10]
-    thetaDet = [90]
-    rotAngle = [0, 145, 180]
-    scan = 'centering_scan'
+#   radius = [5, 6, 7, 8, 9, 10]
+#   thetaDet = [90]
+#   rotAngle = [162]
+#   scan = 'spot_size_scan'
     
+    radius = [10]
+    thetaDet = [90]
+    rotAngle = [0]
+    scan = 'large_hole_rate'
     if not os.path.isdir(f'../data/oppi/{scan}/'):
         print(f'Creating data directory for scan: {scan}')
         os.mkdir(f'../data/oppi/{scan}/')
@@ -28,7 +32,7 @@ def main():
         for theta in thetaDet:
             for rot in rotAngle:
                 name = f'y{r}_thetaDet{theta}_rotary{rot}'
-                raw_dir = f'../../../jobs/data/{name}/'
+                raw_dir = f'../../../jobs/data/{scan}/{name}/'
                 processed_dir = f'../data/oppi/{scan}/{name}/'
                 base_filenames = os.listdir(raw_dir)
                 

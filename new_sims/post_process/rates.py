@@ -14,18 +14,29 @@ mpl.rcParams['text.usetex'] = True
 mpl.use('Agg')
 
 def main():
-    radius = [5, 6, 7, 8, 9, 10]
+    radius = [10]
     thetaDet = [90]
-    rotAngle = [0, 180, 145]
-    scan = 'centering_scan'
+    rotAngle = [0]
+    scan = 'large_hole_rate'
+#   radius = [5, 6, 7, 8, 9, 10]
+#   thetaDet = [90]
+#   rotAngle = [162]
+#   scan = 'spot_size_scan'
     processed_dir = f'../data/oppi/{scan}'
     primaries = 1e8
-    source_activity = 4.0e4 #40 kBq = 4e4 decays/s
+    source_activity = 4e4 #40 kBq = 4e4 decays/s
+    activity_err = 4e4*0.3 # +- 30%
     time_seconds = primaries/(source_activity)
 
+    r12_alp = []
+    r14_alp = []
+    angled_alp = []
     
+    spot = []
     for r in radius:
         for theta in thetaDet:
+            if r == 12 and theta == 71:
+                continue
             for rot in rotAngle:
                 name = f'y{r}_thetaDet{theta}_rotary{rot}'
                 sixty = 0
@@ -40,11 +51,36 @@ def main():
                 rate = total/time_seconds #(rate in counts/s)
                 rate_sixty = sixty/time_seconds #(rate in counts/s)
                 rate_alpha = alphas/time_seconds #(rate in counts/s)
+                alp_err = (np.sqrt(alphas)*source_activity + alphas*activity_err)/primaries
                 print(name + ':')
                 print(f'{rate} total counts/second')
                 print(f'{rate_sixty} 60 keV gamma counts/second')
-                print(f'{rate_alpha} alpha counts/second')
-                    
+                print(f'{rate_alpha} alpha counts/second w/ err {alp_err}')
+                spot.append((rate_alpha, alp_err))
+                if r == 12:
+                    r12_alp.append((rate_alpha, alp_err))
+                if r == 14:
+                    if theta == 90:
+                        r14_alp.append((rate_alpha, alp_err))
+                    if theta == 71:
+                        angled_alp.append((rate_alpha, alp_err))
+
+#   plt.figure()
+#   plt.errorbar(rotAngle, [r12_alp[i][0] for i in range(len(rotAngle))], [r12_alp[i][1] for i in range(len(rotAngle))], label="r=12", marker='.', ls='none')
+#   plt.errorbar(rotAngle, [r14_alp[i][0] for i in range(len(rotAngle))], [r14_alp[i][1] for i in range(len(rotAngle))], label="r=14", marker='.', ls='none')
+#   plt.errorbar(rotAngle, [angled_alp[i][0] for i in range(len(rotAngle))], [angled_alp[i][1] for i in range(len(rotAngle))], label="angled", marker='.', ls='none')
+#   plt.xlabel("rotary angle [deg]")
+#   plt.ylabel("rate [counts/sec]")
+#   plt.legend()
+#   plt.title("rotary centering scan alpha rates")
+#   plt.savefig('rotary_centering_scan_rates.jpg')
+#   plt.figure()
+#   plt.errorbar(radius, [spot[i][0] for i in range(len(radius))], [spot[i][1] for i in range(len(radius))], label="rot162", marker='.', ls='none')
+#   plt.xlabel("radius [mm]")
+#   plt.ylabel("rate [counts/sec]")
+#   plt.legend()
+#   plt.title("spot size scan alpha rates")
+#   plt.savefig('spot_size_scan_rates.jpg')
 
 def getCounts(processed_filename):
     df = pd.read_hdf(processed_filename, keys='procdf')
@@ -69,7 +105,6 @@ def getRate(processed_filename, primaries, elo, ehi):
     counts = getCounts_cut(processed_filename, elo, ehi)
     rate = counts/time_seconds #(rate in counts/s)
     rate_err = np.sqrt(counts)/time_seconds
-    print(f'{rate} counts/second in region {elo} to {ehi} keV')
 
     return(rate, rate_err)
 
