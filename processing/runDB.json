@@ -336,5 +336,15 @@
     "328":["2328", "alp", "elog 377. L=6"],
     "329":["2329", "alp", "elog 377. L=5"],
     "330":["2330", "alp", "elog 377. L=4"],
-    "331":["2331", "alp", "elog 377. L=3"]
+    "331":["2331", "alp", "elog 377. L=3"],
+    "332":["2332", "bkg", "elog 388. high energy waveforms are slow, motor controller was on"],
+    "333":["2333-2338", "alp", "elog 388. mark 2333-2337 as 'skip', orca was being finnicky, rotary 0, r=10mm"],
+    "334":["2339", "alp", "elog 388. r=9mm"],
+    "335":["2340", "alp", "elog 388. r=8mm"],
+    "336":["2341-2343", "alp", "elog 388. r=7mm, more orca issues, 'skip' 2341-2342"],
+    "337":["2344", "alp", "elog 388. r=6mm"],
+    "338":["2345", "alp", "elog 388. r=5mm"],
+    "339":["2346", "alp", "elog 388. r=4mm"],
+    "340":["2347", "alp", "elog 388. r=3mm"],
+    "341":["2348-2377", "bkg", "elog 388. overnight background run, r=3mm"]
 }
