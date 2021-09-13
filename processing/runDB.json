@@ -346,5 +346,17 @@
     "338":["2345", "alp", "elog 388. r=5mm"],
     "339":["2346", "alp", "elog 388. r=4mm"],
     "340":["2347", "alp", "elog 388. r=3mm"],
-    "341":["2348-2377", "bkg", "elog 388. overnight background run, r=3mm"]
+    "341":["2348-2377", "bkg", "elog 388. overnight background run, r=3mm"],
+    "342":["2378", "alp", "elog 388. rotary 180, r=5mm"],
+    "343":["2379", "alp", "elog 388. rotary 180, r=4mm"],
+    "344":["2380", "alp", "elog 388. rotary 180, r=3mm"],
+    "345":["2381", "alp", "elog 388. rotary 180, r=2mm"],
+    "346":["2382", "alp", "elog 388. rotary 180, r=1mm"],
+    "347":["2383", "alp", "elog 388. rotary 145, r=5mm"],
+    "348":["2384", "alp", "elog 388. rotary 145, r=6mm"],
+    "349":["2385", "alp", "elog 388. rotary 145, r=7mm"],
+    "350":["2386", "alp", "elog 388. rotary 145, r=8mm, gain is shifting"],
+    "351":["2387", "alp", "elog 388. rotary 145, r=4mm, gain is shifting"],
+    "352":["2388", "alp", "elog 388. rotary 145, r=3mm, gain is shifting"],
+    "353":["2389", "alp", "elog 388. rotary 0, r=2mm"]
 }
