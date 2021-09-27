@@ -182,7 +182,9 @@ def get_cyc_info(row, dg):
     using the runDB, map cycle numbers to physics runs, identify detector,
     physics run type, etc.
     """
-    # loop over the runDB and add columns to each row of dg.fileDB
+    # cyc_debug = 2274
+
+    # loop over the runDB keys and add columns to each row of dg.fileDB
     cyc = row['cycle']
     for run, cycles in dg.runDB.items():
         tmp = cycles[0].split(',')
@@ -200,9 +202,11 @@ def get_cyc_info(row, dg):
                     row['runtype'] = cycles[1]
                     break
 
-    # if row.cycle > 2255:
-        # print(f'end of loop.  clo {clo}  cyc {cyc}  chi {chi}  run {run}')
+    # if row.cycle > cyc_debug:
+        # print(f'clo {clo}  cyc {cyc}  chi {chi}  run {run}')
         # print(row.to_frame().T)
+
+    # return
 
     # label the detector (when hardware iteration changes)
     det_name = 'none'
@@ -356,6 +360,7 @@ def get_runtimes(dg, overwrite=False, batch_mode=False):
         else:
             print('No empty runtime values found.')
 
+    print("I don't think we need the following block, this should be in the else block above")
     if len(df_keys) == 0:
         print('No files to update.  Exiting...')
         exit()
@@ -427,6 +432,8 @@ def get_runtimes(dg, overwrite=False, batch_mode=False):
     print(dg.fileDB[dbg_cols])
 
     print('Ready to save.  This will overwrite any existing fileDB.')
+    print('Saving runtimes does not work. Delete lines with \'dg.fileDB = df_keys\'. Exiting...')
+    exit()
     if not batch_mode:
         ans = input('Save updated fileDB? (y/n):')
         if ans.lower() == 'y':

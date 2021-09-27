@@ -1127,9 +1127,10 @@ def fit_peaks(epeaks, cal_pars, raw_data, runtime_min, range=[0, 3000, 5], ff_na
     for ie, epk in enumerate(epeaks):
 
         # adjust the window.  resolution goes as roughly sqrt(energy)
-        window = np.sqrt(epk) * 1.2
+        window = np.sqrt(epk)*(1+(epk-200)/epk)
+        # window = np.sqrt(epk)*1.8
         xlo, xhi = epk - window / 2, epk + window / 2
-        nbins = int(window) * 3 # todo, make this get smaller w/ inc energy
+        nbins = int(window * 5/np.sqrt(np.sqrt(epk)))  # todo, make this get smaller w/ inc energy
         xpb = (xhi - xlo) / nbins
 
         if show_plot:
