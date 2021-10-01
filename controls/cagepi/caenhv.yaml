@@ -9,7 +9,7 @@ endpoints:
     command_terminator: "\r\n"
     response_terminator: "\r\n"
     endpoints:
-      - name: mj60_hv_status
+      - name: krstc_hv_status
         module: CAENHVFormatSpime
         module_path: serial_provider.py
         get_str: '$BD:00,CMD:MON,CH:1,PAR:STAT'
@@ -21,7 +21,7 @@ endpoints:
         get_on_set: True
         log_on_set: True
         log_interval: 1200
-      - name: mj60_hv_vset
+      - name: krstc_hv_vset
         module: CAENHVSpime
         module_path: serial_provider.py
         base_str: '$BD:00,CMD:{},CH:1,PAR:VSET'
@@ -29,19 +29,19 @@ endpoints:
         get_on_set: True
         log_on_set: True
         log_interval: 1200
-      - name: mj60_hv_vmon
+      - name: krstc_hv_vmon
         module: CAENHVGetSpime
         module_path: serial_provider.py
         base_str: '$BD:00,CMD:{},CH:1,PAR:VMON'
         calibration: '1*{}'
         log_interval: 30
-      - name: mj60_hv_imon
+      - name: krstc_hv_imon
         module: CAENHVGetSpime
         module_path: serial_provider.py
         base_str: '$BD:00,CMD:{},CH:1,PAR:IMON'
         calibration: '1*{}'
         log_interval: 30
-      - name: mj60_hv_rup
+      - name: krstc_hv_rup
         module: CAENHVSpime
         module_path: serial_provider.py
         base_str: '$BD:00,CMD:{},CH:1,PAR:RUP'
@@ -49,7 +49,7 @@ endpoints:
         get_on_set: True
         log_on_set: True
         log_interval: 1200
-      - name: mj60_hv_rdown
+      - name: krstc_hv_rdown
         module: CAENHVSpime
         module_path: serial_provider.py
         base_str: '$BD:00,CMD:{},CH:1,PAR:RDW'

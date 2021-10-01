@@ -1,15 +1,15 @@
-name: mj60ln_service
+name: krstcln_service
 module: Spimescape
 broker: 10.66.193.71
 endpoints:
-  - name: mj60ln
+  - name: krstcln
     module: SerialProvider
     module_path: serial_provider.py
     port: '/dev/serial0'
     command_terminator: "\r\n"
     response_terminator: "\r\n"
     endpoints:
-      - name: mj60_ln_level
+      - name: krstc_ln_level
         module: LNGetSpime
         module_path: serial_provider.py
         get_str: 'N'
@@ -17,7 +17,7 @@ endpoints:
         log_interval: 30
         max_interval: 1200
 setup_calls:
-  - target: mj60ln
+  - target: krstcln
     method: on_set
     args: "on"
     kwargs:

@@ -28,7 +28,7 @@
     * The broker allows commands to be sent to certain hardware devices (such as high voltage modules), from any "node" on the system, to any other node.  
 
 
-  * **An "auxiliary system" (usually a Raspberry Pi)** connected to slow controls equipment, that periodically posts messages to the database. (`cagepi, mj60pi`)  Typically these processes are started with the RPi using the `supervisorctl` utility.  Other processes can be managed interactively with `tmux`.
+  * **An "auxiliary system" (usually a Raspberry Pi)** connected to slow controls equipment, that periodically posts messages to the database. (`cagepi, krstcpi`)  Typically these processes are started with the RPi using the `supervisorctl` utility.  Other processes can be managed interactively with `tmux`.
 
 
 ### How does the broker work?
@@ -91,10 +91,10 @@
   select * from endpoint_id_map;
   ``` 
   
-  This will display a list of all "endpoints" in the database, i.e. "columns" in the table that are written to if their subsystem (typically the CAGE RPi or MJ60 RPi) is active.
+  This will display a list of all "endpoints" in the database, i.e. "columns" in the table that are written to if their subsystem (typically the CAGE RPi or KrSTC RPi) is active.
 
   ```
-  SELECT value_cal, timestamp FROM numeric_data WHERE endpoint_name = 'mj60_baseline' 
+  SELECT value_cal, timestamp FROM numeric_data WHERE endpoint_name = 'krstc_baseline' 
   AND timestamp > '2020-01-30T00:00';
   ```  
   
@@ -108,14 +108,14 @@
   By default, `timestamp` is in GMT time.  This statement converts the timestamp to Pacific Standard Time.
 
   ```
-  SELECT * FROM numeric_data WHERE endpoint_name='mj60_baseline' ORDER BY timestamp DESC;
+  SELECT * FROM numeric_data WHERE endpoint_name='krstc_baseline' ORDER BY timestamp DESC;
   ```
   
   This shows recent data.
 
   ```
   SELECT to_timestamp(AVG(extract(epoch from timestamp))), AVG(value_cal) 
-  FROM numeric_data WHERE endpoint_name='mj60_temp' 
+  FROM numeric_data WHERE endpoint_name='krstc_temp' 
   AND value_cal < 100 AND timestamp > '2019-06-01' 
   AND timestamp < '2019-08-10'
   GROUP BY FLOOR(extract(epoch from timestamp)/3600)
@@ -179,7 +179,7 @@
 
 ## Operations on a Raspberry Pi
 
-  Here we assume you have begun an SSH session with the CAGE or MJ60 RPi's:
+  Here we assume you have begun an SSH session with the CAGE or KrSTC RPi's:
   ```
   ssh pi@[IP ADDRESS]
   ```
@@ -218,7 +218,7 @@
 
 ### Automatic background processes
 
-  The `.yaml` files in the folders `CAGE/controls/[cagepi,mj60pi]` manage which sensors post messages to the database, and how often they do so.  Both RPis are configured to post messages automatically on startup using the `supervisorctl` utility.
+  The `.yaml` files in the folders `CAGE/controls/[cagepi,krstcpi]` manage which sensors post messages to the database, and how often they do so.  Both RPis are configured to post messages automatically on startup using the `supervisorctl` utility.
 
 
 #### Common supervisorctl commands
@@ -237,9 +237,9 @@
   
 #### Changing database logging intervals
   
-  * `dragonfly get mj60_baseline.schedule_interval -b mjcenpa`: This can be done with any endpoint.  Typically slow controls values report once every 30 seconds, and should generally not report faster than once every 5 seconds for extended periods of time.
+  * `dragonfly get krstc_baseline.schedule_interval -b mjcenpa`: This can be done with any endpoint.  Typically slow controls values report once every 30 seconds, and should generally not report faster than once every 5 seconds for extended periods of time.
   
-  * `dragonfly set mj60_baseline.schedule_interval 5 -b mjcenpa`: Sets the report rate for this endpoint in seconds.
+  * `dragonfly set krstc_baseline.schedule_interval 5 -b mjcenpa`: Sets the report rate for this endpoint in seconds.
 
 
   ##### Working with the CAENHV service 
@@ -284,14 +284,14 @@
   
 #### The HV interlock system
   
-  **HOUSE RULE:** The HV interlock for each detector (CAGE or MJ60) must be run on its respective RPi.  **DO NOT** run the MJ60 interlock from the CAGE RPi, it will only create confusion.
+  **HOUSE RULE:** The HV interlock for each detector (CAGE or KrSTC) must be run on its respective RPi.  **DO NOT** run the KrSTC interlock from the CAGE RPi, it will only create confusion.
 
-  The HV interlock system `[cagepi,mj60pi]/interlock.yaml`, is an example of a process which should be manually activated and deactivated by users.  It should only be engaged during stable periods of operation, not when the bias voltage of a detector is being actively changed by an operator.  **This is why `tmux` is used for this process.**
+  The HV interlock system `[cagepi,krstcpi]/interlock.yaml`, is an example of a process which should be manually activated and deactivated by users.  It should only be engaged during stable periods of operation, not when the bias voltage of a detector is being actively changed by an operator.  **This is why `tmux` is used for this process.**
 
-  **To start/stop the interlock** (using the MJ60 RPi as an example):
+  **To start/stop the interlock** (using the KrSTC RPi as an example):
   ```
   source ~/cage_venv/bin/activate
-  cd cage/controls/mj60pi
+  cd cage/controls/krstcpi
   dragonfly serve -vv -c interlock.yaml  [starts the interlock]
   tmux ls  [make sure 'interlock' is visible, may also want to check its output]
   tmux kill-session -t interlock [stops the interlock]
