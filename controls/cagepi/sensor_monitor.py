@@ -1,1 +1,1 @@
-/home/pi/cage/controls/krstcpi/sensor_monitor.py
+../krstcpi/sensor_monitor.py

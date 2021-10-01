@@ -1,1 +1,1 @@
-/home/pi/cage/controls/krstcpi/max_spime.py
+../krstcpi/max_spime.py
