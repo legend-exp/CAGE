@@ -1,32 +1,23 @@
 {
   "outputs": [
-    "channel", "timestamp",
-    "bl", "bl_sig", "bl_slope",
-    "energy", "trapEftp", "trapEmax", "triE",
-    "tp_max", "tp_0", "tp_02", "tp_05", "tp_10", "tp_20", "tp_30", "tp_40", "tp_50", "tp_60", "tp_70", "tp_80", "tp_90", "tp_96", 
-    "A_10", "AoE", "dcr", "wf_max", "wf_argmax", "trapE_argmax", "hf_max", "lf_max", "ToE", "log_tail_fit_mean", "log_tail_fit_sigma", "log_tail_fit_slope", "log_tail_fit_intercept"
+    "channel", "timestamp", "energy",
+    "bl", "bl_sig", "bl_slope_ftp", "bl_mean", "bl_sig", "bl_slope", "bl_int",
+    "wf_max", "wf_argmax", "fltp2", "fltp2_sig", "fltpDCR", "fltpDCR_sig",
+    "trapEmax", "trapE_argmax", "atrap_max", "tp_0", "trapEftp",
+    "dcr", "dcr_trap_max", "ct_corr",  "lt_mean", "lt_sig", "lt_slope", "lt_int",
+    "A_10", "AoE", "triE", "ToE",
+    "hf_max", "lf_max",
+    "tp_max", "tp_02", "tp_05", "tp_10", "tp_20", "tp_30", "tp_40", "tp_50",
+    "tp_60", "tp_70", "tp_80", "tp_90", "tp_96",
+    ""
   ],
   "processors":{
     "bl, bl_sig":{
       "function": "mean_stdev",
       "module": "pygama.dsp.processors",
-      "args" : ["waveform[0:2500]", "bl", "bl_sig"],
+      "args" : ["waveform[0:3500]", "bl", "bl_sig"],
       "prereqs": ["waveform"],
       "unit": ["ADC", "ADC"]
-    },
-    "bl_slope": {
-      "function": "fixed_time_pickoff",
-      "module": "pygama.dsp.processors",
-      "args": ["bl_trap", "7.5*us", "bl_slope"],
-      "unit": "ADC",
-      "prereqs": ["bl_trap"]
-    },
-    "bl_trap": {
-      "function": "trap_norm",
-      "module": "pygama.dsp.processors",
-      "args": ["wf_blsub", 500, 500, "bl_trap"],
-      "unit": "ADC",
-      "prereqs": ["wf_blsub"]
     },
     "wf_blsub":{
       "function": "subtract",
@@ -35,6 +26,28 @@
       "prereqs": ["waveform", "bl"],
       "unit": "ADC"
     },
+    "bl_trap": {
+      "function": "trap_norm",
+      "module": "pygama.dsp.processors",
+      "args": ["wf_blsub", 500, 500, "bl_trap"],
+      "unit": "ADC",
+      "prereqs": ["wf_blsub"]
+    },
+    "bl_slope_ftp": {
+      "function": "fixed_time_pickoff",
+      "module": "pygama.dsp.processors",
+      "args": ["bl_trap", "7.5*us", "bl_slope"],
+      "unit": "ADC",
+      "prereqs": ["bl_trap"]
+    },
+    "bl_mean, bl_sig, bl_slope, bl_int": {
+        "function": "linear_slope_fit",
+        "module": "pygama.dsp.processors",
+        "args": ["waveform[0:3500]", "bl_mean", "bl_sig", "bl_slope", "bl_int"],
+        "unit": ["ADC", "ADC", "ADC", "ADC"],
+        "prereqs": ["waveform"]
+    },
+
     "wf_max": {
       "function": "amax",
       "module": "numpy",
@@ -51,21 +64,14 @@
       "unit": "ns",
       "prereqs": ["wf_blsub"]
     },
-    "wf_pz1": {
-      "function": "pole_zero",
-      "module": "pygama.dsp.processors",
-      "args": ["wf_blsub", "db.pz.tau", "wf_pz"],
-      "prereqs": ["wf_blsub"],
-      "unit": "ADC",
-      "defaults": { "db.pz.tau":"48*us" }
-    },
+
     "wf_pz": {
       "function": "double_pole_zero",
       "module": "pygama.dsp.processors",
       "args": ["wf_blsub", "db.pz2.tau1", "db.pz2.tau2",  "db.pz2.frac", "wf_pz"],
       "prereqs": ["wf_blsub"],
       "unit": "ADC",
-      "defaults": { "db.pz2.tau1":"187.78*us", "db.pz2.tau2":"3.36*us", "db.pz2.frac":"0.037" }
+      "defaults": { "db.pz2.tau1":"51.00*us", "db.pz2.tau2":"4*us", "db.pz2.frac":"0.05" }
     },
     "fltp2, fltp2_sig":{
         "function": "mean_stdev",
@@ -74,13 +80,14 @@
         "prereqs": ["wf_pz"],
         "unit": ["ADC", "ADC"]
     },
+
     "wf_pzDCR": {
       "function": "double_pole_zero",
       "module": "pygama.dsp.processors",
       "args": ["wf_blsub", "db.pz2.tau1", "db.pz2.tau2",  "db.pz2.frac", "wf_pzDCR"],
       "prereqs": ["wf_blsub"],
       "unit": "ADC",
-      "defaults": { "db.pz2.tau1":"213.*us", "db.pz2.tau2":"5.33*us", "db.pz2.frac":"0.043" }
+      "defaults": { "db.pz2.tau1":"51.00*us", "db.pz2.tau2":"4*us", "db.pz2.frac":"0.05" }
     },
     "fltpDCR, fltpDCR_sig":{
         "function": "mean_stdev",
@@ -89,6 +96,7 @@
         "prereqs": ["wf_pzDCR"],
         "unit": ["ADC", "ADC"]
     },
+
     "wf_trap": {
       "function": "trap_norm",
       "module": "pygama.dsp.processors",
@@ -112,6 +120,105 @@
       "unit": "ns",
       "prereqs": ["wf_trap"]
     },
+
+    "wf_atrap": {
+      "function": "asymTrapFilter",
+      "module": "pygama.dsp.processors",
+      "args": ["wf_pz", "20*ns", "1*us", "4*us", "wf_atrap"],
+      "prereqs": ["wf_pz"],
+      "unit": "ADC"
+    },
+    "atrap_max": {
+      "function": "argmax",
+      "module": "numpy",
+      "args": ["wf_atrap", 1, "atrap_max"],
+      "kwargs": {"signature":"(n),()->()", "types":["fi->i"]},
+      "unit": "ns",
+      "prereqs": ["wf_atrap"]
+    },
+    "tp_0": {
+      "function": "time_point_thresh",
+      "module": "pygama.dsp.processors",
+      "args": ["wf_atrap", 0, "atrap_max", "tp_0"],
+      "unit": "ns",
+      "prereqs": ["wf_atrap", "atrap_max"]
+     },
+    "trapEftp": {
+      "function": "fixed_time_pickoff",
+      "module": "pygama.dsp.processors",
+      "args": ["wf_trap", "tp_0 + (1*us+3*us)", "trapEftp"],
+      "unit": "ADC",
+      "prereqs": ["wf_trap", "tp_0"]
+    },
+
+    "dcr_trap": {
+      "function": "trap_norm",
+      "module": "pygama.dsp.processors",
+      "args": ["wf_pzDCR", 750, 2250, "dcr_trap"],
+      "unit": "ADC",
+      "prereqs": ["wf_pzDCR"]
+    },
+    "dcr_trap_max": {
+      "function": "argmax",
+      "module": "numpy",
+      "args": ["dcr_trap", 1, "dcr_trap_max"],
+      "kwargs": {"signature":"(n),()->()", "types":["fi->i"]},
+      "unit": "ns",
+      "prereqs": ["dcr_trap"]
+    },
+    "dcr": {
+      "function": "fixed_time_pickoff",
+      "module": "pygama.dsp.processors",
+      "args": ["dcr_trap", "79*us", "dcr"],
+      "unit": "ADC",
+      "prereqs": ["dcr_trap", "dcr_trap_max"]
+    },
+
+    "ct_corr": {
+      "function": "trap_pickoff",
+      "module": "pygama.dsp.processors",
+      "args":["wf_pz", "1.5*us", 0, "tp_0", "ct_corr"],
+      "unit": "ADC",
+      "prereqs": ["wf_pz", "tp_0"]
+    },
+    "log_tail": {
+      "function": "log",
+      "module": "numpy",
+      "args": ["wf_blsub[4250:8000]", "log_tail"],
+      "unit": "ADC",
+      "prereqs": ["wf_blsub"]
+    },
+    "lt_mean, lt_sig, lt_slope, lt_int": {
+        "function": "linear_slope_fit",
+        "module": "pygama.dsp.processors",
+        "args": ["log_tail", "lt_mean", "lt_sig", "lt_slope", "lt_int"],
+        "unit": ["ADC", "ADC", "ADC", "ADC"],
+        "prereqs": ["log_tail"]
+    },
+
+    "curr": {
+      "function": "avg_current",
+      "module": "pygama.dsp.processors",
+      "args": ["wf_pz", 10, "curr(len(wf_pz)-10, f)"],
+      "unit": "ADC/sample",
+      "prereqs": ["wf_pz"]
+    },
+    "A_10": {
+      "function": "amax",
+      "module": "numpy",
+      "args": ["curr", 1, "A_10"],
+      "kwargs": {"signature":"(n),()->()", "types":["fi->f"]},
+      "unit": "ADC",
+      "prereqs": ["curr"]
+    },
+    "AoE": {
+      "function": "divide",
+      "module": "numpy",
+      "args":["A_10", "trapEftp", "AoE"],
+      "unit": "1/sample",
+      "prereqs": ["A_10", "trapEftp"]
+    },
+
     "wf_triangle": {
       "function": "trap_norm",
       "module": "pygama.dsp.processors",
@@ -135,13 +242,39 @@
       "prereqs": ["triE"]
     },
 
-    "wf_atrap": {
-      "function": "asymTrapFilter",
+    "curr_psd": {
+      "function": "psd",
       "module": "pygama.dsp.processors",
-      "args": ["wf_pz", "20*ns", "2*us", "3*us", "wf_atrap"],
-      "prereqs": ["wf_pz"],
-      "unit": "ADC"
+      "args": ["curr", "curr_psd"],
+      "init_args": ["curr", "curr_psd(len(curr)//2+1, f)"],
+      "unit": "",
+      "prereqs": ["curr"]
     },
+    "wf_psd": {
+      "function": "psd",
+      "module": "pygama.dsp.processors",
+      "args": ["wf_blsub[:3000]", "wf_psd"],
+      "init_args": ["wf_blsub[:3000]", "wf_psd(1501, f)"],
+      "unit": "",
+      "prereqs": ["wf_blsub"]
+    },
+    "hf_max": {
+      "function": "amax",
+      "module": "numpy",
+      "args": ["wf_psd[round(10*mhz*3000):round(20*mhz*3000)]", 1, "hf_max"],
+      "kwargs": {"signature":"(n),()->()", "types":["fi->f"]},
+      "unit": "",
+      "prereqs": ["wf_psd"]
+    },
+    "lf_max": {
+      "function": "amax",
+      "module": "numpy",
+      "args": ["wf_psd[:round(150*khz*3000)]", 1, "lf_max"],
+      "kwargs": {"signature":"(n),()->()", "types":["fi->f"]},
+      "unit": "",
+      "prereqs": ["wf_psd"]
+    },
+
     "tp_max": {
       "function": "argmax",
       "module": "numpy",
@@ -149,28 +282,6 @@
       "kwargs": {"signature":"(n),()->()", "types":["fi->i"]},
       "unit": "ns",
       "prereqs": ["wf_blsub"]
-    },
-    "atrap_max": {
-      "function": "argmax",
-      "module": "numpy",
-      "args": ["wf_atrap", 1, "atrap_max"],
-      "kwargs": {"signature":"(n),()->()", "types":["fi->i"]},
-      "unit": "ns",
-      "prereqs": ["wf_atrap"]
-    },
-    "tp_0": {
-      "function": "time_point_thresh",
-      "module": "pygama.dsp.processors",
-      "args": ["wf_atrap", 0, "atrap_max", "tp_0"],
-      "unit": "ns",
-      "prereqs": ["wf_atrap", "atrap_max"]
-     },
-    "trapEftp": {
-      "function": "fixed_time_pickoff",
-      "module": "pygama.dsp.processors",
-      "args": ["wf_trap", "tp_0 + (1*us+3*us)", "trapEftp"],
-      "unit": "ADC",
-      "prereqs": ["wf_trap", "tp_0"]
     },
     "tp_02": {
       "function": "time_point_frac",
@@ -255,103 +366,6 @@
       "args": ["wf_blsub", 0.96, "tp_max", "tp_96"],
       "unit": "ns",
       "prereqs": ["wf_blsub", "tp_max"]
-    },
-    "log_tail": {
-      "function": "log",
-      "module": "numpy",
-      "args": ["wf_blsub[4250:8000]", "log_tail"],
-      "unit": "ADC",
-      "prereqs": ["wf_blsub"]
-    },
-    "log_tail_fit_mean, log_tail_fit_sigma, log_tail_fit_slope, log_tail_fit_intercept": {
-        "function": "linear_slope_fit",
-        "module": "pygama.dsp.processors",
-        "args": ["log_tail", "log_tail_fit_mean", "log_tail_fit_sigma", "log_tail_fit_slope", "log_tail_fit_intercept"],
-        "unit": ["ADC", "ADC", "ADC", "ADC"],
-        "prereqs": ["log_tail"]
-    },
-    "curr": {
-      "function": "avg_current",
-      "module": "pygama.dsp.processors",
-      "args": ["wf_pz", 10, "curr(len(wf_pz)-10, f)"],
-      "unit": "ADC/sample",
-      "prereqs": ["wf_pz"]
-    },
-    "A_10": {
-      "function": "amax",
-      "module": "numpy",
-      "args": ["curr", 1, "A_10"],
-      "kwargs": {"signature":"(n),()->()", "types":["fi->f"]},
-      "unit": "ADC",
-      "prereqs": ["curr"]
-    },
-    "AoE": {
-      "function": "divide",
-      "module": "numpy",
-      "args":["A_10", "trapEftp", "AoE"],
-      "unit": "1/sample",
-      "prereqs": ["A_10", "trapEftp"]
-    },
-    "ct_corr": {
-      "function": "trap_pickoff",
-      "module": "pygama.dsp.processors",
-      "args":["wf_pz", "1.5*us", 0, "tp_0", "ct_corr"],
-      "unit": "ADC",
-      "prereqs": ["wf_pz", "tp_0"]
-    },
-    "dcr": {
-      "function": "fixed_time_pickoff",
-      "module": "pygama.dsp.processors",
-      "args": ["dcr_trap", "79*us", "dcr"],
-      "unit": "ADC",
-      "prereqs": ["dcr_trap", "dcr_trap_max"]
-    },
-    "dcr_trap": {
-      "function": "trap_norm",
-      "module": "pygama.dsp.processors",
-      "args": ["wf_pzDCR", 750, 2250, "dcr_trap"],
-      "unit": "ADC",
-      "prereqs": ["wf_pzDCR"]
-    },
-    "dcr_trap_max": {
-      "function": "argmax",
-      "module": "numpy",
-      "args": ["dcr_trap", 1, "dcr_trap_max"],
-      "kwargs": {"signature":"(n),()->()", "types":["fi->i"]},
-      "unit": "ns",
-      "prereqs": ["dcr_trap"]
-    },
-    "curr_psd": {
-      "function": "psd",
-      "module": "pygama.dsp.processors",
-      "args": ["curr", "curr_psd"],
-      "init_args": ["curr", "curr_psd(len(curr)//2+1, f)"],
-      "unit": "",
-      "prereqs": ["curr"]
-    },
-    "wf_psd": {
-      "function": "psd",
-      "module": "pygama.dsp.processors",
-      "args": ["wf_blsub[:3000]", "wf_psd"],
-      "init_args": ["wf_blsub[:3000]", "wf_psd(1501, f)"],
-      "unit": "",
-      "prereqs": ["wf_blsub"]
-    },
-    "hf_max": {
-      "function": "amax",
-      "module": "numpy",
-      "args": ["wf_psd[round(10*mhz*3000):round(20*mhz*3000)]", 1, "hf_max"],
-      "kwargs": {"signature":"(n),()->()", "types":["fi->f"]},
-      "unit": "",
-      "prereqs": ["wf_psd"]
-    },
-    "lf_max": {
-      "function": "amax",
-      "module": "numpy",
-      "args": ["wf_psd[:round(150*khz*3000)]", 1, "lf_max"],
-      "kwargs": {"signature":"(n),()->()", "types":["fi->f"]},
-      "unit": "",
-      "prereqs": ["wf_psd"]
     }
   }
 }

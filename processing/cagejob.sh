@@ -8,7 +8,7 @@
 #SBATCH --chdir=/global/project/projectdirs/legend/software/CAGE/processing
 #SBATCH --output=/global/project/projectdirs/legend/software/CAGE/processing/logs/cori-%j.txt
 #SBATCH --mail-type=begin,end,fail
-#SBATCH --mail-user=wisecg@uw.edu
+#SBATCH --mail-user=grsong@uw.edu
 
 echo "Job Start:"
 date
@@ -28,10 +28,43 @@ fi
 # NOTE: you need to update runDB.json before running this!
 # shifter python setup.py --update --orca -b
 
+# -- Campaign 2 workspace --
+shifter python processing.py -q 'run > 305 and run < 332' --d2h
+#shifter python processing.py -q 'run >= 332 and run <= 353' --d2r --r2d
+#shifter python setup.py --orca --rt -b
+
+# run a bunch of DSP in parallel (lazy method, comment each line in & submit)
+#shifter python processing.py -q 'run >= 305 and run <= 306' --r2d
+#shifter python processing.py -q 'run >= 307 and run <= 313' --r2d
+#shifter python processing.py -q 'run >= 314 and run <= 319' --r2d
+#shifter python processing.py -q 'run == 320' --r2d
+#shifter python processing.py -q 'run >= 321 and run <= 331' --d2r --r2d -o
+#shifter python processing.py -q 'run == 332' --d2r --r2d
+#shifter python processing.py -q 'run >= 333 and run <= 340' --d2r --r2d
+#shifter python processing.py -q 'run == 341' --d2r --r2d
+#shifter python processing.py -q 'run >= 342 and run <= 346' --d2r --r2d
+#shifter python processing.py -q 'run >= 347 and run <= 353' --d2r --r2d
+
+# shifter python processing.py -q 'run >= 297 and run <= 304' --d2r
+# shifter python setup.py --orca --rt -b
+
+# energy cal command (doesn't really need a whole job, but for posterity this is what i did)
+# shifter python energy_cal.py -q 'run>=238 and run <=303' -b -p --all
+
+# -- Campaign 1 workspace --
+
+# run dsp_to_hit for Campaign 1
+# shifter python processing.py -q 'dsp_id==1 or dsp_id==2' --d2h -o
+
+# reprocess specific dsp_id's.  roughly 5 min/cycle file.
+#shifter python processing.py -q 'dsp_id==1' --r2d -o
+#shifter python processing.py -q 'dsp_id==2' --r2d -o
+
+
 # -- reprocess 2021 d2r (ts bug)
 # shifter python processing.py -q 'cycle>=1192' --d2r -o
 # not re-r2d'ing cycles before 1192 because config_dsp would be wrong for them ...
-shifter python processing.py -q 'cycle>=1192' --r2d -o 
+#shifter python processing.py -q 'cycle>=1192' --r2d -o
 
 # --
 # Standard mode: update recent runs (cuts down on log file size)
