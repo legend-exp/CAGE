@@ -20,14 +20,14 @@ def main():
     """
     radius = [5, 6, 7, 8, 9, 10]
     source_angle = [90]
-    rotary = [0., 180, 145]
+    rotary = [162.08]
 #     rotary = np.linspace(4, 144, 15)
     # print(rotary)
     # exit()
     mac_dir = './macros/'
     gdml_dir = './geometries/mothers/'
     hdf5_dir = '$[TMPDIR]/' #format environment variables as $[VARNAME] 
-    run = 'centering_scan/' #ex 'centering_scan/'
+    run = 'spot_size_scan/' #ex 'centering_scan/'
     det = 'oppi'
     primaries = 1000000
     jobs = 100

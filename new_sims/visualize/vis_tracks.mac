@@ -2,7 +2,7 @@
 /g4simple/setReferencePhysList QGSP_BERT
 
 
-/g4simple/setDetectorGDML ./geometries/mothers/oppi/centering_scan/y5_thetaDet90_rotary-145_241Am_100000000.gdml false
+/g4simple/setDetectorGDML ./geometries/mothers/oppi/rotary_centering_scan/y14_thetaDet71_rotary30_241Am_1000000.gdml false
 #/g4simple/setDetectorGDML ./geometries/translations_gscanner_241Am.gdml false
 
 /run/initialize
@@ -37,6 +37,7 @@
 
 /vis/geometry/set/visibility mother_vacuum_volume 0 false
 /vis/geometry/set/visibility source_volume 0 false
+/vis/geometry/set/visibility OPPI1_diving_board_volume 0 false
 
 #/vis/geometry/set/colour vacuum_volume -1 0 0 0 0.01
 /vis/geometry/set/colour OPPI1_Detector -0.2 0.4 0.4 0.4 1
@@ -61,8 +62,8 @@
 /gps/pos/halfz 0.0005 mm
 
 /gps/pos/rot1 1 0 0 
-/gps/pos/rot2 0 1.00000 0.00000
-/gps/pos/centre 0.0 12.000 4.500 mm 
+/gps/pos/rot2 0 0.94755 0.31962
+/gps/pos/centre 0.0 4.542 4.240 mm 
 
 /run/beamOn 5
 

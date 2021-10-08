@@ -32,15 +32,15 @@
   <quantity name="body_sourceOffset_radius" type="length" value="13./2" unit="mm"/>
   <quantity name="body_sourceOffset_height" type="length" value="0.25" unit="mm"/>
 
-  <quantity name="body_middle_innerradius" type="length" value="1./2" unit="mm"/>
+  <quantity name="body_middle_innerradius" type="length" value="1.25/2" unit="mm"/>
   <quantity name="body_middle_radius" type="length" value="31.75/2" unit="mm"/>
   <quantity name="body_middle_height" type="length" value="2.1" unit="mm"/> <!-- bottom of source offset to soldered lip -->
 
-  <quantity name="body_lip_innerradius" type="length" value="1./2" unit="mm"/>
+  <quantity name="body_lip_innerradius" type="length" value="1.25/2" unit="mm"/>
   <quantity name="body_lip_radius" type="length" value="30/2" unit="mm"/>
   <quantity name="body_lip_height" type="length" value="1.75" unit="mm"/> <!-- soldered lip -->
 
-  <quantity name="body_bottom_innerradius" type="length" value="1./2" unit="mm"/>
+  <quantity name="body_bottom_innerradius" type="length" value="1.25/2" unit="mm"/>
   <quantity name="body_bottom_radius" type="length" value="10./2" unit="mm"/>
   <quantity name="body_bottom_height" type="length" value="6.75" unit="mm"/> 
 
@@ -67,16 +67,31 @@
     <cone name="body_middle" rmin1="body_middle_innerradius" rmax1="body_middle_radius" rmin2="body_middle_innerradius" rmax2="body_middle_radius" z="body_middle_height" startphi="0" deltaphi="TWOPI" aunit="rad" /> 
 
     <cone name="body_top" rmin1="0.0" rmax1="body_top_radius" rmin2="0.0" rmax2="body_top_radius" z="body_top_height" startphi="0" deltaphi="TWOPI" aunit="rad" />
-
+  
+    <box name = "screw_connector" x="0.95" y="6.5" z="1.75" lunit= "mm"/>
+    <box name = "body_screw" x="10.875" y="6.5" z="body_bottom_height" lunit= "mm"/>
 
 
     <!-- subtraction solids -->
     <cone name="body_sourceOffset" rmin1="0.0" rmax1="body_sourceOffset_radius" rmin2="0.0" rmax2="body_sourceOffset_radius" z="body_sourceOffset_height" startphi="0" deltaphi="TWOPI" aunit="rad" />
     <cone name="innerVolume" rmin1="0.0" rmax1="innerVolume_radius" rmin2="0.0" rmax2="innerVolume_radius" z="innerVolume_height" startphi="0" deltaphi="TWOPI" aunit="rad" />
 
+    <union name="whole_screw">
+      <first ref="body_screw" />
+      <second ref="screw_connector" />
+      <position name="screw_pos" x="10.875/2 - 0.95/2" y="0" z="body_bottom_height/2 + 1.75/2" /> 
+      <rotationref ref="identity"/>
+    </union>
+
+    <union name="body_bottom_screw">
+      <first ref="body_bottom" />
+      <second ref="whole_screw" />
+      <position name="bottom_pos" x="10.4375" y="0" z="0" /> 
+      <rotationref ref="identity"/>
+    </union>
 
     <union name="body_bottom_collimator">
-      <first ref="body_bottom" />
+      <first ref="body_bottom_screw" />
       <second ref="body_lip" />
       <position name="lip_bottom_pos" x="0" y="0" z="(body_bottom_height/2)+(body_lip_height/2)" /> 
       <rotationref ref="identity"/>

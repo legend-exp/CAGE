@@ -17,7 +17,7 @@
 /vis/viewer/set/style surface
 /vis/viewer/set/upVector 0 0 1
 #/vis/viewer/set/viewpointThetaPhi 100 0
-/vis/viewer/set/viewpointThetaPhi 90 0
+/vis/viewer/set/viewpointThetaPhi 110 -120
 #/vis/viewer/set/viewpointThetaPhi 90 0
 /vis/viewer/set/background white 1.
 #/vis/viewer/set/background ! ! ! 0.
@@ -45,12 +45,14 @@
 /vis/geometry/set/visibility Am_Collimator_new 0 true
 #/vis/geometry/set/visibility source_volume 0 true
 /vis/geometry/set/visibility ss_sourceDisk_ezag 0 true
+/vis/geometry/set/visibility Copper_Band 0 true
 
 
 
-/vis/geometry/set/colour Am_Collimator_new 0 0. 0.5 1. 0.4
+/vis/geometry/set/colour Am_Collimator_new 0 0. 0.5 1. 0.6
 #/vis/geometry/set/colour source_volume 0 0. 0.5 1. .5
 /vis/geometry/set/colour ss_sourceDisk_ezag 0 1. 0. 0. 1.
+/vis/geometry/set/colour Copper_Band 0 0.9 0.6 0.25 1.
 #/vis/geometry/set/colour source_confinement 0 1. 1. 1. 1.
 
 #/vis/viewer/set/sectionPlane on 0 0 0 mm 0 0 0

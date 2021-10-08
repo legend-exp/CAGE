@@ -18,10 +18,10 @@ def main():
 
     calculate_CollClearances()
 
-    # positionCalc(y_final=12, theta_det=90., icpc=False)
-    rotaryCalc(radius=12.0, d_theta=10)
-    # maxRotation(min_clearance_toLMFE=5.0, icpc=False)
-    # checkRotation(theta_det=40, min_clearance_toLMFE=5.0)
+    # positionCalc(y_final=14, theta_det=71.36, icpc=False)
+    # rotaryCalc(radius=12.0, d_theta=10)
+    maxRotation(min_clearance_toLMFE=5.0, icpc=False)
+    checkRotation(theta_det=45, min_clearance_toLMFE=5.0)
     # thetaCalc(y_final=12., icpc=False)
 
 def positionCalc(y_final, theta_det, icpc=False):
