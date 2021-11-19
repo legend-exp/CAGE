@@ -12,6 +12,7 @@
     * [Operating the container system](#operating-the-container-system)
     * [Advanced usage](#advanced-usage)
   * [Operations on a Raspberry Pi](#operations-on-a-raspberry-pi)
+    * [Pre Installation](#pre-installation)
     * [Installation](#installation)
     * [Automatic background processes](#automatic-background-processes)
     * [Common supervisorctl commands](#common-supervisorctl-commands)
@@ -184,11 +185,52 @@
   ssh pi@[IP ADDRESS]
   ```
 
+  If you are using a fresh Raspberry Pi, you will need to take some steps to enable SSH capabilities
+
+### Pre Installation
+
+  The first thing you need to do is to flash a Raspbian image to the Pi's Micro SD card. This is complicated by the fact that newer python versions are not compatible with some necessary packages.
+
+  It is suggested that you use a Raspbian image with `python2.7`; one such image can be found at: (https://drive.google.com/file/d/1lzOJ9ScSWOWBRqDZAI7m-AQVcVFHGNRs/view?usp=sharing)
+
+  After you have the Raspbian version you want on the Pi, the next steps are:
+ 
+  * **Change the Pi's hostname**
+    * `sudo raspi-config` : brings up important RPi config settings
+    * In `raspi-config` : go to `Network Options > Hostname`
+  * **Change the Pi's password**
+    * In `raspi-config` : go to `Change User Password`
+  * **Changing other `raspi-config` settings**
+    * Configure SSH in `raspi-config` : go to `Interfacing Options > SSH`
+    * Enable SPI in `raspi-config` : go to `Interfacing Options > SPI`
+    * Enable I2C in `raspi-config` : go to `Interfacing Options > I2C`
+    * Change Serial settings in `raspi-config` : go to `Interfacing Options > Serial`
+      * Login shell should NOT be accessible over serial
+      * Serial port hardware SHOULD be enabled
+  * **Changing the Pi's IP address**
+    * open the file `/etc/dhcpcd.conf` and edit the block of text starting with `# Example static IP configuration:`
+      * Necessary settings are:
+        * `interface eth0`
+        * `static ip_address=(Pi's new IP Address)/20`
+        * `static routers=10.66.192.1`
+        * `static domain_name_servers=128.95.120.1 128.95.112.1`
+ 
+  Following this, we should be able to SSH into the Raspberry Pi. Now, we need to install the CAGE repo and its dependencies.
+
 ### Installation
 
-  First, you will need to obtain the `config.json` and `project8_authentications.json` files from a member of the CAGE group.
+  First, you will need to obtain the `config.json` and `.project8_authentications.json` files from a member of the CAGE group.
 
-  We first set up a Python virtual environment (used for all dragonfly commands):
+  * `config.json` belongs in `/home/pi/cage`
+  * `.project8_authentications.json` belongs in `/home/pi`
+
+  The following `sudo apt-get install [packages]` commands are needed:
+  * `git`
+  * `python3`
+  * `python3-pip`
+  * `python3-dev`
+
+  We then set up a Python virtual environment (used for all dragonfly commands):
   * `python3 -m venv cage_venv` : creates a folder automatically
   * `source ~/cage_venv/bin/activate` : activates the venv.
   * `deactivate` : removes a user from the venv.
@@ -201,8 +243,9 @@
   git submodule update --init --recursive
   python3 -m pip install -e ~/cage/controls/dragonfly/dripline-python
   python3 -m pip install -e ~/cage/controls/dragonfly/dragonfly[colorlog,gpio,ads1x15]
-  python3 -m pip install adafruit-circuitpython-max31865
+  python3 -m pip install adafruit-circuitpython-max31865==2.1.4
   python3 -m pip install pyserial
+  python3 -m pip install sysv-ipc==1.0.1
   ```
 
   To activate this behavior on a "fresh" RPi, one must make two symlinks.  
@@ -228,7 +271,7 @@
   * `supervisorctl` : enter an interactive control so you can run any command without prefixing it
   * `supervisor [start/stop/reload]` : useful to restart processes and look for bugs without rebooting the RPi
   * **Accessing log files:** These are stored in `/var/log/supervisor`.  Note, each process has a `processname-stdout-uniqueid.log` (and stderr) file which you can `vi` or `tail`.  
-
+    * You may need to change the owner of the `/var/log/supervisor` directory and associated log files to `pi` ownership using `chmod`
 
 ### Using dragonfly
 
