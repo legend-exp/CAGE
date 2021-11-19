@@ -22,6 +22,7 @@ def main():
     REFERENCES:
     https://elog.legend-exp.org/UWScanner/200130_140616/cage_electronics.pdf
     http://www.galilmc.com/sw/pub/all/doc/gclib/html/python.html
+    C. Wiseman, T. Mathew, G. Song
     """
     # load configuration (uses globals, it's bad practice but who cares)
     global gp, gc, conf, mconf, rpins, history_df, f_history
@@ -33,9 +34,6 @@ def main():
         motorDB = json.load(g)
     mconf = motorDB["mconf"]
     rpins = {key['rpi_pin'] : name for name, key in mconf.items()}
-
-    # TODO: change this when we want to do a new campaign (see motor_config.json)
-    campaign_number = "8"
 
     # parse user args
     par = argparse.ArgumentParser(description=doc, formatter_class=rthf)
@@ -82,6 +80,8 @@ def main():
             mconf[key] = val
 
     # load the motor movement history dataframe for this campaign
+    # USER: change this when we want to do a new campaign (see motor_config.json)
+    campaign_number = "9"
     f_history = f"./history/motorhistory_{motorDB['campaign'][campaign_number][0]}.h5"
     try:
         history_df = pd.read_hdf(f_history)
@@ -528,7 +528,7 @@ def run_motion(motor_name, mconf, ipconf, angle_check, steps, constraints):
                 mod = i_cyc % n_checks
                 exp_pos = int(mod * 2**14 / n_checks) # expected enc position
 
-                print(f"Full step: {exp_pos}")
+                # print(f"Full step: {exp_pos}")
                 if mod == 0:
                     # print("full rotation --- ", exp_pos, enc_tol, enc_pos)
                     if (enc_pos > enc_tol) and (enc_pos < 2**14 - enc_tol):
