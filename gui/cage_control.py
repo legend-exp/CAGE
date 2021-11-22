@@ -364,6 +364,9 @@ class RabbitPlot(pg.GraphicsLayoutWidget):
         self.t_earlier = t_earlier
         self.t_later = t_later
 
+        print(self.endpoints)
+        exit()
+
         print("Selected endpoints:", self.endpoints)
 
         # data for each endpoint goes into circular buffers (aka deques)
