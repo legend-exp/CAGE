@@ -182,7 +182,9 @@ def get_cyc_info(row, dg):
     using the runDB, map cycle numbers to physics runs, identify detector,
     physics run type, etc.
     """
-    # loop over the runDB and add columns to each row of dg.fileDB
+    # cyc_debug = 2274
+
+    # loop over the runDB keys and add columns to each row of dg.fileDB
     cyc = row['cycle']
     for run, cycles in dg.runDB.items():
         tmp = cycles[0].split(',')
@@ -200,9 +202,11 @@ def get_cyc_info(row, dg):
                     row['runtype'] = cycles[1]
                     break
 
-    # if row.cycle > 2255:
-        # print(f'end of loop.  clo {clo}  cyc {cyc}  chi {chi}  run {run}')
+    # if row.cycle > cyc_debug:
+        # print(f'clo {clo}  cyc {cyc}  chi {chi}  run {run}')
         # print(row.to_frame().T)
+
+    # return
 
     # label the detector (when hardware iteration changes)
     det_name = 'none'
@@ -356,6 +360,7 @@ def get_runtimes(dg, overwrite=False, batch_mode=False):
         else:
             print('No empty runtime values found.')
 
+    print("I don't think we need the following block, this should be in the else block above")
     if len(df_keys) == 0:
         print('No files to update.  Exiting...')
         exit()
@@ -427,6 +432,8 @@ def get_runtimes(dg, overwrite=False, batch_mode=False):
     print(dg.fileDB[dbg_cols])
 
     print('Ready to save.  This will overwrite any existing fileDB.')
+    print('Saving runtimes does not work. Delete lines with \'dg.fileDB = df_keys\'. Exiting...')
+    exit()
     if not batch_mode:
         ans = input('Save updated fileDB? (y/n):')
         if ans.lower() == 'y':
@@ -449,50 +456,68 @@ def fix_fileDB(dg):
     # load existing fileDB
     dg.load_df()
 
+    fix1 = False
+    fix2 = True
+
     # accidentally forgot to run get_lh5_columns when I updated the fileDB.
-    # print(dg.fileDB.columns)
+    if fix1:
+        # print(dg.fileDB.columns)
 
-    df1 = dg.fileDB.query('raw_path == raw_path') # no nan's
-    df2 = dg.fileDB.query('raw_path != raw_path') # nan's
+        df1 = dg.fileDB.query('raw_path == raw_path') # no nan's
+        df2 = dg.fileDB.query('raw_path != raw_path') # nan's
 
-    dg2 = DataGroup('$CAGE_SW/processing/cage.json')
-    dg2.fileDB = df2
+        dg2 = DataGroup('$CAGE_SW/processing/cage.json')
+        dg2.fileDB = df2
 
-    # clone of pygama/analysis/datagroup.py :: get_lh5_columns
-    def get_files(row):
-        tmp = row.to_dict()
-        for tier in dg2.tier_dirs:
+        # clone of pygama/analysis/datagroup.py :: get_lh5_columns
+        def get_files(row):
+            tmp = row.to_dict()
+            for tier in dg2.tier_dirs:
 
-            # get filename
-            tmp['tier'] = tier
+                # get filename
+                tmp['tier'] = tier
 
-            # leave subsystem unspecified
-            if dg2.subsystems != ['']:
-                tmp['sysn'] = '{sysn}'
+                # leave subsystem unspecified
+                if dg2.subsystems != ['']:
+                    tmp['sysn'] = '{sysn}'
 
-            # set the filename.  might have a '{sysn}' string present
-            row[f'{tier}_file'] = dg2.lh5_template.format_map(tmp)
+                # set the filename.  might have a '{sysn}' string present
+                row[f'{tier}_file'] = dg2.lh5_template.format_map(tmp)
 
-            # compute file path.
-            # daq_to_raw outputs a file for each subsystem, and we
-            # handle this here by leaving a regex in the file string
-            path = f'/{tier}'
-            if dg2.subsystems != [""]:
-                path += '/{sysn}'
-            if row['runtype'] in dg2.run_types:
-                path += f"/{row['runtype']}"
+                # compute file path.
+                # daq_to_raw outputs a file for each subsystem, and we
+                # handle this here by leaving a regex in the file string
+                path = f'/{tier}'
+                if dg2.subsystems != [""]:
+                    path += '/{sysn}'
+                if row['runtype'] in dg2.run_types:
+                    path += f"/{row['runtype']}"
 
-            row[f'{tier}_path'] = path
-        return row
+                row[f'{tier}_path'] = path
+            return row
 
-    dg2.fileDB = dg2.fileDB.apply(get_files, axis=1)
-    # print(dg2.fileDB)
+        dg2.fileDB = dg2.fileDB.apply(get_files, axis=1)
+        # print(dg2.fileDB)
 
-    tmp = pd.concat([df1, dg2.fileDB])
-    dg.fileDB = tmp
+        tmp = pd.concat([df1, dg2.fileDB])
+        dg.fileDB = tmp
 
-    print('New fileDB:')
-    print(dg.fileDB)
+        print('New fileDB:')
+        print(dg.fileDB)
+
+    # accidentally applied the wrong dsp_id to some of the columns
+    if fix2:
+
+        df1 = dg.fileDB.query('run < 236') # correct dsp_id
+        df2 = dg.fileDB.query('run >= 236') # incorrect dsp_id
+        df2['dsp_id'] = 6
+
+        tmp = pd.concat([df1, df2])
+        dg.fileDB = tmp
+
+        print('New fileDB:')
+        dbg_cols = ['run', 'cycle', 'unique_key', 'runtype', 'dsp_id']
+        print(dg.fileDB[dbg_cols].to_string())
 
     print('Ready to save.  This will overwrite any existing fileDB.')
     ans = input('Save updated fileDB? (y/n):')

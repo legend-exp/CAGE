@@ -62,7 +62,7 @@ def daq_cleanup(expDB):
         print("Error, we're not on the MJ60 DAQ machine.  Exiting ...")
         exit()
 
-    nersc_login = 'wisecg@cori.nersc.gov'
+    nersc_login = 'grsong@cori.nersc.gov'
 
     print('Building local and remote file lists ...')
 
@@ -125,8 +125,13 @@ def daq_cleanup(expDB):
         # there is actually a huge variation in this number, because of
         # the weird nersc filesystem.  But what we CAN do, is make sure
         # the ratio isn't less than 1 -- this seems to always be true
+        if row['remote_size'] == 0:
+            print(f'Warning, file may be incompletely backed up:\n  {fname}'
+                  f"\n loc_size: {row['size']}  remote size: {row['remote_size']}")
+            return False
         if row['size'] / row['remote_size'] < 1:
-            print(f'Warning, file may be incompletely backed up:\n  {fname}')
+            print(f'Warning, file may be incompletely backed up:\n  {fname}'
+                  f"\n loc_size: {row['size']}  remote size: {row['remote_size']}")
             return False
 
         # ok, the file has been backed up

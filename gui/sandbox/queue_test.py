@@ -61,7 +61,7 @@ def test_mp_queue():
 def start_listener(mpq=None):
     """
     """
-    endpoints = ["mj60_baseline"]
+    endpoints = ["krstc_baseline"]
     start = "2019-09-30"
     end = "now" 
     qmon = QueueMonitor(endpoints, start, end, mpq=mpq)
@@ -208,7 +208,7 @@ class QueueMonitor():
     def decode_values(self, ch, method, properties, body):
         """
         decode the DB records and save to results arrays.  
-        one example record: 'sensor_value.mj60_temp'
+        one example record: 'sensor_value.krstc_temp'
         {'msgtype': 4,
          'payload': {'value_cal': -192.48926526480463,
                      'value_raw': -192.48926526480463},
@@ -263,7 +263,7 @@ def test_append():
     test record decoding and plotting (no active loop)
     """
     import matplotlib.pyplot as plt
-    endpoints = ["mj60_baseline"]
+    endpoints = ["krstc_baseline"]
     start = "2019-09-30"
     end = "now" 
     end = '2019-10-03T16:01:56.699883'
@@ -290,12 +290,12 @@ def test_append():
     val = record["payload"]["value_cal"]
     
     # append new values
-    qmon.data_lists["mj60_baseline_ts"].append(ts)
-    qmon.data_lists["mj60_baseline"].append(val)
+    qmon.data_lists["krstc_baseline_ts"].append(ts)
+    qmon.data_lists["krstc_baseline"].append(val)
     
     # make the plot
-    xv = qmon.data_lists["mj60_baseline_ts"]
-    yv = qmon.data_lists["mj60_baseline"]
+    xv = qmon.data_lists["krstc_baseline_ts"]
+    yv = qmon.data_lists["krstc_baseline"]
     plt.plot(xv, yv, "-r")
 
     # superimpose the new point again

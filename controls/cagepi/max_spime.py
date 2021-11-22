@@ -1,1 +1,1 @@
-../mj60pi/max_spime.py
+../krstcpi/max_spime.py

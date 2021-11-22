@@ -1,1 +1,1 @@
-../mj60pi/sensor_monitor.py
+../krstcpi/sensor_monitor.py

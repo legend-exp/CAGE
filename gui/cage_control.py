@@ -94,7 +94,7 @@ class CAGEMonitor(QMainWindow):
 class DBMonitor(QWidget):
     """
     DBMonitor is a grid of QWidgets, displayed in a tab of CAGEMonitor.
-    Available data streams are "endpoints": mj60_baseline, cage_pressure, etc.
+    Available data streams are "endpoints": krstc_baseline, cage_pressure, etc.
     TODO: add moveable cross hairs, check the crosshair.py example
     TODO: multiple endpoint view.
     since endpoints have different units and y-ranges, let's make it s/t each
@@ -129,18 +129,19 @@ class DBMonitor(QWidget):
 
         self.endpts_enabled = []
         for endpt in self.endpt_types:
+            print(endpt)
             self.endpts_enabled.append({'name':endpt, 'type':'bool', 'value':False})
 
         # set the default endpoints
         # ['cage_pressure', 'cage_coldPlate_temp', 'cage_topHat_temp', 'cage_motor_temp',
         # 'cage_ln_level', 'cage_baseline', 'cage_hv_vmon']
-        self.endpts_enabled[10]['value'] = True
-        self.endpts_enabled[11]['value'] = True
-        self.endpts_enabled[12]['value'] = True
-        self.endpts_enabled[13]['value'] = True
-        self.endpts_enabled[14]['value'] = True
-        self.endpts_enabled[16]['value'] = True
-        self.endpts_enabled[17]['value'] = True
+        self.endpts_enabled[0]['value'] = True
+        self.endpts_enabled[1]['value'] = True
+        #self.endpts_enabled[2]['value'] = True
+        self.endpts_enabled[3]['value'] = True
+        self.endpts_enabled[4]['value'] = True
+        self.endpts_enabled[6]['value'] = True
+        #self.endpts_enabled[7]['value'] = True
 
         # default time window
         self.t_later = datetime.utcnow()
@@ -377,7 +378,6 @@ class RabbitPlot(pg.GraphicsLayoutWidget):
             self.plots[ept] = self.addPlot(i, 0, title=ept)
             self.plots[ept].showGrid(True, True)
             self.plots[ept].setLogMode(False, False)
-
         # run the initial DB query
         self.query_db()
 
