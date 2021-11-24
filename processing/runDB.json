@@ -358,5 +358,9 @@
     "350":["2386", "alp", "elog 388. rotary 145, r=8mm, gain is shifting"],
     "351":["2387", "alp", "elog 388. rotary 145, r=4mm, gain is shifting"],
     "352":["2388", "alp", "elog 388. rotary 145, r=3mm, gain is shifting"],
-    "353":["2389", "alp", "elog 388. rotary 0, r=2mm"]
+    "353":["2389", "alp", "elog 388. rotary 0, r=2mm"],
+    "354":["2390", "bkg", "elog 401. rotary 0, r=15mm"],
+    "355":["2391-2399", "alp", "elog 401. rotary 0, r=2=15mm, gain shifting slightly, break in data taking between 2398 and 2399"],
+    "356":["2400", "pul", "elog 401. rotary 0, r=15mm, HV pulser at 100 mVpp to look at time constants"],
+    "357":["2401", "bkg", "elog 401. rotary 0, r=15mm, overnight background run"]
 }
