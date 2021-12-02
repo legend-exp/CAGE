@@ -389,5 +389,13 @@
     "381":["2457", "alp", "elog 402. rotary 145, r=8mm"],
     "382":["2458", "alp", "elog 402. rotary 145, r=9mm"],
     "383":["2459", "alp", "elog 402. rotary 145, r=10mm"],
-    "384":["2460-2526", "bkg", "elog 402. rotary 0, r=0mm, overnight background run"]
+    "384":["2460-2526", "bkg", "elog 402. rotary 0, r=0mm, overnight background run"],
+
+    "385":["2527-2528", "cs137", "elog 406. initial n+ readout runs w/ cs source"],
+    "386":["2529-2532", "bkg", "elog 406. room background runs"],
+    "387":["2533-2535", "alp", "elog 406. first alpha run, lin=10, rot=0, src=-180"],
+    "388":["2536-2538", "alp", "elog 406. alpha run, lin=15"],
+    "389":["2539-2542", "alp", "elog 406. improved n+ electronics!  alpha run, lin=15"],
+    "390":["2543-2545", "alp", "elog 406. improved n+ electronics!  alpha run, lin=10"],
+    "391":["2546-2561", "bkg", "elog 406. improved n+ electronics! 4 hour bkg run"]
 }

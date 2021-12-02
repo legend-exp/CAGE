@@ -427,17 +427,18 @@ def get_runtimes(dg, overwrite=False, batch_mode=False):
         dg.fileDB.loc[idx] = df_keys
     else:
         dg.fileDB = df_keys
+    print('update_existing: ', update_existing)
 
     dbg_cols = ['run', 'cycle', 'unique_key', 'startTime', 'runtime']
     print(dg.fileDB[dbg_cols])
 
     print('Ready to save.  This will overwrite any existing fileDB.')
-    print('Saving runtimes does not work. Delete lines with \'dg.fileDB = df_keys\'. Exiting...')
-    exit()
+    #print('Saving runtimes does not work. Delete lines with \'dg.fileDB = df_keys\'. Exiting...')
+    #exit()
     if not batch_mode:
         ans = input('Save updated fileDB? (y/n):')
         if ans.lower() == 'y':
-            dg.fileDB = df_keys
+            #dg.fileDB = df_keys
             dg.save_df(os.path.expandvars(dg.config['fileDB']))
             print('fileDB updated.')
     else:
