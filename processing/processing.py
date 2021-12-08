@@ -43,6 +43,8 @@ def main():
     arg('-o', '--over', action=st, help='overwrite existing files')
     arg('-n', '--nwfs', nargs='*', type=int, help='limit num. waveforms')
     arg('-v', '--verbose', action=st, help='verbose mode')
+    arg('--mc', action=st, help='process with multi-channel mode (n+ readout)')
+
     arg('-u', '--user', action=st, help='user lh5 mode')
     arg('-s', '--spec', nargs=1, type=int, help='select alt set of calib peaks')
     arg('-l', '--lowE', action=st, help='calibrate low-E region with different calibration constants')
@@ -59,8 +61,6 @@ def main():
     else:
         dg.fileDB = dg.fileDB[-1:]
 
-    lowE = True if args.lowE else False
-
     # set additional options
     nwfs = args.nwfs[0] if args.nwfs is not None else np.inf
     if args.epar: dg.config['rawe'] = args.epar[0].split(' ')
@@ -68,7 +68,8 @@ def main():
     # -- show status before processing --
     print('Processing settings:'
           f'\n  overwrite? {args.over}'
-          f'\n  limit wfs? {nwfs}')
+          f'\n  limit wfs? {nwfs}'
+          f'\n  multichannel d2r? {args.mc}')
 
     for envar in ['CAGE_SW','CAGE_DAQ','CAGE_LH5','CAGE_LH5_USER']:
         print(f'  {envar}', os.environ.get(envar))
@@ -77,18 +78,17 @@ def main():
     view_cols = ['run','cycle','daq_file','runtype']
     print(dg.fileDB[view_cols])
 
-
     # -- run routines --
-    if args.d2r: d2r(dg, args.over, nwfs, args.verbose, args.user)
-    if args.r2d: r2d(dg, args.over, nwfs, args.verbose, args.user)
-    if args.d2h: d2h(dg, args.over, nwfs, args.verbose, args.user, lowE)
+    if args.d2r: d2r(dg, args.over, nwfs, args.verbose, args.user, args.mc)
+    if args.r2d: r2d(dg, args.over, nwfs, args.verbose, args.user, args.mc)
+    if args.d2h: d2h(dg, args.over, nwfs, args.verbose, args.user, args.lowE)
 
     if args.r2d_file:
         f_raw, f_dsp = args.r2d_file
         r2d_file(f_raw, f_dsp, args.over, nwfs, args.verbose, args.user)
 
 
-def d2r(dg, overwrite=False, nwfs=None, verbose=False, user=False):
+def d2r(dg, overwrite=False, nwfs=None, verbose=False, user=False, run_mc=False):
     """
     $ ./processing.py -q 'run==[something]' --d2r
     run daq_to_raw on the current DataGroup
@@ -127,12 +127,24 @@ def d2r(dg, overwrite=False, nwfs=None, verbose=False, user=False):
             print(f'Cycle {cyc} has been marked junk, will not process.')
             continue
 
+        if run_mc:
+            # see pygama/io/ch_group.py for examples
+            dg.config['ch_groups'] = {
+                "ORSIS3302DecoderForEnergy" : {
+                    "ch{ch:0>1d}" : {
+                        # "ch_list" : [[144,151]], # check get_ccc.  range should work but doesn't.
+                        "ch_list" : [146, 150], # channels 2 and 6 on the struck card
+                        "system" : ""
+                    }
+                }
+            }
+
         print(f'Processing cycle {cyc}')
         daq_to_raw(f_daq, f_raw, config=dg.config, systems=subs, verbose=verbose,
-                   n_max=nwfs, overwrite=overwrite, subrun=subrun)#, chans=chans)
+                   n_max=nwfs, overwrite=overwrite, subrun=subrun)
 
 
-def r2d(dg, overwrite=False, nwfs=None, verbose=False, user=False):
+def r2d(dg, overwrite=False, nwfs=None, verbose=False, user=False, run_mc=False):
     """
     $ ./processing.py -q 'run==[something]' --r2d
     """
@@ -161,18 +173,25 @@ def r2d(dg, overwrite=False, nwfs=None, verbose=False, user=False):
             print(f'Cycle {cyc} has been marked junk, will not process.')
             continue
 
-        # load updated dsp config file (optional)
+        # load updated dsp config file
         if row.dsp_id > 0:
-            with open(dsp_dir + f'/dsp/dsp_{row.dsp_id:02d}.json') as f:
-                dsp_config = json.load(f, object_pairs_hook=OrderedDict)
+            f_config = dsp_dir + f'/dsp/dsp_{row.dsp_id:02d}.json'
             print(f'Using DSP config: {dsp_dir}' + f'/dsp/dsp_{row.dsp_id:02d}.json')
+
+        # load 2-channel DSP configs.  this is kinda hacky but should work
+        if run_mc:
+            lh5_tables = ['ch146/raw', 'ch150/raw']
+            chan_config = {'ch146/raw':f_config,
+                           'ch150/raw':f'{dsp_dir}/dsp/dsp_nplus.json'}
+        else:
+            lh5_tables, chan_config = None, None
 
         # NOTE: there is currently no smart DSP DB lookup here,
         # so the "db defaults" values in each of the JSON files will be used.
 
         print(f'Processing cycle {cyc}')
-        raw_to_dsp(f_raw, f_dsp, dsp_config, n_max=nwfs, verbose=verbose,
-                   overwrite=overwrite)
+        raw_to_dsp(f_raw, f_dsp, f_config, n_max=nwfs, verbose=verbose,
+                   overwrite=overwrite, lh5_tables=lh5_tables, chan_config=chan_config)
 
 
 def r2d_file(f_raw, f_dsp, overwrite=True, nwfs=None, verbose=False):

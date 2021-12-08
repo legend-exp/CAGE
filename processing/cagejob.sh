@@ -30,9 +30,9 @@ fi
 
 # -- Campaign 2 workspace --
 #shifter python processing.py -q 'run > 305 and run < 332' --d2h
-#shifter python processing.py -q 'run >= 355 and run <= 357' --r2d
-#shifter python processing.py -q 'run >= 358 and run <= 383' --r2d
-shifter python processing.py -q 'run >= 384' --r2d
+#shifter python processing.py -q 'run >= 355 and run <= 357' --r2d -o
+#shifter python processing.py -q 'run >= 358 and run <= 383' --r2d -o
+shifter python processing.py -q 'run >= 384' --r2d -o
 #shifter python setup.py --orca --rt -b
 
 # run a bunch of DSP in parallel (lazy method, comment each line in & submit)
