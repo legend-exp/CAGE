@@ -925,7 +925,7 @@ def peakfit(df_group, config, db_ecal):
         # guesses for the locations of the raw peaks
         print('FIRST PASS: ')
         f1 = fit_peaks(epeaks, cal_pars_init, raw_data[et], runtime_min,
-                       ff_name = config['fit_func'], show_plot = True,
+                       ff_name = config['fit_func'], show_plot = False,
                        batch = config['batch_mode'])
         df_fits = pd.DataFrame(f1).T
         # print(df_fits)
@@ -943,7 +943,7 @@ def peakfit(df_group, config, db_ecal):
         # of unity.  this should give a polynomial which can be used to
         # correct the first one.
         print('SECOND PASS')
-        f2 = fit_peaks(df_fits['mu'], [0, 1, 0], raw_data[et], runtime_min,
+        f2 = fit_peaks(df_fits['mu'], pfit, raw_data[et], runtime_min,
                        range = config['init_vals'][et]['raw_range'],
                        ff_name = config['fit_func'], show_plot = False,
                        batch = config['batch_mode'])
@@ -963,11 +963,11 @@ def peakfit(df_group, config, db_ecal):
         # to save results on the FWHM's, etc.
 
         # pfit, pcov = np.polyfit(df2['mu_new'], df_fits['epk'], config['pol'][0], cov=True)
-        pfit, pcov = np.polyfit(np.array(df2['mu_new'], dtype=float), np.array(df2['epk'], dtype=float), config['pol'][0], cov=True)
+        #pfit, pcov = np.polyfit(np.array(df2['mu_new'], dtype=float), np.array(df2['epk'], dtype=float), config['pol'][0], cov=True)
 
         print('THIRD PASS')
         f3 = fit_peaks(epeaks, pfit, raw_data[et], runtime_min,
-                       ff_name = config['fit_func'], show_plot = True,
+                       ff_name = config['fit_func'], show_plot = False,
                        batch = config['batch_mode'])
         df_fit3 = pd.DataFrame(f3).T
         pfit, pcov = np.polyfit(np.array(df_fit3['mu_raw'], dtype=float), np.array(df_fit3['epk'], dtype=float), config['pol'][0], cov=True)
