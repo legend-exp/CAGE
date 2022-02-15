@@ -1,1 +1,1 @@
-../mj60pi/serial_provider.py
+../krstcpi/serial_provider.py

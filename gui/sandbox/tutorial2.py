@@ -196,16 +196,16 @@ def read_db():
     example of accessing the SQL db history
     
     current endpoints:
-    (1, 'mj60_temp', 'numeric')
-    (2, 'mj60_baseline', 'numeric')
-    (3, 'mj60_pressure', 'numeric')
-    (4, 'mj60_hv_vset', 'numeric')
-    (5, 'mj60_hv_vmon', 'numeric')
-    (6, 'mj60_hv_imon', 'numeric')
-    (7, 'mj60_hv_rup', 'numeric')
-    (8, 'mj60_hv_rdown', 'numeric')
-    (9, 'mj60_hv_status', 'string')
-    (10, 'mj60_ln_level', 'numeric')
+    (1, 'krstc_temp', 'numeric')
+    (2, 'krstc_baseline', 'numeric')
+    (3, 'krstc_pressure', 'numeric')
+    (4, 'krstc_hv_vset', 'numeric')
+    (5, 'krstc_hv_vmon', 'numeric')
+    (6, 'krstc_hv_imon', 'numeric')
+    (7, 'krstc_hv_rup', 'numeric')
+    (8, 'krstc_hv_rdown', 'numeric')
+    (9, 'krstc_hv_status', 'string')
+    (10, 'krstc_ln_level', 'numeric')
     (11, 'cage_pressure', 'numeric')
     (12, 'cage_coldPlate_temp', 'numeric')
     (13, 'cage_ln_level', 'numeric')
@@ -219,7 +219,7 @@ def read_db():
                             password='legend', host='10.66.193.71')
     cursor = conn.cursor()
 
-    # cmd = "SELECT value_raw, timestamp FROM numeric_data WHERE endpoint_name='mj60_baseline' AND timestamp>'2019-09-27T00:00';"
+    # cmd = "SELECT value_raw, timestamp FROM numeric_data WHERE endpoint_name='krstc_baseline' AND timestamp>'2019-09-27T00:00';"
     
     # cmd = "SELECT * FROM endpoint_id_map;"
     
@@ -229,7 +229,7 @@ def read_db():
     
     cmd = "SELECT value_cal, timestamp FROM numeric_data WHERE endpoint_name='cage_ln_level' AND timestamp>'2019-09-27T00:00';"
     
-    # cmd = "SELECT value_raw, timestamp FROM string_data WHERE endpoint_name='mj60_hv_status' AND timestamp>'2019-08-01';"
+    # cmd = "SELECT value_raw, timestamp FROM string_data WHERE endpoint_name='krstc_hv_status' AND timestamp>'2019-08-01';"
     
     cursor.execute(cmd)
 

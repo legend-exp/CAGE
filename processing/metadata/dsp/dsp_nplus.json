@@ -68,7 +68,7 @@
       "module": "pygama.dsp.processors",
       "prereqs": ["wf_pz"],
       "args": ["wf_pz", "db.etrap.rise", "db.etrap.flat", "wf_etrap"],
-      "defaults" : {"db.etrap.rise":"10.25*us", "db.etrap.flat":"3*us"},
+      "defaults" : {"db.etrap.rise":"3*us", "db.etrap.flat":"1*us"},
       "unit": "ADC"
     },
     "trapEmax": {
