@@ -24,6 +24,10 @@ import cage_utils
 mpl.use('Agg')
 
 def main():
+    """
+    use these functions with cut parameters determined by running ./dataCleaning.ipynb !
+    """
+    
     runs = [60, 64, 66, 70, 72] # alpha runs for dsp_id = 2
     # runs = [62, 68, 74] #bkg runs for dsp_id = 2
     # campaign = 'angleScan/'
@@ -51,10 +55,14 @@ def main():
     
     df_raw['ftp_max'] = df_raw['trapEftp']/df_raw['trapEmax']
 
-    n_minus_1(run, campaign, df_raw, dg, runtype, rt_min, radius, angle_det, rotary, cut_keys_raw)
+    # n_minus_1(run, campaign, df_raw, dg, runtype, rt_min, radius, angle_det, rotary, cut_keys_raw)
     allCuts(run, campaign, df_raw, dg, runtype, rt_min, radius, angle_det, rotary, cut_keys_raw)
 
 def n_minus_1(run, campaign, df, dg, runtype, rt_min, radius, angle_det, rotary, cut_keys):
+    """
+    Make plots for every parameter used as a cut, with all other cuts applied except that parameter, to see if it is 
+    actually a necessary parameter to use as a cut
+    """
 
     with open('./cuts.json') as f:
         cuts = json.load(f)
@@ -390,6 +398,9 @@ def n_minus_1(run, campaign, df, dg, runtype, rt_min, radius, angle_det, rotary,
 
 
 def allCuts(run, campaign, df, dg, runtype, rt_min, radius, angle_det, rotary, cut_keys):
+    """
+    Make parameter plots with all cuts applied
+    """
 
     with open('./cuts.json') as f:
         cuts = json.load(f)
@@ -698,9 +709,9 @@ def allCuts(run, campaign, df, dg, runtype, rt_min, radius, angle_det, rotary, c
     plt.setp(ax.get_xticklabels(), fontsize=12)
     plt.setp(ax.get_yticklabels(), fontsize=12)
 
-    ax.text(0.05, 0.75,  f'r = {radius} mm \ntheta = {angle_det} deg \nruntime {rt_min:.2f}', verticalalignment='bottom',
+    ax.text(0.05, 0.75,  f'r = {radius} mm \ntheta = {angle_det} deg \nruntime {rt_min:.2f} min', verticalalignment='bottom',
             horizontalalignment='left', transform=ax.transAxes, color='black', fontsize=10, bbox={'facecolor': 'white', 'alpha': 0.5, 'pad': 8})
-    ax.text(0.95, 0.72,  f'mean: {mean_fit:.2f} \nsigma: {width_fit:.3f} \nFWHM at 60 keV: {fwhm:.2f} keV\n({(fwhm/mean_fit)*100:.2f}%)', verticalalignment='bottom',
+    ax.text(0.95, 0.72,  f'mean: {mean_fit:.2f} keV \nsigma: {width_fit:.3f} keV \nFWHM at 60 keV: {fwhm:.2f} keV \n({(fwhm/mean_fit)*100:.2f}%)', verticalalignment='bottom',
             horizontalalignment='right', transform=ax.transAxes, color='black', fontsize=10, bbox={'facecolor': 'white', 'alpha': 0.5, 'pad': 8})
         
     plt.legend(loc='center right')

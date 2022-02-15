@@ -12,7 +12,10 @@ from tinydb.storages import MemoryStorage
 import matplotlib
 # matplotlib.use('Agg') # when running on cori
 import matplotlib.pyplot as plt
-plt.style.use('../clint.mpl')
+# plt.style.use('../clint.mpl')
+plt.style.use('./joule_dissertation.mplstyle')
+import matplotlib as mpl
+mpl.use('Agg') # if on Cori
 from matplotlib.colors import LogNorm
 
 from pygama import DataGroup
@@ -57,8 +60,8 @@ def main():
     # data_cleaning(dg)
     # peak_drift(dg)
     # pole_zero(dg)
-    label_alpha_runs(dg)
-    # power_spectrum(dg)
+    # label_alpha_runs(dg)
+    power_spectrum(dg)
 
 
 def show_raw_spectrum(dg):
@@ -606,6 +609,7 @@ def power_spectrum(dg):
         f, p = signal.welch(wfs, clk, nperseg=nseg)
         ptot = np.sum(p, axis=0)
         y = ptot / wfs.shape[0]
+        fig, ax = plt.subplots(figsize=(10,8))
         plt.semilogy(f, y, '-', lw=2, label=f'run {run}')
         # iplt += 1
 
@@ -613,9 +617,10 @@ def power_spectrum(dg):
 
     dg.fileDB.groupby(['run']).apply(psd_run)#, iplt)
 
-    plt.xlabel('Frequency (Hz)', ha='right', x=0.9)
-    plt.ylabel('PSD (ADC^2 / Hz)', ha='right', y=1)
-    plt.legend(loc=1)
+    plt.xlabel('Frequency (Hz)') #, ha='right', x=0.9
+    plt.ylabel('PSD (ADC$^2$ / Hz)') #, ha='right', y=1
+    plt.legend(loc=1, fontsize=20)
+    plt.title('Power Spectral Density')
     plt.savefig('./plots/psd_runs.pdf')
 
 

@@ -40,8 +40,8 @@ def main():
     etype = 'trapEftp' #use this even if you want calibrated-- `_cal` will get added to the end when `cal==True`
 
     # can specify which plots you actually want to make by adding them to `plot_list[]`
-    # plot_list = ['AoE']
-    plot_list = ['energy', 'energy_60', 'AoE', 'dcr', 'ToE', 'ToE_60', 'AoE_v_DCR', 'tp050_v_DCR', 'tp0220_v_DCR', 'ToE_v_DCR']
+    plot_list = ['ToE_60']
+    # plot_list = ['energy', 'energy_60', 'AoE', 'dcr', 'ToE', 'ToE_60', 'AoE_v_DCR', 'tp050_v_DCR', 'tp0220_v_DCR', 'ToE_v_DCR']
     # plot_list = ['energy', 'energy_60', 'AoE', 'dcr', 'ToE', 'AoE_v_DCR', 'tp050_v_DCR', 'tp0210_v_DCR', 'ToE_v_DCR']
     # plot_list = ['energy_60', 'ToE_60']
 
@@ -296,7 +296,7 @@ def normalized_dcr_AvE(runs, plot_list=[], corr_DCR=True, corr_AoE=True, corr_To
             energy_hist_norm_60, bins_60 = np.histogram(df_cut[etype], bins=nbx_60,
                                             range=[elo_60, ehi_60], weights=wts)
 
-            plt.semilogy(bins_60[1:], energy_hist_norm_60, ds='steps', c='b', lw=1) #, label=f'{etype}'
+            plt.plot(bins_60[1:], energy_hist_norm_60, ds='steps', c='b', lw=1) #, label=f'{etype}'
 
             ax.set_xlabel(f'Energy{e_unit}', fontsize=16)
             if norm==True:
@@ -305,6 +305,8 @@ def normalized_dcr_AvE(runs, plot_list=[], corr_DCR=True, corr_AoE=True, corr_To
                 ax.set_ylabel('counts', fontsize=16)
             plt.setp(ax.get_xticklabels(), fontsize=14)
             plt.setp(ax.get_yticklabels(), fontsize=14)
+            
+            plt.ylim(3, 10)
 
             ax.text(0.95, 0.81, f'r = {radius} mm', verticalalignment='bottom',
                         horizontalalignment='right', transform=ax.transAxes, color='green', fontsize=14,
@@ -470,7 +472,7 @@ def normalized_dcr_AvE(runs, plot_list=[], corr_DCR=True, corr_AoE=True, corr_To
 
 #             aoe_hist_norm = np.divide(aoe_hist, (rt_min))
 
-            pcm = plt.pcolormesh(X, Y, ToE_hist_norm, shading='nearest') #, norm=LogNorm(0.001, 1)#0.002, 0.2
+            pcm = plt.pcolormesh(X, Y, ToE_hist_norm, shading='nearest', vmin=0.0, vmax=1.1) #, norm=LogNorm(0.001, 1)#0.002, 0.2
 
             cb = plt.colorbar()
             if norm==True:

@@ -51,11 +51,10 @@ def main():
             'bl_sig_cut_raw', 'ftp_max_cut_raw'])
     
     # for run in run_list:
-        # peakCounts_60(run, campaign, user=user, hit=hit, cal=cal, dsp_list=dsp_list, lowE=lowE, energy_par=etype, 
-                      # bins=30, erange=[54,65], bkg_sub=True, plot=True, writeParams=False)
+        # peakCounts_60(run, campaign, user=user, hit=hit, cal=cal, dsp_list=dsp_list, lowE=lowE, energy_par=etype, bins=30, erange=[54,65], bkg_sub=True, plot=True, writeParams=False)
 
     
-    # rateVSrad(run_list, campaign, dsp_list, norm=False, user=True, hit=True, cal=True, lowE=False)
+    rateVSrad(run_list, campaign, dsp_list, norm=True, user=True, hit=True, cal=True, lowE=False)
     
     # superpulses(run_list, campaign, dsp_list, norm = False, user=True, hit=True, cal=True, lowE=False, 
                 # write_data=True)
@@ -65,12 +64,17 @@ def main():
     
     # risetime_superpulses(run_list, campaign, dsp_list, norm = False, user=True, hit=True, cal=True,
                          # lowE=False, savefig=True)
-    plot_superpulses(campaign, savefig=True, inset=False)
+    # plot_superpulses(campaign, savefig=True, inset=False)
+    
+    # plot_bkgSub_superpulses(campaign, savefig=True)
     
         
 
     
 def rateVSrad(run_list, campaign, dsp_list, norm = False, user=True, hit=True, cal=True, lowE=False):
+    """
+    Get and plot the rate of 60 keV gammas after cuts, versus radius
+    """
     
     rad_arr = []
     counts_arr = []
@@ -101,7 +105,7 @@ def rateVSrad(run_list, campaign, dsp_list, norm = False, user=True, hit=True, c
     
     fig, ax = plt.subplots()
     
-    plt.errorbar(rad_arr, counts_arr, yerr=err_arr, marker = '.', c='b', ls='none', label=f'counts')
+    plt.errorbar(rad_arr, counts_arr, yerr=err_arr, marker = 'o', c='b', ls='none', label=f'counts')
     
     plt.xlabel('Radial Position (mm)', fontsize=14)
     if norm==True:
@@ -111,7 +115,7 @@ def rateVSrad(run_list, campaign, dsp_list, norm = False, user=True, hit=True, c
     plt.title(f'60 keV Counts VS Radius', fontsize=14)
     plt.setp(ax.get_xticklabels(), fontsize=12)
     plt.setp(ax.get_yticklabels(), fontsize=12)
-#     plt.legend()
+    # plt.legend()
     plt.tight_layout()
     plt.savefig(f'./plots/{campaign}rate_60keV_vs_rad.png', dpi=200)
     plt.savefig(f'./plots/{campaign}rate_60keV_vs_rad.pdf', dpi=200)
@@ -206,10 +210,10 @@ def peakCounts_60(run, campaign, dsp_list, user=True, hit=True, cal=True, lowE=F
         plt.setp(ax.get_xticklabels(), fontsize=12)
         plt.setp(ax.get_yticklabels(), fontsize=12)
 
-        ax.text(0.03, 0.8,  f'r = {radius} mm \ntheta = {angle_det} deg \nruntime {rt_min:.2f}',
+        ax.text(0.03, 0.8,  f'r = {radius} mm \ntheta = {angle_det} deg \nruntime {rt_min:.2f} min',
                 verticalalignment='bottom',horizontalalignment='left', transform=ax.transAxes, color='black', 
                 fontsize=10, bbox={'facecolor': 'white', 'alpha': 0.8, 'pad': 8})
-        ax.text(0.95, 0.8,  f'mean: {mean:.2f} \nsigma: {sig:.3f} \nchi square: {chi_2:.2f}', 
+        ax.text(0.95, 0.8,  f'mean: {mean:.2f} keV \nsigma: {sig:.3f} keV \nchi square: {chi_2:.2f}', 
                 verticalalignment='bottom', horizontalalignment='right', transform=ax.transAxes, color='black',
                 fontsize=10, bbox={'facecolor': 'white', 'alpha': 0.8, 'pad': 8})
         
@@ -317,7 +321,7 @@ def peakCounts_60(run, campaign, dsp_list, user=True, hit=True, cal=True, lowE=F
             plt.setp(ax.get_xticklabels(), fontsize=12)
             plt.setp(ax.get_yticklabels(), fontsize=12)
             
-            ax.text(0.03, 0.8,  f'r = {radius} mm \ntheta = {angle_det} deg \nruntime {rt_min:.2f}',
+            ax.text(0.03, 0.8,  f'r = {radius} mm \ntheta = {angle_det} deg \nruntime {rt_min:.2f} min',
                 verticalalignment='bottom',horizontalalignment='left', transform=ax.transAxes, color='black', 
                 fontsize=10, bbox={'facecolor': 'white', 'alpha': 0.8, 'pad': 8})
             
@@ -330,9 +334,49 @@ def peakCounts_60(run, campaign, dsp_list, user=True, hit=True, cal=True, lowE=F
             
             plt.clf()
             plt.close()
-        
-        total_bkg = left_counts + right_counts
-        err_bkg
+            
+            # for 2 sigma region
+            fig, ax = plt.subplots()
+
+            plt.plot(full_bins[1:], full_hist, ds='steps', c='b', lw=1)
+            
+            # plt.axvline(mean-3*sig, c='g', lw=1, label ='Peak region')
+            # plt.axvline(mean+3*sig, c='g', lw=1)
+            
+            ax.axvspan(mean-2*sig, mean+2*sig, alpha=0.1, color='g', label='peak region (2 sigma)')
+
+            # plt.axvline(bkg_left_min, c='r', lw=1, label='Background region')
+            # plt.axvline(bkg_left_max, c='r', lw=1)
+
+            # plt.axvline(bkg_right_min, c='r', lw=1)
+            # plt.axvline(bkg_right_max, c='r', lw=1)
+            
+            ax.axvspan(bkg_left_min_2sig, bkg_left_max_2sig, alpha=0.2, color='r', label='background region (2 sigma)')
+            ax.axvspan(bkg_right_min_2sig, bkg_right_max_2sig, alpha=0.2, color='r')
+            
+            plt.title('60 keV peak with background subtraction region', fontsize=14)
+            
+            plt.xlabel(f'{energy_par} (keV)', fontsize=14)
+            plt.ylabel('counts', fontsize=14)
+            
+
+            plt.setp(ax.get_xticklabels(), fontsize=12)
+            plt.setp(ax.get_yticklabels(), fontsize=12)
+            
+            ax.text(0.03, 0.8,  f'r = {radius} mm \ntheta = {angle_det} deg \nruntime {rt_min:.2f} min',
+                verticalalignment='bottom',horizontalalignment='left', transform=ax.transAxes, color='black', 
+                fontsize=10, bbox={'facecolor': 'white', 'alpha': 0.8, 'pad': 8})
+            
+            plt.legend(loc='upper right')
+            
+            plt.tight_layout()
+            
+            plt.savefig(f'./plots/{campaign}run{run}_bkgRegion_2sigma_60keV.png', dpi=200)
+            plt.savefig(f'./plots/{campaign}run{run}_bkgRegion_2sigma_60keV.pdf', dpi=200)
+            
+            plt.clf()
+            plt.close()
+
         # For Joule's 60keV analysis. Generally don't do this
         if writeParams==True:
             param_keys = ['mean_60', 'sig_60', 'chiSquare_fit_60', 'cut_60_3sig','bkg_60_left',
@@ -555,7 +599,8 @@ def risetime_dists(run_list, campaign, dsp_list, norm = False, user=True, hit=Tr
         df_bkg = df.query(bkg_60).copy()
         
         
-        tp_list = ['tp0020', 'tp0030', 'tp0050', 'tp0220', 'tp0250', 'tp0530', 'tp0550', 'tp1090']
+        # tp_list = ['tp0020', 'tp0030', 'tp0050', 'tp0220', 'tp0250', 'tp0530', 'tp0550', 'tp1090']
+        tp_list = ['tp0020', 'tp0050', 'tp0220', 'tp0250', 'tp0530', 'tp0550', 'tp1090']
         
 
         df_60['tp0020'] = df_60['tp_20'] - df_60['tp_0']
@@ -584,6 +629,8 @@ def risetime_dists(run_list, campaign, dsp_list, norm = False, user=True, hit=Tr
         for tp in tp_list:
             print(tp)
             
+            # first get get tp in signal region
+            
             fig, ax = plt.subplots()
             tlo, thi, tpb = 0, 800, 10
             nbx = int((thi-tlo)/tpb)
@@ -594,7 +641,7 @@ def risetime_dists(run_list, campaign, dsp_list, norm = False, user=True, hit=Tr
 
             plt.plot(bins[1:], tp_hist_60, ds='steps', c='b', lw=1)
 
-            plt.xlabel(tp, fontsize=16)
+            plt.xlabel(f'{tp} (ns)', fontsize=16)
             plt.ylabel('counts', fontsize=16)
 
             plt.title(f'60 keV {tp} \nrun {run}, {radius} mm', fontsize = 16)
@@ -605,8 +652,8 @@ def risetime_dists(run_list, campaign, dsp_list, norm = False, user=True, hit=Tr
             plt.tight_layout()
             
             if savefig==True:
-                plt.savefig(f'./plots/{campaign}risetimes/run{run}_60keV_{tp}.png', dpi=200)
-                plt.savefig(f'./plots/{campaign}risetimes/run{run}_60keV_{tp}.pdf', dpi=200)
+                plt.savefig(f'./plots/{campaign}risetimes/new/run{run}_60keV_{tp}.png', dpi=200)
+                plt.savefig(f'./plots/{campaign}risetimes/new/run{run}_60keV_{tp}.pdf', dpi=200)
 
             plt.clf()
             plt.close()
@@ -614,6 +661,8 @@ def risetime_dists(run_list, campaign, dsp_list, norm = False, user=True, hit=Tr
             fig, ax = plt.subplots()
             tlo, thi, tpb = 0, 800, 10
             nbx = int((thi-tlo)/tpb)
+            
+            # get tp in background/sideband region
 
 
             tp_hist_bkg, bins = np.histogram(df_bkg[tp], bins=nbx,
@@ -621,8 +670,8 @@ def risetime_dists(run_list, campaign, dsp_list, norm = False, user=True, hit=Tr
 
             plt.plot(bins[1:], tp_hist_bkg, ds='steps', c='b', lw=1)
 
-            plt.xlabel(tp, fontsize=16)
-            plt.ylabel('counts', fontsize=16)
+            plt.xlabel(f'{tp} (ns)', fontsize=16)
+            plt.ylabel('counts/10 ns', fontsize=16)
 
             plt.title(f'Background {tp} \nrun {run}, {radius} mm', fontsize = 16)
 
@@ -632,12 +681,13 @@ def risetime_dists(run_list, campaign, dsp_list, norm = False, user=True, hit=Tr
             plt.tight_layout()
             
             if savefig==True:
-                plt.savefig(f'./plots/{campaign}risetimes/run{run}_bkg_{tp}.png', dpi=200)
-                plt.savefig(f'./plots/{campaign}risetimes/run{run}_bkg_{tp}.pdf', dpi=200)
+                plt.savefig(f'./plots/{campaign}risetimes/new/run{run}_bkg_{tp}.png', dpi=200)
+                plt.savefig(f'./plots/{campaign}risetimes/new/run{run}_bkg_{tp}.pdf', dpi=200)
 
             plt.clf()
             plt.close()
             
+            # fit the background tp distribution
             
             if (tp=='tp0020') or (tp=='tp0030') or (tp=='tp0050'):
                 bkg_pars, bkg_cov = pgf.gauss_mode_width_max(tp_hist_bkg, bins, n_bins = 5)
@@ -648,24 +698,44 @@ def risetime_dists(run_list, campaign, dsp_list, norm = False, user=True, hit=Tr
             bkg_width = bkg_pars[1]
             bkg_amp = bkg_pars[2]
             
-            bkg_fit_pars, bkg_fit_cov = pgf.fit_hist(pgf.gauss_basic, tp_hist_bkg, bins, guess = (bkg_mode, bkg_width, bkg_amp, 0))
+            bkg_fit_pars, bkg_fit_cov = pgf.fit_hist(pgf.gauss_basic, tp_hist_bkg, bins, guess = (bkg_mode, 
+                                                                                bkg_width, bkg_amp, 0))
             
             bkg_mean = bkg_fit_pars[0]
             bkg_sig = bkg_fit_pars[1]
             
-            bkg_chi_2 = pgf.goodness_of_fit(tp_hist_bkg, bins, pgf.gauss_basic, bkg_fit_pars)
+            # print(f'Mean guess 1: {bkg_mean} \nSigma guess 1: {bkg_sig}')
+            
+            # second fit of only subsection around 5 sigma of original peak for better fit
+            
+            fit_lo, fit_hi = bkg_mean - 5*bkg_sig, bkg_mean + 5*bkg_sig
+            
+            if fit_lo <0:
+                fit_lo = 0.
+            nbx_fit = int((fit_hi - fit_lo)/10)
+            
+            tp_hist_bkg_fit, bins_fit = np.histogram(df_bkg[tp], bins=nbx_fit,
+                                                range=[fit_lo, fit_hi])
+            bkg_fit2_pars, bkg_fit2_cov = pgf.fit_hist(pgf.gauss_basic, tp_hist_bkg_fit, bins_fit, 
+                                                       guess = (bkg_mean, bkg_sig, bkg_amp, 0))
+            
+            bkg_mean_fit = bkg_fit2_pars[0]
+            bkg_sig_fit = bkg_fit2_pars[1]
+            
+            bkg_chi_2 = pgf.goodness_of_fit(tp_hist_bkg_fit, bins_fit, pgf.gauss_basic, bkg_fit2_pars)
             
             fig, ax = plt.subplots()
             
-            plt.plot(bins[1:], pgf.gauss_basic(bins[1:], *bkg_fit_pars), c = 'r')
+            
+            plt.plot(bins_fit[1:], pgf.gauss_basic(bins_fit[1:], *bkg_fit2_pars), c = 'r')
             plt.plot(bins[1:], tp_hist_bkg, ds='steps', c='b', lw=1)
             
-            ax.text(0.95, 0.8,  f'mean: {bkg_mean:.2f} \nsigma: {bkg_sig:.3f}', 
+            ax.text(0.95, 0.8,  f'mean: {bkg_mean_fit:.0f} ns \nsigma: {bkg_sig_fit:.0f} ns', 
                 verticalalignment='bottom', horizontalalignment='right', transform=ax.transAxes, color='black',
-                fontsize=10, bbox={'facecolor': 'white', 'alpha': 0.8, 'pad': 8})
+                fontsize=16, bbox={'facecolor': 'white', 'alpha': 0.8, 'pad': 8})
             
-            plt.xlabel(tp, fontsize=16)
-            plt.ylabel('counts', fontsize=16)
+            plt.xlabel(f'{tp} (ns)', fontsize=16)
+            plt.ylabel('counts/ 10 ns', fontsize=16)
 
             plt.title(f'Background {tp} with fit \nrun {run}, {radius} mm', fontsize = 16)
 
@@ -675,18 +745,19 @@ def risetime_dists(run_list, campaign, dsp_list, norm = False, user=True, hit=Tr
             plt.tight_layout()
             
             if savefig==True:
-                plt.savefig(f'./plots/{campaign}risetimes/run{run}_bkg_fit_{tp}.png', dpi=200)
-                plt.savefig(f'./plots/{campaign}risetimes/run{run}_bkg_fit_{tp}.pdf', dpi=200)
+                plt.savefig(f'./plots/{campaign}risetimes/new/run{run}_bkg_fit_{tp}.png', dpi=200)
+                plt.savefig(f'./plots/{campaign}risetimes/new/run{run}_bkg_fit_{tp}.pdf', dpi=200)
 
             plt.clf()
             plt.close()
 
-            bkg_cut_3sig_lo = bkg_mean-3*bkg_sig
-            bkg_cut_3sig_hi = bkg_mean+3*bkg_sig
+            bkg_cut_3sig_lo = bkg_mean_fit-3*bkg_sig_fit
+            bkg_cut_3sig_hi = bkg_mean_fit+3*bkg_sig_fit
             
             bkg_counts = len(df_bkg.query(f'({tp} > {bkg_cut_3sig_lo}) and ({tp} < {bkg_cut_3sig_hi})'))
             
             # _____________________________________________
+            # now do background subtraction of signal hist and sideband hist
             
             fig, ax = plt.subplots()
             tlo, thi, tpb = 0, 800, 10
@@ -697,7 +768,7 @@ def risetime_dists(run_list, campaign, dsp_list, norm = False, user=True, hit=Tr
             plt.plot(bins[1:], tp_hist_bkg_sub, ds='steps', c='b', lw=1)
 
 
-            plt.xlabel(tp, fontsize=16)
+            plt.xlabel(f'{tp} (ns)', fontsize=16)
             plt.ylabel('counts', fontsize=16)
 
             plt.title(f'Background-subtracted {tp} \nrun {run}, {radius} mm', fontsize = 16)
@@ -708,35 +779,75 @@ def risetime_dists(run_list, campaign, dsp_list, norm = False, user=True, hit=Tr
             plt.tight_layout()
             
             if savefig==True:
-                plt.savefig(f'./plots/{campaign}risetimes/run{run}_bkg_sub_{tp}.png', dpi=200)
-                plt.savefig(f'./plots/{campaign}risetimes/run{run}_bkg_sub_{tp}.pdf', dpi=200)
+                plt.savefig(f'./plots/{campaign}risetimes/new/run{run}_bkg_sub_{tp}.png', dpi=200)
+                plt.savefig(f'./plots/{campaign}risetimes/new/run{run}_bkg_sub_{tp}.pdf', dpi=200)
             
             plt.clf()
             plt.close()
+            
+            # fit background-subtracted hist
             
             pars, cov = pgf.gauss_mode_width_max(tp_hist_bkg_sub, bins, n_bins = 10)
             mode = pars[0]
             width = pars[1]
             amp = pars[2]
             
-            fit_pars, fit_cov = pgf.fit_hist(pgf.gauss_basic, tp_hist_bkg_sub, bins, guess = (mode, width, amp, 0))
+            fit_pars, fit_cov = pgf.fit_hist(pgf.gauss_basic, tp_hist_bkg_sub, bins, 
+                                             guess = (mode, width, amp, 0))
             
             mean = fit_pars[0]
             sig = fit_pars[1]
             
-            chi_2 = pgf.goodness_of_fit(tp_hist_bkg_sub, bins, pgf.gauss_basic, fit_pars)
+            # print(f'Mean guess: {mean} \nSigma guess: {sig}')
+            
+            #second fit of only the peak region. First get a subsection of the bkg-sub hist only near the peak
+            
+            fit_lo, fit_hi = mean - 5*sig, mean + 5*sig
+            
+            # get bin numbers corresponding to +/- 5 sigma of the peak 
+            fit_lims = [fit_lo, fit_hi]
+            idxs = np.digitize(fit_lims, bins)
+            
+            idx_lo = idxs[0]
+            idx_hi = idxs[1]
+            
+            bins_new = bins[idx_lo:idx_hi]
+            y = tp_hist_bkg_sub[idx_lo:idx_hi-1]
+                
+            # print(f'len bins: {len(bins_new)} \nlength y: {len(y)}')
+            
+            # print(bins_new)
+            # print(y)
+            
+            # just a test to see if new region being chosen correctly
+            # plt.plot(bins_new[1:], y, ds='steps', c='b', lw=1)
+            # plt.savefig(f'./plots/{campaign}risetimes/new/run{run}_test_subHist_{tp}.png', dpi=200)
+            # plt.clf()
+            # plt.close()
+            
+            # perform second fit of region around the peak only
+
+            fit2_pars, fit2_cov = pgf.fit_hist(pgf.gauss_basic, y, bins_new, 
+                                                       guess = (mean, sig, amp, 0))
+            
+            mean_final = fit2_pars[0]
+            sig_final = fit2_pars[1]
+            
+            chi_2 = pgf.goodness_of_fit(tp_hist_bkg_sub, bins, pgf.gauss_basic, fit2_pars)
             
             fig, ax = plt.subplots()
             
-            plt.plot(bins[1:], pgf.gauss_basic(bins[1:], *fit_pars), c = 'r')
+            # plot fit from small region around the peak over entire tp range 
+            plt.plot(bins_new[1:], pgf.gauss_basic(bins_new[1:], *fit2_pars), c = 'r')
             plt.plot(bins[1:], tp_hist_bkg_sub, ds='steps', c='b', lw=1)
+            # exit()
             
-            ax.text(0.95, 0.8,  f'mean: {mean:.2f} \nsigma: {sig:.3f}', 
+            ax.text(0.95, 0.8,  f'mean: {mean_final:.0f} ns \nsigma: {sig_final:.0f} ns', 
                 verticalalignment='bottom', horizontalalignment='right', transform=ax.transAxes, color='black',
-                fontsize=10, bbox={'facecolor': 'white', 'alpha': 0.8, 'pad': 8})
+                fontsize=16, bbox={'facecolor': 'white', 'alpha': 0.8, 'pad': 8})
             
-            plt.xlabel(tp, fontsize=16)
-            plt.ylabel('counts', fontsize=16)
+            plt.xlabel(f'{tp} (ns)', fontsize=16)
+            plt.ylabel('counts/10 ns', fontsize=16)
 
             plt.title(f'Background-subtracted {tp} with fit \nrun {run}, {radius} mm', fontsize = 16)
 
@@ -746,17 +857,19 @@ def risetime_dists(run_list, campaign, dsp_list, norm = False, user=True, hit=Tr
             plt.tight_layout()
             
             if savefig==True:
-                plt.savefig(f'./plots/{campaign}risetimes/run{run}_bkg_sub_fit_{tp}.png', dpi=200)
-                plt.savefig(f'./plots/{campaign}risetimes/run{run}_bkg_sub_fit_{tp}.pdf', dpi=200)
+                plt.savefig(f'./plots/{campaign}risetimes/new/run{run}_bkg_sub_fit_{tp}.png', dpi=200)
+                plt.savefig(f'./plots/{campaign}risetimes/new/run{run}_bkg_sub_fit_{tp}.pdf', dpi=200)
 
             plt.clf()
             plt.close()
             
+            # count the number of events in the background-subtracted peak
+            
             tp_hist_bkg_sub_clip = tp_hist_bkg_sub.clip(min=0.0)
 
             
-            cut_3sig_lo = mean-3*sig
-            cut_3sig_hi = mean+3*sig
+            cut_3sig_lo = mean_final-3*sig_final
+            cut_3sig_hi = mean_final+3*sig_final
             
             # get bin numbers corresponding to these values
             cuts = [cut_3sig_lo, cut_3sig_hi]
@@ -797,6 +910,8 @@ def risetime_superpulses(run_list, campaign, dsp_list, norm = False, user=True, 
     
     campaign+='2sig/'
     
+    # first calculate timepoints from superpulses
+    
     wf_arr = np.array(data_superpulse['pure_60_pz'])
     bkg_wf_arr = np.array(data_superpulse['bkg_pz'])
     bkg_wf = bkg_wf_arr[0]
@@ -822,22 +937,22 @@ def risetime_superpulses(run_list, campaign, dsp_list, norm = False, user=True, 
     rt_0050 = np.zeros(len(wf_arr))
     
     # using max of WF overshoot
-    for n in range(len(wf_arr)):
-        t_02 = cage_utils.time_point_frac(wf_arr[n], 0.02, arg_maxes[n])
-        t_05 = cage_utils.time_point_frac(wf_arr[n], 0.05, arg_maxes[n])
-        t_10 = cage_utils.time_point_frac(wf_arr[n], 0.1, arg_maxes[n])
-        t_20 = cage_utils.time_point_frac(wf_arr[n], 0.2, arg_maxes[n])
-        t_30 = cage_utils.time_point_frac(wf_arr[n], 0.3, arg_maxes[n])
-        t_50 = cage_utils.time_point_frac(wf_arr[n], 0.5, arg_maxes[n])
-        t_90 = cage_utils.time_point_frac(wf_arr[n], 0.9, arg_maxes[n])
-        rt_1090[n] = (t_90-t_10)*10 #in ns
-        rt_0550[n] = (t_50-t_05)*10 #in ns
-        rt_0530[n] = (t_30-t_05)*10 #in ns
-        rt_0250[n] = (t_50-t_02)*10 #in ns
-        rt_0220[n] = (t_20-t_02)*10 #in ns
-        rt_0020[n] = (t_20-t0[n])*10 #in ns
-        rt_0030[n] = (t_30-t0[n])*10 #in ns
-        rt_0050[n] = (t_50-t0[n])*10 #in ns
+    # for n in range(len(wf_arr)):
+        # t_02 = cage_utils.time_point_frac(wf_arr[n], 0.02, arg_maxes[n])
+        # t_05 = cage_utils.time_point_frac(wf_arr[n], 0.05, arg_maxes[n])
+        # t_10 = cage_utils.time_point_frac(wf_arr[n], 0.1, arg_maxes[n])
+        # t_20 = cage_utils.time_point_frac(wf_arr[n], 0.2, arg_maxes[n])
+        # t_30 = cage_utils.time_point_frac(wf_arr[n], 0.3, arg_maxes[n])
+        # t_50 = cage_utils.time_point_frac(wf_arr[n], 0.5, arg_maxes[n])
+        # t_90 = cage_utils.time_point_frac(wf_arr[n], 0.9, arg_maxes[n])
+        # rt_1090[n] = (t_90-t_10)*10 #in ns
+        # rt_0550[n] = (t_50-t_05)*10 #in ns
+        # rt_0530[n] = (t_30-t_05)*10 #in ns
+        # rt_0250[n] = (t_50-t_02)*10 #in ns
+        # rt_0220[n] = (t_20-t_02)*10 #in ns
+        # rt_0020[n] = (t_20-t0[n])*10 #in ns
+        # rt_0030[n] = (t_30-t0[n])*10 #in ns
+        # rt_0050[n] = (t_50-t0[n])*10 #in ns
         
     # using Eftp from superpulse    
     for n in range(len(wf_arr)):
@@ -867,23 +982,23 @@ def risetime_superpulses(run_list, campaign, dsp_list, norm = False, user=True, 
     bkg_rt_0030 = np.zeros(len(bkg_wf_arr))
     bkg_rt_0050 = np.zeros(len(bkg_wf_arr))
     
-#     # using max of WF overshoot
-#     for n in range(len(bkg_wf_arr)):
-#         bkg_t_02 = cage_utils.time_point_frac(bkg_wf_arr[n], 0.02, bkg_arg_maxes[n])
-#         bkg_t_05 = cage_utils.time_point_frac(bkg_wf_arr[n], 0.05, bkg_arg_maxes[n])
-#         bkg_t_10 = cage_utils.time_point_frac(bkg_wf_arr[n], 0.1, bkg_arg_maxes[n])
-#         bkg_t_20 = cage_utils.time_point_frac(bkg_wf_arr[n], 0.2, bkg_arg_maxes[n])
-#         bkg_t_30 = cage_utils.time_point_frac(bkg_wf_arr[n], 0.3, bkg_arg_maxes[n])
-#         bkg_t_50 = cage_utils.time_point_frac(bkg_wf_arr[n], 0.5, bkg_arg_maxes[n])
-#         bkg_t_90 = cage_utils.time_point_frac(bkg_wf_arr[n], 0.9, bkg_arg_maxes[n])
-#         bkg_rt_1090[n] = (bkg_t_90-bkg_t_10)*10 #in ns
-#         bkg_rt_0550[n] = (bkg_t_50-bkg_t_05)*10 #in ns
-#         bkg_rt_0530[n] = (bkg_t_30-bkg_t_05)*10 #in ns
-#         bkg_rt_0250[n] = (bkg_t_50-bkg_t_02)*10 #in ns
-#         bkg_rt_0220[n] = (bkg_t_20-bkg_t_02)*10 #in ns
-#         bkg_rt_0020[n] = (bkg_t_20-bkg_t0[n])*10 #in ns
-#         bkg_rt_0030[n] = (bkg_t_30-bkg_t0[n])*10 #in ns
-#         bkg_rt_0050[n] = (bkg_t_50-bkg_t0[n])*10 #in ns
+    # using max of WF overshoot
+    # for n in range(len(bkg_wf_arr)):
+        # bkg_t_02 = cage_utils.time_point_frac(bkg_wf_arr[n], 0.02, bkg_arg_maxes[n])
+        # bkg_t_05 = cage_utils.time_point_frac(bkg_wf_arr[n], 0.05, bkg_arg_maxes[n])
+        # bkg_t_10 = cage_utils.time_point_frac(bkg_wf_arr[n], 0.1, bkg_arg_maxes[n])
+        # bkg_t_20 = cage_utils.time_point_frac(bkg_wf_arr[n], 0.2, bkg_arg_maxes[n])
+        # bkg_t_30 = cage_utils.time_point_frac(bkg_wf_arr[n], 0.3, bkg_arg_maxes[n])
+        # bkg_t_50 = cage_utils.time_point_frac(bkg_wf_arr[n], 0.5, bkg_arg_maxes[n])
+        # bkg_t_90 = cage_utils.time_point_frac(bkg_wf_arr[n], 0.9, bkg_arg_maxes[n])
+        # bkg_rt_1090[n] = (bkg_t_90-bkg_t_10)*10 #in ns
+        # bkg_rt_0550[n] = (bkg_t_50-bkg_t_05)*10 #in ns
+        # bkg_rt_0530[n] = (bkg_t_30-bkg_t_05)*10 #in ns
+        # bkg_rt_0250[n] = (bkg_t_50-bkg_t_02)*10 #in ns
+        # bkg_rt_0220[n] = (bkg_t_20-bkg_t_02)*10 #in ns
+        # bkg_rt_0020[n] = (bkg_t_20-bkg_t0[n])*10 #in ns
+        # bkg_rt_0030[n] = (bkg_t_30-bkg_t0[n])*10 #in ns
+        # bkg_rt_0050[n] = (bkg_t_50-bkg_t0[n])*10 #in ns
         
     # using Eftp from superpulse
     for n in range(len(bkg_wf_arr)):
@@ -908,11 +1023,14 @@ def risetime_superpulses(run_list, campaign, dsp_list, norm = False, user=True, 
     # tp0_list = ['tp0020', 'tp0030', 'tp0050']
     # tp0_values = np.array([rt_0020, rt_0030, rt_0050])
     # tp0_err = np.repeat(10., len(rad_arr))
-    bkg_tp_values = np.array([bkg_rt_0020, bkg_rt_0050, bkg_rt_0220, bkg_rt_0250, bkg_rt_0530, bkg_rt_0550, bkg_rt_1090])
+    bkg_tp_values = np.array([bkg_rt_0020, bkg_rt_0050, bkg_rt_0220, bkg_rt_0250, bkg_rt_0530, 
+                              bkg_rt_0550, bkg_rt_1090])
+    
+    
+    # get uncertainties from fits of distribution obtained from risetime_dists()
     
     with open('./analysis_60keV.json') as f:
         params = json.load(f)
-    
     
     tp_full_arr = np.zeros(shape = (len(tp_list), len(rad_arr)))
     tp_full_err_arr = np.zeros(shape = (len(tp_list), len(rad_arr)))
@@ -960,7 +1078,7 @@ def risetime_superpulses(run_list, campaign, dsp_list, norm = False, user=True, 
         plt.xlabel('Radial Position (mm)', fontsize=14)
         plt.ylabel(f'{tp} risetime (ns)', fontsize=14)
         # plt.title(f'{tp} Risetime VS Radius', fontsize=14)
-        plt.title(f'{tp} Risetime VS Radius \ntrapEftp as max', fontsize=14)
+        plt.title(f'{tp} Risetime VS Radius', fontsize=14)
         plt.setp(ax.get_xticklabels(), fontsize=12)
         plt.setp(ax.get_yticklabels(), fontsize=12)
         plt.legend(fontsize=12)
@@ -984,10 +1102,10 @@ def risetime_superpulses(run_list, campaign, dsp_list, norm = False, user=True, 
     plt.xlabel('Radial Position (mm)', fontsize=14)
     plt.ylabel(f'risetime (ns)', fontsize=14)
     # plt.title(f'Risetime VS Radius \nfrom distribution', fontsize=14)
-    plt.title(f'Risetime VS Radius \nfrom distribution \ntrapEftp as max', fontsize=14)
+    plt.title(f'Risetime VS Radius for 60 keV \nfrom distribution', fontsize=14)
     plt.setp(ax.get_xticklabels(), fontsize=12)
     plt.setp(ax.get_yticklabels(), fontsize=12)
-    plt.legend(fontsize=12)
+    plt.legend(fontsize=12, bbox_to_anchor=(1.04,1), borderaxespad=0)
     plt.tight_layout()
         
     if savefig:
@@ -997,7 +1115,32 @@ def risetime_superpulses(run_list, campaign, dsp_list, norm = False, user=True, 
     
     plt.clf()
     plt.close()
-
+    
+    # do same for risetimes from distributions in sideband regions
+    fig, ax = plt.subplots()
+    for (tp, n) in zip(tp_list, range(len(tp_list))):
+        plt.errorbar(rad_arr, bkg_tp_full_arr[n], yerr=bkg_tp_full_err_arr[n], marker = markers[n], c=col[n], 
+                     ls='none', label=f'{tp}')
+    plt.xlabel('Radial Position (mm)', fontsize=14)
+    plt.ylabel(f'risetime (ns)', fontsize=14)
+    # plt.title(f'Risetime VS Radius \nfrom distribution', fontsize=14)
+    plt.title(f'Risetime VS Radius for Background \nfrom distribution', fontsize=14)
+    plt.setp(ax.get_xticklabels(), fontsize=12)
+    plt.setp(ax.get_yticklabels(), fontsize=12)
+    plt.legend(fontsize=12, bbox_to_anchor=(1.04,1), borderaxespad=0)
+    plt.tight_layout()
+        
+    if savefig:
+        plt.savefig(f'./plots/{campaign}risetimes/bkg_rt_all_dist_vs_rad.png', dpi=200)
+        plt.savefig(f'./plots/{campaign}risetimes/bkg_rt_all_dist_vs_rad.pdf', dpi=200)
+        # plt.savefig(f'./plots/{campaign}risetimes/new_rt_all_dist_vs_rad.png', dpi=200)
+    
+    plt.clf()
+    plt.close()
+    
+    
+    # now for superpulses
+    # 60 keV
     fig, ax = plt.subplots()
     for (tp, n) in zip(tp_list, range(len(tp_list))):
         plt.errorbar(rad_arr, tp_values[n], yerr=tp_full_err_arr[n], marker = markers[n], c=col[n], 
@@ -1005,15 +1148,37 @@ def risetime_superpulses(run_list, campaign, dsp_list, norm = False, user=True, 
     plt.xlabel('Radial Position (mm)', fontsize=14)
     plt.ylabel(f'risetime (ns)', fontsize=14)
     # plt.title(f'Risetime VS Radius \nfrom Superpulse', fontsize=14)
-    plt.title(f'Risetime VS Radius \nfrom Superpulse \ntrapEftp as max', fontsize=14)
+    plt.title(f'Risetime VS Radius for 60 keV \nfrom Superpulse', fontsize=14)
     plt.setp(ax.get_xticklabels(), fontsize=12)
     plt.setp(ax.get_yticklabels(), fontsize=12)
-    plt.legend(fontsize=12)
+    plt.legend(fontsize=12, bbox_to_anchor=(1.04,1), borderaxespad=0)
     plt.tight_layout()
         
     if savefig:
         plt.savefig(f'./plots/{campaign}risetimes/rt_all_vs_rad.png', dpi=200)
         plt.savefig(f'./plots/{campaign}risetimes/rt_all_vs_rad.pdf', dpi=200)
+        # plt.savefig(f'./plots/{campaign}risetimes/new_rt_all_vs_rad.png', dpi=200)
+    
+    plt.clf()
+    plt.close()
+    
+    # background 
+    fig, ax = plt.subplots()
+    for (tp, n) in zip(tp_list, range(len(tp_list))):
+        plt.errorbar(rad_arr, bkg_tp_values[n], yerr=bkg_tp_full_err_arr[n], marker = markers[n], c=col[n], 
+                     ls='none', label=f'{tp}')
+    plt.xlabel('Radial Position (mm)', fontsize=14)
+    plt.ylabel(f'risetime (ns)', fontsize=14)
+    # plt.title(f'Risetime VS Radius \nfrom Superpulse', fontsize=14)
+    plt.title(f'Risetime VS Radius for Background \nfrom Superpulse', fontsize=14)
+    plt.setp(ax.get_xticklabels(), fontsize=12)
+    plt.setp(ax.get_yticklabels(), fontsize=12)
+    plt.legend(fontsize=12, bbox_to_anchor=(1.04,1), borderaxespad=0)
+    plt.tight_layout()
+        
+    if savefig:
+        plt.savefig(f'./plots/{campaign}risetimes/bkg_rt_all_vs_rad.png', dpi=200)
+        plt.savefig(f'./plots/{campaign}risetimes/bkg_rt_all_vs_rad.pdf', dpi=200)
         # plt.savefig(f'./plots/{campaign}risetimes/new_rt_all_vs_rad.png', dpi=200)
     
     plt.clf()
@@ -1054,17 +1219,19 @@ def plot_superpulses(campaign, savefig=True, inset=False):
     cb = fig.colorbar(cmap, spacing='proportional', ticks=range(len(rad_arr)+1), 
                       boundaries=np.arange(-0.5, len(rad_arr)+1.5))
 
-    labels = np.append(rad_arr, 'Background')
+    labels = np.append(rad_arr, 'Bkg')
     cb.ax.set_yticklabels(labels)
-    cb.set_label("Radius (mm)", ha = 'right', va='center', rotation=270, fontsize=20)
-    cb.ax.tick_params(labelsize=18)
+    cb.set_label("Radius (mm)", ha = 'right', va='center', rotation=270, fontsize=40, labelpad=20.) #20
+    cb.ax.tick_params(labelsize=36) #18
+    plt.locator_params(axis='x', nbins=6) # did this for my dissertation plots b/c needed larger 
+                                          # font size and xticks became crowded
 
-    plt.title(f'60 keV superpulses (PZ-corrected) \nnormal incidence', fontsize=20)
+    plt.title(f'60 keV superpulses (PZ-corrected) \nnormal incidence', fontsize=40) #20
 
-    plt.setp(ax.get_xticklabels(), fontsize=16)
-    plt.setp(ax.get_yticklabels(), fontsize=16)
-    plt.xlabel('clock cycles', fontsize=20)
-    plt.ylabel('normalized ADU', fontsize=20)
+    plt.setp(ax.get_xticklabels(), fontsize=32) #16
+    plt.setp(ax.get_yticklabels(), fontsize=32)
+    plt.xlabel('clock cycles', fontsize=40) #20
+    plt.ylabel('normalized ADU', fontsize=40)
     
     
     
@@ -1085,7 +1252,7 @@ def plot_superpulses(campaign, savefig=True, inset=False):
         plt.savefig(f'./plots/{campaign}/waveforms/superpulses_rise.pdf', dpi=200)
         
     plt.xlim(3800, 4385)
-    plt.ylim(0.9, 1.02)
+    plt.ylim(0.91, 1.02)
     if savefig:
         plt.savefig(f'./plots/{campaign}waveforms/superpulses_tail.png', dpi=200)
         plt.savefig(f'./plots/{campaign}waveforms/superpulses_tail.pdf', dpi=200)
@@ -1097,7 +1264,7 @@ def plot_superpulses(campaign, savefig=True, inset=False):
         plt.savefig(f'./plots/{campaign}waveforms/superpulses_bl.pdf', dpi=200)
         
     plt.xlim(3800, 8000)
-    plt.ylim(0.9, 01.02)
+    plt.ylim(0.91, 01.02)
     if savefig:
         plt.savefig(f'./plots/{campaign}waveforms/superpulses_fullTail.png', dpi=200)
         plt.savefig(f'./plots/{campaign}waveforms/superpulses_fullTail.pdf', dpi=200)
@@ -1147,6 +1314,58 @@ def plot_superpulses(campaign, savefig=True, inset=False):
             
         plt.clf()
         plt.close()
+        
+def plot_bkgSub_superpulses(campaign, savefig=True):
+
+    # f_superpulse = './data/normScan/superpulses_60keV_allRuns.hdf5'
+    # f_superpulse = './data/normScan/new_superpulses_60keV_allRuns.hdf5'
+    f_superpulse = f'./data/normScan/superpulses_2sig_60keV_allRuns.hdf5'
+    # f_superpulse = f'./data/normScan/superpulses_1sig_60keV_allRuns.hdf5'
+    data_superpulse = pd.read_hdf(f_superpulse, key = '/superpulses')
+    
+    campaign+='2sig/'
+    
+    
+    
+    peak_wf_raw = np.array(data_superpulse['bkg_and_60_raw'][0])
+    bkg_wf_raw = np.array(data_superpulse['bkg_raw'][0]) 
+    signal_wf_raw = np.array(data_superpulse['pure_60_raw'][0])
+    
+    peak_wf = cage_utils.notchFilter_SIS3302(peak_wf_raw, Q=20)
+    bkg_wf = cage_utils.notchFilter_SIS3302(bkg_wf_raw, Q=20)
+    signal_wf = cage_utils.notchFilter_SIS3302(signal_wf_raw, Q=20)
+
+    times = np.array(data_superpulse['samples'][0])
+    rad_arr = np.array(data_superpulse['radius'])
+    
+    fig, ax = plt.subplots(figsize=(14, 10))
+    ax = plt.axes()
+    
+    ax.plot(times, peak_wf, c='b', label = f'Peak')
+
+    ax.plot(times, bkg_wf, c='r', label = f'Background')
+    
+    ax.plot(times, signal_wf, c='g', label = f'Signal')
+
+    plt.title(f'60 keV superpulse sideband subtraction \nwith notch filtering', fontsize=30) #20
+
+    plt.setp(ax.get_xticklabels(), fontsize=30) #16
+    plt.setp(ax.get_yticklabels(), fontsize=30)
+    plt.xlabel('clock cycles', fontsize=30) #20
+    plt.ylabel('ADU', fontsize=30)
+    
+    plt.legend(fontsize=30)
+    
+    
+    if savefig:
+        plt.savefig(f'./plots/{campaign}waveforms/superpulses_bkgSub_demo.png', dpi=200)
+        plt.savefig(f'./plots/{campaign}waveforms/superpulses_bkgSub_demo.pdf', dpi=200)
+        
+    plt.xlim(3700, 3900)
+    
+    if savefig:
+        plt.savefig(f'./plots/{campaign}waveforms/superpulses_bkgSub_demo_riseTail.png', dpi=200)
+        plt.savefig(f'./plots/{campaign}waveforms/superpulses_bkgSub_demo_riseTail.pdf', dpi=200)
 
 if __name__=="__main__":
     main()

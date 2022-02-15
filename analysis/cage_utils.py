@@ -23,6 +23,11 @@ import pygama.analysis.peak_fitting as pgf
 
 
 def getDataFrame(run, user=True, hit=True, cal=True, lowE=False, dsp_list=[]):
+    """
+    use DataGroup to get the data of interest and return a pandas dataframe, with other information relevant to the 
+    data run
+    """
+    
     # get run files
     dg = DataGroup('$CAGE_SW/processing/cage.json', load=True)
     str_query = f'run=={run} and skip==False'
@@ -123,7 +128,7 @@ def apply_DC_Cuts(run, df, cut_keys=set()):
     if 'ftp_max_cut_raw' in cut_keys:
         df['ftp_max'] = df['trapEftp']/df['trapEmax']
     
-    with open('./cuts.json') as f:
+    with open(os.path.expandvars('$CAGE_SW/analysis/cuts.json')) as f:
         cuts = json.load(f)
     
     # always apply muon cut
@@ -173,6 +178,9 @@ def getStartStop(run):
     return(t_start, t_stop)
 
 def corrDCR(df, etype, e_bins=300, elo=0, ehi=6000, dcr_fit_lo=-30, dcr_fit_hi=30):
+    """
+    Linear fit to DCR to correct for slope. Works for early CAGE runs
+    """
 
     df_dcr_cut = df.query(f'dcr >{dcr_fit_lo} and dcr < {dcr_fit_hi} and {etype} > {elo} and {etype} < {ehi}').copy()
 
@@ -191,7 +199,9 @@ def corrDCR(df, etype, e_bins=300, elo=0, ehi=6000, dcr_fit_lo=-30, dcr_fit_hi=3
     return(const, offset, err)
 
 def mode_hist(df, param, a_bins=1000, alo=0.005, ahi=0.075, cut=False, cut_str=''):
-    # get the mode of a section of a histogram. Default params based on AoE values
+    """
+    get the mode of a section of a histogram. Default params based on AoE values for correcting AoE
+    """
     if cut==True:
         print(f'Using cut before finding mode: {cut_str}')
         df_plot = df.query(cut_str)
@@ -204,7 +214,8 @@ def mode_hist(df, param, a_bins=1000, alo=0.005, ahi=0.075, cut=False, cut_str='
     return(mode)
 
 def get_superpulse(df, dg, cut_str='', nwfs = 100, all = False, norm = True):
-    """Create a super-pulse from waveforms passing a cut. Waveforms are first baseline-subtracted. 
+    """
+    Create a super-pulse from waveforms passing a cut. Waveforms are first baseline-subtracted. 
     """
     if all==True:
         nwfs = len(df.query(cut_str))
@@ -370,8 +381,10 @@ def get_superpulse_window(df, dg, cut_str=[''], nwfs = 100, all = False, norm = 
         super_duper_pulse = super_duper_wf
     return(ts, waveforms, super_duper_pulse)
 
-def get_wfs(df, dg, cut_str='', nwfs = 10, all = False):
+def get_wfs(df, dg, cut_str='', nwfs = 10, all = False, norm=False, tp_align=0.5, n_pre = 3800, n_post = 4000):
     """Get waveforms passing a cut, baseline-subtracted but not normalized. These are individual waveforms, not superpulses!
+    
+    time-aligned
     """
     all_nwfs = len(df.query(cut_str).copy())
     print(f'{all_nwfs} passing cuts')
@@ -401,9 +414,25 @@ def get_wfs(df, dg, cut_str='', nwfs = 10, all = False):
     # baseline subtraction
     bl_means = wfs[:,:3500].mean(axis=1)
     wf_blsub = (wfs.transpose() - bl_means).transpose()
-    ts = np.arange(0, wf_blsub.shape[1]-1, 1)
     
-    return(ts, wf_blsub)
+    wf_maxes = np.amax(wf_blsub, axis=1)
+    timepoints = np.argmax(wf_blsub >= wf_maxes[:, None]*tp_align, axis=1)
+    # timepoints = dsp.time_point_thresh(wf_blsub, wf_maxes[:, None]*tp_align, np.argmax(wf_blsub, axis=1), 0) # do this instead
+                                                                                                            # when upgrade pygama
+    # print(timepoints)
+    wf_align = np.zeros([wf_blsub.shape[0], n_pre + n_post], dtype=wf_blsub.dtype)
+    for i, tp in enumerate(timepoints):
+        wf_align[i, :] = wf_blsub[i, tp-n_pre:tp+n_post]
+        
+    ts = np.arange(0, n_pre + n_post, 1)
+    
+    if norm == True:
+        wf_max = np.amax(wf_align)
+        wf_norm = np.divide(wf_align, wf_max)
+        return(ts, wf_norm)
+    
+    else:
+        return(ts, wf_align)
 
 def double_pole_zero(wf_in, tau1, tau2, frac):
     """
@@ -595,22 +624,6 @@ def gauss_2D(x, y, A=1., mu_x=0., mu_y=0., sigma_x=1., sigma_y=1., rot=0. ):
     
     return z
 
-def trap_norm(wf_in, rise, flat):
-    """
-    Symmetric trapezoidal filter normalized by integration time
-    """
-    wf_out = np.zeros(len(wf_in))
-    wf_out[0] = wf_in[0]/float(rise)
-    for i in range(1, rise):
-        wf_out[i] = wf_out[i-1] + wf_in[i]/float(rise)
-    for i in range(rise, rise+flat):
-        wf_out[i] = wf_out[i-1] + (wf_in[i] - wf_in[i-rise])/float(rise)
-    for i in range(rise+flat, 2*rise+flat):
-        wf_out[i] = wf_out[i-1] + (wf_in[i] - wf_in[i-rise] - wf_in[i-rise-flat])/float(rise)
-    for i in range(2*rise+flat, len(wf_in)):
-        wf_out[i] = wf_out[i-1] + (wf_in[i] - wf_in[i-rise] - wf_in[i-rise-flat] + wf_in[i-2*rise-flat])/float(rise)
-        
-    return wf_out
 
 def time_point_thresh_max(wf_in, threshold, tp_max, max):
     """
