@@ -14,6 +14,9 @@ from scipy.optimize import curve_fit
 import tinydb as db
 from tinydb.storages import MemoryStorage
 
+import matplotlib as mpl
+mpl.use('Agg')
+
 import matplotlib
 # if os.environ.get('HOSTNAME'): # cenpa-rocks
 #     matplotlib.use('Agg')
@@ -1141,6 +1144,7 @@ def fit_peaks(epeaks, cal_pars, raw_data, runtime_min, range=[0, 3000, 5], ff_na
         else:
             plt.show()
         plt.cla()
+        plt.close()
 
     # loop over peak energies
     fit_results = {}
@@ -1276,6 +1280,7 @@ def fit_peaks(epeaks, cal_pars, raw_data, runtime_min, range=[0, 3000, 5], ff_na
         # print(mu_raw, mu_unc)
 
         if show_plot:
+            fig, ax = plt.subplots()
             xfit = np.arange(xlo, xhi, xpb * 0.1)
             plt.axvline(bins[ibkg_lo], c='m', label='bkg region')
             plt.plot(xfit, fit_func(xfit, *p_init), '-', c='orange', label='init')
@@ -1284,6 +1289,7 @@ def fit_peaks(epeaks, cal_pars, raw_data, runtime_min, range=[0, 3000, 5], ff_na
             plt.plot(np.nan, np.nan, 'w', label=f'FWHM: {fwhm:.2f}')
             plt.xlabel('pass-1 energy (kev)', ha='right', x=1)
             plt.legend(fontsize=12)
+            plt.title(f'Fit results for {epk} keV peak')
             if batch:
                 plt.savefig(f'./plots/energy_cal/fit{ie}_peakfit.png')
             else:

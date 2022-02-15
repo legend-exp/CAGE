@@ -16,11 +16,17 @@ import scipy.signal as signal
 
 import pygama
 from pygama import DataGroup
+import pygama.dsp.processors as dsp
 import pygama.lh5 as lh5
 import pygama.analysis.histograms as pgh
 import pygama.analysis.peak_fitting as pgf
 
 def getDataFrame(run, user=True, hit=True, cal=True, lowE=False, dsp_list=[]):
+    """
+    use DataGroup to get the data of interest and return a pandas dataframe, with other information relevant to the
+    data run
+    """
+
     # get run files
     dg = DataGroup('$CAGE_SW/processing/cage.json', load=True)
     str_query = f'run=={run} and skip==False'
@@ -121,7 +127,7 @@ def apply_DC_Cuts(run, df, cut_keys=set()):
     if 'ftp_max_cut_raw' in cut_keys:
         df['ftp_max'] = df['trapEftp']/df['trapEmax']
 
-    with open('./cuts.json') as f:
+    with open(os.path.expandvars('$CAGE_SW/analysis/cuts.json')) as f:
         cuts = json.load(f)
 
     # always apply muon cut
@@ -170,9 +176,15 @@ def getStartStop(run):
     print(f'start: {t_start}\n stop: {t_stop}')
     return(t_start, t_stop)
 
-def corrDCR(df_cut, etype, e_bins=300, elo=0, ehi=6000, dcr_fit_lo=-30, dcr_fit_hi=30, quad=False, dcr_fit_qlo=5000, dcr_fit_qhi=5800):  
-    
-    median, xedges, binnumber = stats.binned_statistic(df_cut[etype], df_cut['dcr'], statistic = "median", bins = int((dcr_fit_hi-dcr_fit_lo)/5), range=[dcr_fit_lo, dcr_fit_hi])
+def corrDCR(df, etype, e_bins=300, elo=0, ehi=6000, dcr_fit_lo=-30, dcr_fit_hi=30):
+    """
+    Linear fit to DCR to correct for slope. Works for early CAGE runs
+    """
+
+    df_dcr_cut = df.query(f'dcr >{dcr_fit_lo} and dcr < {dcr_fit_hi} and {etype} > {elo} and {etype} < {ehi}').copy()
+
+
+    median, xedges, binnumber = stats.binned_statistic(df_dcr_cut[etype], df_dcr_cut['dcr'], statistic = "median", bins = e_bins)
 
     en_bin_centers = pgh.get_bin_centers(xedges)
 
@@ -195,11 +207,13 @@ def corrDCR(df_cut, etype, e_bins=300, elo=0, ehi=6000, dcr_fit_lo=-30, dcr_fit_
         offset = fit_raw[1]
 
         df_cut['dcr_corr'] = df_cut['dcr'] - (const*(df_cut[etype]) + offset)
-        
+
     return df_cut
 
 def mode_hist(df, param, a_bins=1000, alo=0.005, ahi=0.075, cut=False, cut_str=''):
-    # get the mode of a section of a histogram. Default params based on AoE values
+    """
+    get the mode of a section of a histogram. Default params based on AoE values for correcting AoE
+    """
     if cut==True:
         print(f'Using cut before finding mode: {cut_str}')
         df_plot = df.query(cut_str)
@@ -232,15 +246,104 @@ def get_superpulse(df, dg, cut_str='', nwfs = 100, all = False, norm = True):
     wfs_all = (data_raw['waveform']['values']).nda
     wfs = wfs_all[idx.values, :]
     # baseline subtraction
-    bl_means = wfs[:,:800].mean(axis=1)
+    bl_means = wfs[:,:3500].mean(axis=1)
     wf_blsub = (wfs.transpose() - bl_means).transpose()
-    ts = np.arange(0, wf_blsub.shape[1]-1, 1)
+    # ts = np.arange(0, wf_blsub.shape[1]-1, 1) # old way of doing it that Joule doesn't like-- makes the samles
+                                                # and waveforms different lengths
+    ts = np.arange(0, wf_blsub.shape[1], 1)
     super_wf = np.mean(wf_blsub, axis=0)
     wf_max = np.amax(super_wf)
     if norm == True:
         superpulse = np.divide(super_wf, wf_max)
     else:
         superpulse = super_wf
+    return(ts, superpulse)
+
+
+
+def get_superpulse_taligned(df, dg, cut_str='', nwfs = 100, all = False, norm = True,
+                            tp_align=0.5, n_pre = 3800, n_post = 4000):
+    """
+    Create a super-pulse from waveforms passing a cut. Waveforms are first baseline-subtracted, Then time-aligned
+    tp_align: the percentage of the max height to align WFs
+    n_pre/_post: the window around the aligned timepoint value. Should be as large as possible if you want to keep most of the waveform.
+
+    """
+    if all==True:
+        nwfs = len(df.query(cut_str))
+
+        print(f'using all {nwfs} Waveforms passing cut')
+    else:
+        print(f'using first {nwfs} waveforms passing cut' )
+
+    idx = df.query(cut_str).index[:nwfs]
+    raw_store = lh5.Store()
+    tb_name = 'ORSIS3302DecoderForEnergy/raw'
+    lh5_dir = dg.lh5_dir
+    raw_list = lh5_dir + dg.fileDB['raw_path'] + '/' + dg.fileDB['raw_file']
+    raw_list = raw_list.tolist() # right now lh5.store.read_object() only works for lists, so need to convert the pandas object to a list first
+    data_raw, nrows = raw_store.read_object(tb_name, raw_list)
+
+    wfs_all = (data_raw['waveform']['values']).nda
+    wfs = wfs_all[idx.values, :]
+    # baseline subtraction
+    bl_means = wfs[:,:3500].mean(axis=1)
+    wf_blsub = (wfs.transpose() - bl_means).transpose()
+    # ts = np.arange(0, wf_blsub.shape[1]-1, 1) # old way of doing it that Joule doesn't like-- makes the samles
+                                                # and waveforms different lengths
+    # ts = np.arange(0, wf_blsub.shape[1], 1)
+
+    # time alignment
+    wf_maxes = np.amax(wf_blsub, axis=1)
+    timepoints = np.argmax(wf_blsub >= wf_maxes[:, None]*tp_align, axis=1)
+    # timepoints = dsp.time_point_thresh(wf_blsub, wf_maxes[:, None]*tp_align, np.argmax(wf_blsub, axis=1), 0) # do this instead
+                                                                                                            # when upgrade pygama
+    # print(timepoints)
+    wf_align = np.zeros([wf_blsub.shape[0], n_pre + n_post], dtype=wf_blsub.dtype)
+    for i, tp in enumerate(timepoints):
+        wf_align[i, :] = wf_blsub[i, tp-n_pre:tp+n_post]
+
+    ts = np.arange(0, n_pre + n_post, 1)
+
+    super_wf = np.mean(wf_align, axis=0)
+
+    if norm == True:
+        wf_max = np.amax(super_wf)
+        superpulse = np.divide(super_wf, wf_max)
+        return(ts, superpulse)
+    else:
+        return(ts, super_wf)
+
+
+def get_superpulse_comp(df, dg, cut_str='', nwfs = 100, all = False, norm = True):
+    """Create a super-pulse from waveforms passing a cut. Waveforms are first baseline-subtracted.
+       Unlike `get_superpulse()`, this does not average waveforms
+    """
+    if all==True:
+        nwfs = len(df.query(cut_str))
+
+        print(f'using all {nwfs} Waveforms passing cut')
+    else:
+        print(f'using first {nwfs} waveforms passing cut' )
+
+    idx = df.query(cut_str).index[:nwfs]
+    raw_store = lh5.Store()
+    tb_name = 'ORSIS3302DecoderForEnergy/raw'
+    lh5_dir = dg.lh5_dir
+    raw_list = lh5_dir + dg.fileDB['raw_path'] + '/' + dg.fileDB['raw_file']
+    raw_list = raw_list.tolist() # right now lh5.store.read_object() only works for lists, so need to convert the pandas object to a list first
+    data_raw, nrows = raw_store.read_object(tb_name, raw_list)
+
+    wfs_all = (data_raw['waveform']['values']).nda
+    wfs = wfs_all[idx.values, :]
+    # baseline subtraction
+    bl_means = wfs[:,:3500].mean(axis=1)
+    wf_blsub = (wfs.transpose() - bl_means).transpose()
+    # ts = np.arange(0, wf_blsub.shape[1]-1, 1) # old way of doing it that Joule doesn't like-- makes the samles
+                                                # and waveforms different lengths
+    ts = np.arange(0, wf_blsub.shape[1], 1)
+    super_wf = np.sum(wf_blsub, axis=0)
+    superpulse = super_wf
     return(ts, superpulse)
 
 def get_superpulse_window(df, dg, cut_str=[''], nwfs = 100, all = False, norm = True):
@@ -269,7 +372,7 @@ def get_superpulse_window(df, dg, cut_str=[''], nwfs = 100, all = False, norm = 
         wfs_all = (data_raw['waveform']['values']).nda
         wfs = wfs_all[idx.values, :]
         # baseline subtraction
-        bl_means = wfs[:,:800].mean(axis=1)
+        bl_means = wfs[:,:3500].mean(axis=1)
         wf_blsub = (wfs.transpose() - bl_means).transpose()
         ts = np.arange(0, wf_blsub.shape[1]-1, 1)
         super_wf = np.mean(wf_blsub, axis=0)
@@ -289,8 +392,10 @@ def get_superpulse_window(df, dg, cut_str=[''], nwfs = 100, all = False, norm = 
         super_duper_pulse = super_duper_wf
     return(ts, waveforms, super_duper_pulse)
 
-def get_wfs(df, dg, cut_str='', nwfs = 10, all = False):
+def get_wfs(df, dg, cut_str='', nwfs = 10, all = False, norm=False, tp_align=0.5, n_pre = 3800, n_post = 4000):
     """Get waveforms passing a cut, baseline-subtracted but not normalized. These are individual waveforms, not superpulses!
+
+    time-aligned
     """
     all_nwfs = len(df.query(cut_str).copy())
     print(f'{all_nwfs} passing cuts')
@@ -318,11 +423,27 @@ def get_wfs(df, dg, cut_str='', nwfs = 10, all = False):
     wfs_all = (data_raw['waveform']['values']).nda
     wfs = wfs_all[idx.values, :]
     # baseline subtraction
-    bl_means = wfs[:,:800].mean(axis=1)
+    bl_means = wfs[:,:3500].mean(axis=1)
     wf_blsub = (wfs.transpose() - bl_means).transpose()
-    ts = np.arange(0, wf_blsub.shape[1]-1, 1)
 
-    return(ts, wf_blsub)
+    wf_maxes = np.amax(wf_blsub, axis=1)
+    timepoints = np.argmax(wf_blsub >= wf_maxes[:, None]*tp_align, axis=1)
+    # timepoints = dsp.time_point_thresh(wf_blsub, wf_maxes[:, None]*tp_align, np.argmax(wf_blsub, axis=1), 0) # do this instead
+                                                                                                            # when upgrade pygama
+    # print(timepoints)
+    wf_align = np.zeros([wf_blsub.shape[0], n_pre + n_post], dtype=wf_blsub.dtype)
+    for i, tp in enumerate(timepoints):
+        wf_align[i, :] = wf_blsub[i, tp-n_pre:tp+n_post]
+
+    ts = np.arange(0, n_pre + n_post, 1)
+
+    if norm == True:
+        wf_max = np.amax(wf_align)
+        wf_norm = np.divide(wf_align, wf_max)
+        return(ts, wf_norm)
+
+    else:
+        return(ts, wf_align)
 
 def double_pole_zero(wf_in, tau1, tau2, frac):
     """
@@ -494,7 +615,115 @@ def writeJson(file, run, param_key, param):
         f.truncate()
 
 def gauss_fit_func(x, A, mu, sigma, C):
-    return (A * (1/(sigma*np.sqrt(2*np.pi))) *(np.exp(-1.0 * ((x - mu)**2) / (2 * sigma**2))+C))
+    """
+    generic gaussian to use in basic fits
+    """
+    return (A * (1/(sigma*np.sqrt(2*np.pi))) *(np.exp(-1.0 * ((x - mu)**2) / (2 * sigma**2)))+C)
+
+def gauss_2D(x, y, A=1., mu_x=0., mu_y=0., sigma_x=1., sigma_y=1., rot=0. ):
+    """
+    generic gaussian to use in 2D gaussian fits
+    rot is the rotation angle of the gaussian
+    """
+    a = (np.cos(rot)**2/(2*sigma_x**2)) + (np.sin(rot)**2/(2*sigma_y**2))
+    b = (-1*np.sin(2*rot)/(4*sigma_x**2) )+ (np.sin(2*rot)/(4*sigma_y**2))
+    c = (np.sin(rot)**2/(2*sigma_x**2)) + (np.cos(rot)**2/(2*sigma_y**2))
+
+    z = A*np.exp(-(a*(x-mu_x)**2 +2*b*((x-mu_x)*(y-mu_y)) +c*(y-mu_y)**2))
+
+    return z
+
+
+def time_point_thresh_max(wf_in, threshold, tp_max, max):
+    """
+    adapted from pygama DSP to use on single WFs
+    Find the last timepoint before tp_max that wf_in crosses a threshold
+     wf_in: input waveform
+     threshold: threshold to search for
+     tp_out: final time that waveform is less than threshold
+    """
+    tp_out = 0
+    for i in range(tp_max, max, -1):
+        if(wf_in[i]>threshold and wf_in[i-1]<threshold):
+            tp_out = i
+
+    return tp_out
+
+def asymTrapFilter(wf_in, rise, flat, fall):
+    """
+    adapted from pygama DSP to use on single WFs
+    Computes an asymmetric trapezoidal filter
+    """
+    wf_out = np.zeros(len(wf_in))
+    wf_out[0] = wf_in[0]/float(rise)
+    for i in range(1, rise):
+        wf_out[i] = wf_out[i-1] + (wf_in[i])/float(rise)
+    for i in range(rise, rise+flat):
+        wf_out[i] = wf_out[i-1] + (wf_in[i] - wf_in[i-rise])/float(rise)
+    for i in range(rise+flat, rise+flat+fall):
+        wf_out[i] = wf_out[i-1] + (wf_in[i] - wf_in[i-rise])/float(rise) - wf_in[i-rise-flat]/float(fall)
+    for i in range(rise+flat+fall, len(wf_in)):
+        wf_out[i] = wf_out[i-1] + (wf_in[i] - wf_in[i-rise])/float(rise) - (wf_in[i-rise-flat] - wf_in[i-rise-flat-fall])/float(fall)
+
+    return(wf_out)
+
+
+def time_point_thresh(wf_in, threshold, tp_max):
+    """
+    adapted from pygama DSP to use on single WFs
+    Find the last timepoint before tp_max that wf_in crosses a threshold
+     wf_in: input waveform
+     threshold: threshold to search for
+     tp_out: final time that waveform is less than threshold
+    """
+    tp_out = 0
+    for i in range(tp_max, 0, -1):
+        if(wf_in[i]>threshold and wf_in[i-1]<threshold):
+            tp_out = i
+    return tp_out
+
+def time_point_frac(wf_in, frac, tp_max):
+    """
+    adapted from pygama DSP to use on single WFs
+    Find the time where the waveform crosses a value that is a fraction of the
+    max. Parameters are:
+     wf_in: input waveform. Should have baseline of 0!
+     frac: fraction of maximum to search for. Should be between 0 and 1.
+     tp_max: timepoint of wf maximum. Can be found with numpy.argmax
+     tp_out: time that waveform crosses frac * wf_in[tp_max] for the last time,
+     rounded to an integer index
+    """
+    # tp_out = [0]
+    threshold = frac*wf_in[tp_max]
+    # tp_out[0] = tp_max-1
+    tp_out = tp_max-1
+    # Scan for the crossing
+    while(wf_in[tp_out] > threshold):
+        tp_out -= 1
+    # if the previous point is closer to the threshold than the one we landed on
+    # use that. This is equivalent to interpolating and then rounding
+    if(threshold - wf_in[tp_out] > wf_in[tp_out+1] - threshold):
+        tp_out += 1
+    return tp_out
+
+def trap_norm(wf_in, rise, flat):
+    """
+    adapted from pygama DSP to use on single WFs
+    Symmetric trapezoidal filter normalized by integration time
+    """
+    wf_out = np.zeros(len(wf_in))
+    wf_out[0] = wf_in[0]/float(rise)
+    for i in range(1, rise):
+        wf_out[i] = wf_out[i-1] + wf_in[i]/float(rise)
+    for i in range(rise, rise+flat):
+        wf_out[i] = wf_out[i-1] + (wf_in[i] - wf_in[i-rise])/float(rise)
+    for i in range(rise+flat, 2*rise+flat):
+        wf_out[i] = wf_out[i-1] + (wf_in[i] - wf_in[i-rise] - wf_in[i-rise-flat])/float(rise)
+    for i in range(2*rise+flat, len(wf_in)):
+        wf_out[i] = wf_out[i-1] + (wf_in[i] - wf_in[i-rise] - wf_in[i-rise-flat] + wf_in[i-2*rise-flat])/float(rise)
+
+    return wf_out
+
 
 def testFunc(list):
     if 'test' in list:

@@ -16,7 +16,7 @@ import pickle
 
 mpl.use('Agg')
 
-import cage_utils
+# import cage_utils
 
 # silence annoying warning about plotting pd.datetime objects with mpl
 from pandas.plotting import register_matplotlib_converters
@@ -58,6 +58,8 @@ def main():
     # get_cooldown_data()
     # plot_cooldown_data()
 
+    print('doing something')
+
     run = 66
     endpoints = ['cage_pressure', 'cage_coldPlate_temp', 'cage_topHat_temp']
     # t_earlier, t_later = cage_utils.getStartStop(run)
@@ -65,6 +67,8 @@ def main():
     df_file = f'./data/run{run}_SCDB.h5'
 
     # pandas_db_query(endpoints, t_earlier, t_later, df_file)
+
+
 
     plot_run_stability(run, df_file)
 
@@ -176,6 +180,8 @@ def plot_run_stability(run, df_file):
     """
     """
 
+    print('soing something')
+
 
     with pd.HDFStore(df_file, 'r') as f:
         print("Keys:", f.keys())
@@ -208,7 +214,7 @@ def plot_run_stability(run, df_file):
         times_new.append(new_time)
 
     # Make figure with 5 panels
-    fig = plt.figure(figsize=(6, 8))
+    fig = plt.figure(figsize=(8, 8))
     fig.suptitle(f'System Stability for run {run}')
     gs = gridspec.GridSpec(5, 1) #, height_ratios=[2, 1]
 
@@ -218,7 +224,7 @@ def plot_run_stability(run, df_file):
     ax0 = plt.subplot(gs[0])
     line0, = ax0.plot(pressure["timestamp"],
                  pressure["cage_pressure"], '-b')
-    ax0.set_ylabel('Pressure \n(hPa)', fontsize=8)
+    ax0.set_ylabel('Pressure \n(hPa)', fontsize=10)
     ax0.set_ylim(4.9e-8, 5.4e-8)
     ax0.xaxis.set_visible(False)
 
@@ -231,7 +237,7 @@ def plot_run_stability(run, df_file):
     # remove last tick label for the subplot
     yticks = ax1.yaxis.get_major_ticks()
     # yticks[-1].label1.set_visible(False)
-    ax1.set_ylabel('Cold Plate \nTemperature \n(K)', fontsize=8)
+    ax1.set_ylabel('Cold Plate \nTemperature \n(K)', fontsize=10)
     ax1.set_ylim(89.8, 90.4)
     ax1.xaxis.set_visible(False)
 
@@ -245,7 +251,7 @@ def plot_run_stability(run, df_file):
     # remove last tick label for the subplot
     yticks2 = ax2.yaxis.get_major_ticks()
     # yticks2[-1].label1.set_visible(False)
-    ax2.set_ylabel('Top-Hat \nTemperature \n(K)', fontsize=8)
+    ax2.set_ylabel('IR shield \nTemperature \n(K)', fontsize=10)
     ax2.set_ylim(96.9, 97.7)
     ax2.xaxis.set_visible(False)
 
@@ -258,7 +264,7 @@ def plot_run_stability(run, df_file):
     yticks3 = ax3.yaxis.get_major_ticks()
     # yticks3[0].label1.set_visible(False)
     # yticks3[-1].label1.set_visible(False)
-    ax3.set_ylabel('Baseline Value \n(ADC)', fontsize=8)
+    ax3.set_ylabel('Baseline Value \n(ADC)', fontsize=10)
     ax3.set_ylim(-0.685, -0.665)
     ax3.xaxis.set_visible(False)
 
@@ -271,7 +277,7 @@ def plot_run_stability(run, df_file):
     yticks4 = ax4.yaxis.get_major_ticks()
     print(yticks4[-1])
     # yticks4[-1].set_visible(False)
-    ax4.set_ylabel('1460 keV position \n(uncal; norm)', fontsize=8)
+    ax4.set_ylabel('1460 keV position \n(uncal; norm)', fontsize=10)
     ax4.set_ylim(0.997, 1.0005)
     ax4.set_xlabel('Timestamp (UTC) \n[mm-dd hr]')
 
@@ -280,7 +286,7 @@ def plot_run_stability(run, df_file):
 
     plt.subplots_adjust(hspace=.025)
     plt.savefig('./plots/scm_test.png', dpi=200)
-    # plt.show() #don't show plot otherwise you get a segfault lol
+    plt.savefig('./plots/scm_test.pdf', dpi=200)
 
 def get_temp():
     """

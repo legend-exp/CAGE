@@ -28,6 +28,7 @@ import cage_utils
 mpl.use('Agg')
 
 def main():
+    # runs = [64]
     runs = [60, 64, 66, 70, 72] # alpha runs for dsp_id = 2
     # runs = [62, 68, 74] #bkg runs for dsp_id = 2
     # campaign = 'angleScan/'
@@ -39,8 +40,10 @@ def main():
     etype = 'trapEftp' #use this even if you want calibrated-- `_cal` will get added to the end when `cal==True`
 
     # can specify which plots you actually want to make by adding them to `plot_list[]`
+    plot_list = ['ToE_60']
+    # plot_list = ['energy', 'energy_60', 'AoE', 'dcr', 'ToE', 'ToE_60', 'AoE_v_DCR', 'tp050_v_DCR', 'tp0220_v_DCR', 'ToE_v_DCR']
     # plot_list = ['energy', 'energy_60', 'AoE', 'dcr', 'ToE', 'AoE_v_DCR', 'tp050_v_DCR', 'tp0210_v_DCR', 'ToE_v_DCR']
-    plot_list = ['ToE', 'ToE_60']
+    # plot_list = ['energy_60', 'ToE_60']
 
 
 
@@ -48,7 +51,7 @@ def main():
 
     # plot_energy(runs, etype=etype, corr_DCR=True, corr_AoE=True, user=True, hit=True, cal=True)
     
-    normalized_dcr_AvE(runs, plot_list, corr_DCR=True, corr_AoE=True, corr_ToE=True, norm=True, user=user, hit=hit, cal=cal, etype=etype, cut=False, lowE=True, campaign=campaign)
+    normalized_dcr_AvE(runs, plot_list, corr_DCR=True, corr_AoE=True, corr_ToE=True, norm=True, user=user, hit=hit, cal=cal, etype=etype, cut=True, lowE=True, campaign=campaign)
 
 def plot_dcr_slope(runs, corr_DCR=True, user=False, hit=True, cal=True, etype='trapEftp', cut=True, campaign=''):
     
@@ -71,6 +74,8 @@ def plot_dcr_slope(runs, corr_DCR=True, user=False, hit=True, cal=True, etype='t
         print(run)
 
         df, runtype, rt_min, radius, angle_det, rotary = cage_utils.getDataFrame(run, user=user, hit=hit, cal=cal)
+        
+
 
 
         # use baseline cut
@@ -149,7 +154,10 @@ def normalized_dcr_AvE(runs, plot_list=[], corr_DCR=True, corr_AoE=True, corr_To
     for run in runs:
 
 
-        df_raw, runtype, rt_min, radius, angle_det, rotary = cage_utils.getDataFrame(run, user=user, hit=hit, cal=cal, lowE=lowE)
+        df, dg, runtype, rt_min, radius, angle_det, rotary = cage_utils.getDataFrame(run, user=user, hit=hit,
+                                                                                     cal=cal, lowE=False)
+        radius_str = str(radius)
+        radius_fn = radius_str.replace('.', '_')
 
 
         # use baseline cut
@@ -167,7 +175,8 @@ def normalized_dcr_AvE(runs, plot_list=[], corr_DCR=True, corr_AoE=True, corr_To
         
         # corr_DCR corrects the slope of DCR and makes the centroid at 0
         if corr_DCR==True and run>57:
-            const, offset, err = cage_utils.corrDCR(df, etype, e_bins=300, elo=0, ehi=6000, dcr_fit_lo=-30, dcr_fit_hi=40)
+            const, offset, err = cage_utils.corrDCR(df, etype, e_bins=300, elo=0, ehi=6000, dcr_fit_lo=-30,
+                                                    dcr_fit_hi=40)
             df['dcr_plot'] = df['dcr']-offset + ((-1*const))*df[etype]
         elif corr_DCR==True and run<57:
             const = const = 0.0011
@@ -177,7 +186,8 @@ def normalized_dcr_AvE(runs, plot_list=[], corr_DCR=True, corr_AoE=True, corr_To
 
         # corr_AoE shifts the A/E distribution so that the mod is at 0 for easier comparison
         if corr_AoE==True:
-            AoE_mode = cage_utils.mode_hist(df, param='AoE', a_bins=1000, alo=0.005, ahi=0.075, cut=False, cut_str='')
+            AoE_mode = cage_utils.mode_hist(df, param='AoE', a_bins=1000, alo=0.005, ahi=0.075, cut=False,
+                                            cut_str='')
             df['AoE_plot'] = df['AoE'] - AoE_mode
         else:
             df['AoE_plot'] = df['AoE']
@@ -193,6 +203,7 @@ def normalized_dcr_AvE(runs, plot_list=[], corr_DCR=True, corr_AoE=True, corr_To
         #create timepoints 0-50 and 02-10, which are helpful for discriminating alphas
         df['tp0_50'] = df['tp_50']- df['tp_0']
         df['tp0210'] = df['tp_10'] - df['tp_02']
+        df['tp0220'] = df['tp_20'] - df['tp_02']
 
         # create cut if relevant
         if cut == True:
@@ -213,7 +224,8 @@ def normalized_dcr_AvE(runs, plot_list=[], corr_DCR=True, corr_AoE=True, corr_To
             elo, ehi, epb = 0, 10000, 10 #entire enerty range trapEftp
             e_unit = ' (uncal)'
         elif cal==True:
-            elo, ehi, epb = 0, 6000, 1.
+            elo, ehi, epb = 0, 6000, 10.
+            elo_60, ehi_60, epb_60 = 40, 80, 1.
             # etype=etype_cal
             e_unit = ' (keV)'
 
@@ -226,7 +238,7 @@ def normalized_dcr_AvE(runs, plot_list=[], corr_DCR=True, corr_AoE=True, corr_To
             # Make (calibrated) energy spectrum_________
 
             fig, ax = plt.subplots()
-            fig.suptitle(f'Energy', horizontalalignment='center', fontsize=16)
+            fig.suptitle(f'Energy', horizontalalignment='center', fontsize=16, y=0.95)
 
             nbx = int((ehi-elo)/epb)
 
@@ -237,45 +249,86 @@ def normalized_dcr_AvE(runs, plot_list=[], corr_DCR=True, corr_AoE=True, corr_To
 
             ax.set_xlabel(f'Energy{e_unit}', fontsize=16)
             if norm==True:
-                ax.set_ylabel('counts/min', fontsize=16)
+                ax.set_ylabel('counts / (min $\cdot$ 10 keV)', fontsize=16)
             else:
                 ax.set_ylabel('counts', fontsize=16)
-            plt.ylim(0.001,80)
+            plt.ylim(0.01,200)
             plt.xlim(10., ehi)
             plt.setp(ax.get_xticklabels(), fontsize=14)
             plt.setp(ax.get_yticklabels(), fontsize=14)
+            
+            ax.text(0.95, 0.81, f'r = {radius} mm', verticalalignment='bottom',
+                        horizontalalignment='right', transform=ax.transAxes, color='green', fontsize=14,
+                        bbox={'facecolor': 'white', 'alpha': 0.5, 'pad': 10})
 
-            ax.text(0.95, 0.83, f'r = {radius} mm \ntheta = {angle_det} deg', verticalalignment='bottom',
+            # ax.text(0.95, 0.81, f'r = {radius} mm \ntheta = {angle_det} deg', verticalalignment='bottom',
+                        # horizontalalignment='right', transform=ax.transAxes, color='green', fontsize=14,
+                        # bbox={'facecolor': 'white', 'alpha': 0.5, 'pad': 10})
+
+            # plt.legend()
+            plt.title(f'{runtype} run {run}, {rt_min:.2f} mins', fontsize=12)
+            plt.tight_layout()
+            # plt.savefig(f'./plots/normScan/cal_normScan/{runtype}_energy_run{run}.png', dpi=200)
+            if runtype=='alp' and norm==True:
+                plt.savefig(f'./plots/{campaign}normalized_{runtype}_energy_{radius_fn}mm_{angle_det}deg_run{run}.png', dpi=200)
+                plt.savefig(f'./plots/{campaign}normalized_{runtype}_energy_{radius_fn}mm_{angle_det}deg_run{run}.pdf', dpi=200)
+            elif runtype=='bkg' and norm==True:
+                plt.savefig(f'./plots/{campaign}normalized_{runtype}_energy_run{run}.png', dpi=200)
+                plt.savefig(f'./plots/{campaign}normalized_{runtype}_energy_run{run}.pdf', dpi=200)
+            elif runtype=='alp' and norm==False:
+                plt.savefig(f'./plots/{campaign}{runtype}_energy_{radius_fn}mm_{angle_det}deg_run{run}.png', dpi=200)
+                plt.savefig(f'./plots/{campaign}{runtype}_energy_{radius_fn}mm_{angle_det}deg_run{run}.pdf', dpi=200)
+            elif runtype=='bkg' and norm==False:
+                plt.savefig(f'./plots/{campaign}{runtype}_energy_run{run}.png', dpi=200)
+                plt.savefig(f'./plots/{campaign}{runtype}_energy_run{run}.pdf', dpi=200)
+                
+            plt.clf()
+            plt.close()
+
+        if 'energy_60' in plot_list:
+
+            fig, ax = plt.subplots()
+            fig.suptitle(f'Energy', horizontalalignment='center', fontsize=16, y=0.95)
+            
+            nbx_60 = int((ehi_60-elo_60)/epb_60)
+                
+
+            energy_hist_norm_60, bins_60 = np.histogram(df_cut[etype], bins=nbx_60,
+                                            range=[elo_60, ehi_60], weights=wts)
+
+            plt.plot(bins_60[1:], energy_hist_norm_60, ds='steps', c='b', lw=1) #, label=f'{etype}'
+
+            ax.set_xlabel(f'Energy{e_unit}', fontsize=16)
+            if norm==True:
+                ax.set_ylabel('counts / (min $\cdot$ keV)', fontsize=16)
+            else:
+                ax.set_ylabel('counts', fontsize=16)
+            plt.setp(ax.get_xticklabels(), fontsize=14)
+            plt.setp(ax.get_yticklabels(), fontsize=14)
+            
+            plt.ylim(3, 10)
+
+            ax.text(0.95, 0.81, f'r = {radius} mm', verticalalignment='bottom',
                         horizontalalignment='right', transform=ax.transAxes, color='green', fontsize=14,
                         bbox={'facecolor': 'white', 'alpha': 0.5, 'pad': 10})
 
             # plt.legend()
-            plt.title(f'\n{runtype} run {run}, {rt_min:.2f} mins', fontsize=12)
+            plt.title(f'{runtype} run {run}, {rt_min:.2f} mins', fontsize=12)
             plt.tight_layout()
-            # plt.savefig(f'./plots/normScan/cal_normScan/{runtype}_energy_run{run}.png', dpi=200)
+
             if runtype=='alp' and norm==True:
-                plt.savefig(f'./plots/{campaign}normalized_{runtype}_energy_{radius}mm_{angle_det}deg_run{run}.png', dpi=200)
+                    plt.savefig(f'./plots/{campaign}normalized_{runtype}_energy_60keV_{radius_fn}mm_{angle_det}deg_run{run}.png', dpi=200)
+                    plt.savefig(f'./plots/{campaign}normalized_{runtype}_energy_60keV_{radius_fn}mm_{angle_det}deg_run{run}.pdf', dpi=200)
             elif runtype=='bkg' and norm==True:
-                plt.savefig(f'./plots/{campaign}normalized_{runtype}_energy_run{run}.png', dpi=200)
-            elif runtype=='alp' and norm==False:
-                plt.savefig(f'./plots/{campaign}{runtype}_energy_{radius}mm_{angle_det}deg_run{run}.png', dpi=200)
-            elif runtype=='bkg' and norm==False:
-                plt.savefig(f'./plots/{campaign}{runtype}_energy_run{run}.png', dpi=200)
-
-            if 'energy_60' in plot_list:
-                #now zoom into 60 keV
-                plt.xlim(40, 80)
-                plt.ylim(9, 20)
-
-                if runtype=='alp' and norm==True:
-                    plt.savefig(f'./plots/{campaign}normalized_{runtype}_energy_60keV_{radius}mm_{angle_det}deg_run{run}.png', dpi=200)
-                elif runtype=='bkg' and norm==True:
-                    plt.savefig(f'./plots/{campaign}normalized_{runtype}_energy_60keV_run{run}.png', dpi=200)
+                plt.savefig(f'./plots/{campaign}normalized_{runtype}_energy_60keV_run{run}.png', dpi=200)
+                plt.savefig(f'./plots/{campaign}normalized_{runtype}_energy_60keV_run{run}.pdf', dpi=200)
                     
-                elif runtype=='alp' and norm==False:
-                    plt.savefig(f'./plots/{campaign}{runtype}_energy_60keV_{radius}mm_{angle_det}deg_run{run}.png', dpi=200)
-                elif runtype=='bkg' and norm==False:
-                    plt.savefig(f'./plots/{campaign}{runtype}_energy_60keV_run{run}.png', dpi=200)
+            elif runtype=='alp' and norm==False:
+                plt.savefig(f'./plots/{campaign}{runtype}_energy_60keV_{radius_fn}mm_{angle_det}deg_run{run}.png', dpi=200)
+                plt.savefig(f'./plots/{campaign}{runtype}_energy_60keV_{radius_fn}mm_{angle_det}deg_run{run}.pdf', dpi=200)
+            elif runtype=='bkg' and norm==False:
+                plt.savefig(f'./plots/{campaign}{runtype}_energy_60keV_run{run}.png', dpi=200)
+                plt.savefig(f'./plots/{campaign}{runtype}_energy_60keV_run{run}.pdf', dpi=200)
 
 
             plt.clf()
@@ -298,14 +351,14 @@ def normalized_dcr_AvE(runs, plot_list=[], corr_DCR=True, corr_AoE=True, corr_To
             nbx = int((ehi-elo)/epb)
             nby = int((ahi-alo)/apb)
 
-            fig.suptitle(f'A/E vs Energy', horizontalalignment='center', fontsize=16)
+            fig.suptitle(f'A/E vs Energy', ha='center', va='top', fontsize=16, y=0.95)
 
             aoe_hist_norm, xedges, yedges = np.histogram2d(df_cut[etype], df_cut['AoE_plot'], bins=[nbx, nby], range=([elo, ehi], [alo, ahi]), weights=wts)
             X, Y = np.mgrid[elo:ehi:nbx*1j, alo:ahi:nby*1j]
 
 #             aoe_hist_norm = np.divide(aoe_hist, (rt_min))
 
-            pcm = plt.pcolormesh(X, Y, aoe_hist_norm, norm=LogNorm(0.001, 10)) #0.002, 0.2
+            pcm = plt.pcolormesh(X, Y, aoe_hist_norm, shading='nearest', norm=LogNorm(0.001, 10)) #0.002, 0.2
 
             cb = plt.colorbar()
             if norm==True:
@@ -319,22 +372,27 @@ def normalized_dcr_AvE(runs, plot_list=[], corr_DCR=True, corr_AoE=True, corr_To
             plt.setp(ax.get_yticklabels(), fontsize=14)
 
 
-            ax.text(0.95, 0.83, f'r = {radius} mm \ntheta = {angle_det} deg', verticalalignment='bottom',
+            ax.text(0.95, 0.81, f'r = {radius} mm', verticalalignment='bottom',
                         horizontalalignment='right', transform=ax.transAxes, color='green', fontsize=14, bbox={'facecolor': 'white', 'alpha': 0.5, 'pad': 10})
 
             # plt.legend()
-            plt.title(f'\n{runtype} run {run}, {rt_min:.2f} mins', fontsize=12)
+            plt.title(f'{runtype} run {run}, {rt_min:.2f} mins', fontsize=12)
             plt.tight_layout()
             # plt.savefig(f'./plots/normScan/cal_normScan/{runtype}_AoE_run{run}.png', dpi=200)
             if runtype=='alp' and norm==True:
-                plt.savefig(f'./plots/{campaign}normalized_{runtype}_AoE_{radius}mm_{angle_det}deg_run{run}.png', dpi=200)
+                plt.savefig(f'./plots/{campaign}normalized_{runtype}_AoE_{radius_fn}mm_{angle_det}deg_run{run}.png', dpi=200)
+                plt.savefig(f'./plots/{campaign}normalized_{runtype}_AoE_{radius_fn}mm_{angle_det}deg_run{run}.pdf', dpi=200)
             elif runtype=='bkg' and norm==True:
                 plt.savefig(f'./plots/{campaign}normalized_{runtype}_AoE_run{run}.png', dpi=200)
+                plt.savefig(f'./plots/{campaign}normalized_{runtype}_AoE_run{run}.pdf', dpi=200)
             elif runtype=='alp' and norm==False:
-                plt.savefig(f'./plots/{campaign}{runtype}_AoE_{radius}mm_{angle_det}deg_run{run}.png', dpi=200)
+                plt.savefig(f'./plots/{campaign}{runtype}_AoE_{radius_fn}mm_{angle_det}deg_run{run}.png', dpi=200)
+                plt.savefig(f'./plots/{campaign}{runtype}_AoE_{radius_fn}mm_{angle_det}deg_run{run}.pdf', dpi=200)
             elif runtype=='bkg' and norm==False:
                 plt.savefig(f'./plots/{campaign}{runtype}_AoE_run{run}.png', dpi=200)
+                plt.savefig(f'./plots/{campaign}{runtype}_AoE_run{run}.pdf', dpi=200)
                 # plt.show()
+
 
             plt.clf()
             plt.close()
@@ -346,19 +404,19 @@ def normalized_dcr_AvE(runs, plot_list=[], corr_DCR=True, corr_AoE=True, corr_To
             ToElo, ToEhi, ToEpb = 0.0, 0.5, 0.001
 
             if corr_ToE==True:
-                ToElo, ToEhi, ToEpb= -0.2, 0.2, 0.005
+                ToElo, ToEhi, ToEpb= -0.3, 0.3, 0.005
 
             nbx = int((ehi-elo)/epb)
             nby = int((ToEhi-ToElo)/ToEpb)
 
-            fig.suptitle(f'T/E vs Energy', horizontalalignment='center', fontsize=16)
+            fig.suptitle(f'T/E vs Energy', horizontalalignment='center', fontsize=16, y=0.95)
 
             ToE_hist_norm, xedges, yedges = np.histogram2d(df_cut[etype], df_cut['ToE_plot'], bins=[nbx, nby], range=([elo, ehi], [ToElo, ToEhi]), weights=wts)
             X, Y = np.mgrid[elo:ehi:nbx*1j, ToElo:ToEhi:nby*1j]
 
 #             aoe_hist_norm = np.divide(aoe_hist, (rt_min))
 
-            pcm = plt.pcolormesh(X, Y, ToE_hist_norm, norm=LogNorm(0.001, 10)) #0.002, 0.2
+            pcm = plt.pcolormesh(X, Y, ToE_hist_norm, shading='nearest', norm=LogNorm(0.001, 10)) #0.002, 0.2
 
             cb = plt.colorbar()
             if norm==True:
@@ -372,38 +430,82 @@ def normalized_dcr_AvE(runs, plot_list=[], corr_DCR=True, corr_AoE=True, corr_To
             plt.setp(ax.get_yticklabels(), fontsize=14)
 
 
-            ax.text(0.95, 0.83, f'r = {radius} mm \ntheta = {angle_det} deg', verticalalignment='bottom',
+            ax.text(0.95, 0.81, f'r = {radius} mm', verticalalignment='bottom',
                         horizontalalignment='right', transform=ax.transAxes, color='green', fontsize=14, bbox={'facecolor': 'white', 'alpha': 0.5, 'pad': 10})
 
             # plt.legend()
-            plt.title(f'\n{runtype} run {run}, {rt_min:.2f} mins', fontsize=12)
+            plt.title(f'{runtype} run {run}, {rt_min:.2f} mins', fontsize=12)
             plt.tight_layout()
             # plt.savefig(f'./plots/normScan/cal_normScan/{runtype}_AoE_run{run}.png', dpi=200)
             if runtype=='alp' and norm==True:
-                plt.savefig(f'./plots/{campaign}normalized_{runtype}_ToE_{radius}mm_{angle_det}deg_run{run}.png', dpi=200)
+                plt.savefig(f'./plots/{campaign}normalized_{runtype}_ToE_{radius_fn}mm_{angle_det}deg_run{run}.png', dpi=200)
+                plt.savefig(f'./plots/{campaign}normalized_{runtype}_ToE_{radius_fn}mm_{angle_det}deg_run{run}.pdf', dpi=200)
             elif runtype=='bkg' and norm==True:
                 plt.savefig(f'./plots/{campaign}normalized_{runtype}_ToE_run{run}.png', dpi=200)
+                plt.savefig(f'./plots/{campaign}normalized_{runtype}_ToE_run{run}.pdf', dpi=200)
             elif runtype=='alp' and norm==False:
-                plt.savefig(f'./plots/{campaign}{runtype}_ToE_{radius}mm_{angle_det}deg_run{run}.png', dpi=200)
+                plt.savefig(f'./plots/{campaign}{runtype}_ToE_{radius_fn}mm_{angle_det}deg_run{run}.png', dpi=200)
+                plt.savefig(f'./plots/{campaign}{runtype}_ToE_{radius_fn}mm_{angle_det}deg_run{run}.pdf', dpi=200)
             elif runtype=='bkg' and norm==False:
                 plt.savefig(f'./plots/{campaign}{runtype}_ToE_run{run}.png', dpi=200)
+                plt.savefig(f'./plots/{campaign}{runtype}_ToE_run{run}.pdf', dpi=200)
                 # plt.show()
+            plt.clf()
+            plt.close()
+                
+        if 'ToE_60' in plot_list:
 
-            if 'ToE_60' in plot_list:
-                #now zoom into 60 keV
-                plt.xlim(40, 80)
+            # normalized by runtime
+            fig, ax = plt.subplots()
+            ToElo, ToEhi, ToEpb = 0.0, 0.5, 0.001
 
-                if runtype=='alp' and norm==True:
-                    plt.savefig(f'./plots/{campaign}normalized_{runtype}_ToE_60keV_{radius}mm_{angle_det}deg_run{run}.png', dpi=200)
-                elif runtype=='bkg' and norm==True:
-                    plt.savefig(f'./plots/{campaign}normalized_{runtype}_ToE_60keV_run{run}.png', dpi=200)
+            if corr_ToE==True:
+                ToElo, ToEhi, ToEpb= -0.1, 0.1, 0.005
+
+            nbx_60 = int((ehi_60-elo_60)/epb_60)
+            nby = int((ToEhi-ToElo)/ToEpb)
+
+            fig.suptitle(f'T/E vs Energy', horizontalalignment='center', fontsize=16, y=0.95)
+
+            ToE_hist_norm, xedges, yedges = np.histogram2d(df_cut[etype], df_cut['ToE_plot'], bins=[nbx_60, nby], range=([elo_60, ehi_60], [ToElo, ToEhi]), weights=wts)
+            X, Y = np.mgrid[elo_60:ehi_60:nbx_60*1j, ToElo:ToEhi:nby*1j]
+
+#             aoe_hist_norm = np.divide(aoe_hist, (rt_min))
+
+            pcm = plt.pcolormesh(X, Y, ToE_hist_norm, shading='nearest', vmin=0.0, vmax=1.1) #, norm=LogNorm(0.001, 1)#0.002, 0.2
+
+            cb = plt.colorbar()
+            if norm==True:
+                cb.set_label("counts/min", ha = 'right', va='center', rotation=270, fontsize=14)
+            else:
+                cb.set_label("counts", ha = 'right', va='center', rotation=270, fontsize=14)
+            cb.ax.tick_params(labelsize=12)
+            ax.set_xlabel(f'Energy {e_unit}', fontsize=16)
+            ax.set_ylabel('T/E (arb)', fontsize=16)
+            plt.setp(ax.get_xticklabels(), fontsize=14)
+            plt.setp(ax.get_yticklabels(), fontsize=14)
+
+
+            ax.text(0.95, 0.81, f'r = {radius} mm', verticalalignment='bottom',
+                        horizontalalignment='right', transform=ax.transAxes, color='green', fontsize=14, bbox={'facecolor': 'white', 'alpha': 1., 'pad': 10})
+
+            # plt.legend()
+            plt.title(f'{runtype} run {run}, {rt_min:.2f} mins', fontsize=12)
+            plt.tight_layout()
+
+            if runtype=='alp' and norm==True:
+                plt.savefig(f'./plots/{campaign}normalized_{runtype}_ToE_60keV_{radius_fn}mm_{angle_det}deg_run{run}.png', dpi=200)
+                plt.savefig(f'./plots/{campaign}normalized_{runtype}_ToE_60keV_{radius_fn}mm_{angle_det}deg_run{run}.pdf', dpi=200)
+            elif runtype=='bkg' and norm==True:
+                plt.savefig(f'./plots/{campaign}normalized_{runtype}_ToE_60keV_run{run}.png', dpi=200)
+                plt.savefig(f'./plots/{campaign}normalized_{runtype}_ToE_60keV_run{run}.pdf', dpi=200)
                     
-                elif runtype=='alp' and norm==False:
-                    plt.savefig(f'./plots/{campaign}{runtype}_ToE_60keV_{radius}mm_{angle_det}deg_run{run}.png', dpi=200)
-                elif runtype=='bkg' and norm==False:
-                    plt.savefig(f'./plots/{campaign}{runtype}_ToE_60keV_run{run}.png', dpi=200)
-
-
+            elif runtype=='alp' and norm==False:
+                plt.savefig(f'./plots/{campaign}{runtype}_ToE_60keV_{radius_fn}mm_{angle_det}deg_run{run}.png', dpi=200)
+                plt.savefig(f'./plots/{campaign}{runtype}_ToE_60keV_{radius_fn}mm_{angle_det}deg_run{run}.pdf', dpi=200)
+            elif runtype=='bkg' and norm==False:
+                plt.savefig(f'./plots/{campaign}{runtype}_ToE_60keV_run{run}.png', dpi=200)
+                plt.savefig(f'./plots/{campaign}{runtype}_ToE_60keV_run{run}.pdf', dpi=200)
 
             plt.clf()
             plt.close()
@@ -428,14 +530,14 @@ def normalized_dcr_AvE(runs, plot_list=[], corr_DCR=True, corr_AoE=True, corr_To
 
             dcr_nbx = int((ehi_dcr-elo_dcr)/epb_dcr)
 
-            fig.suptitle(f'DCR vs Energy', horizontalalignment='center', fontsize=16)
+            fig.suptitle(f'DCR vs Energy', horizontalalignment='center', fontsize=16, y=0.95)
 
             dcr_hist_norm, xedges, yedges = np.histogram2d(df_cut[etype], df_cut['dcr_plot'], bins=[dcr_nbx, d_bins], range=([elo_dcr, ehi_dcr], [dlo, dhi]), weights=wts)
             X, Y = np.mgrid[elo_dcr:ehi_dcr:dcr_nbx*1j, dlo:dhi:d_bins*1j]
 
             # dcr_hist_norm = np.divide(dcr_hist, (rt_min))
 
-            pcm = plt.pcolormesh(X, Y, dcr_hist_norm, norm=LogNorm(0.001, 10))
+            pcm = plt.pcolormesh(X, Y, dcr_hist_norm, shading='nearest', norm=LogNorm(0.001, 10))
 
             cb = plt.colorbar()
             if norm==True:
@@ -450,20 +552,38 @@ def normalized_dcr_AvE(runs, plot_list=[], corr_DCR=True, corr_AoE=True, corr_To
 
             # plt.legend()
 
-            ax.text(0.95, 0.83, f'r = {radius} mm \ntheta = {angle_det} deg', verticalalignment='bottom',
+            ax.text(0.95, 0.81, f'r = {radius} mm', verticalalignment='bottom',
                     horizontalalignment='right', transform=ax.transAxes, color='green', fontsize=14, bbox={'facecolor': 'white', 'alpha': 0.5, 'pad': 10})
 
-            plt.title(f'\n{runtype} run {run}, {rt_min:.2f} mins', fontsize=12)
+            plt.title(f'{runtype} run {run}, {rt_min:.2f} mins', fontsize=12)
             plt.tight_layout()
             # plt.savefig(f'./plots/normScan/cal_normScan/{runtype}_dcr_run{run}.png', dpi=200)
             if runtype=='alp' and norm==True:
-                plt.savefig(f'./plots/{campaign}normalized_{runtype}_DCR_{radius}mm_{angle_det}deg_run{run}.png', dpi=200)
+                plt.savefig(f'./plots/{campaign}normalized_{runtype}_DCR_{radius_fn}mm_{angle_det}deg_run{run}.png', dpi=200)
+                plt.savefig(f'./plots/{campaign}normalized_{runtype}_DCR_{radius_fn}mm_{angle_det}deg_run{run}.pdf', dpi=200)
             elif runtype=='bkg' and norm==True:
                 plt.savefig(f'./plots/{campaign}normalized_{runtype}_DCR_run{run}.png', dpi=200)
+                plt.savefig(f'./plots/{campaign}normalized_{runtype}_DCR_run{run}.pdf', dpi=200)
             elif runtype=='alp' and norm==False:
-                plt.savefig(f'./plots/{campaign}{runtype}_DCR_{radius}mm_{angle_det}deg_run{run}.png', dpi=200)
+                plt.savefig(f'./plots/{campaign}{runtype}_DCR_{radius_fn}mm_{angle_det}deg_run{run}.png', dpi=200)
+                plt.savefig(f'./plots/{campaign}{runtype}_DCR_{radius_fn}mm_{angle_det}deg_run{run}.pdf', dpi=200)
             elif runtype=='bkg' and norm==False:
                 plt.savefig(f'./plots/{campaign}{runtype}_DCR_run{run}.png', dpi=200)
+                plt.savefig(f'./plots/{campaign}{runtype}_DCR_run{run}.pdf', dpi=200)
+                
+            plt.xlim(40, 80)
+            if runtype=='alp' and norm==True:
+                plt.savefig(f'./plots/{campaign}normalized_{runtype}_DCR_60keV_{radius_fn}mm_{angle_det}deg_run{run}.png', dpi=200)
+                plt.savefig(f'./plots/{campaign}normalized_{runtype}_DCR_60keV_{radius_fn}mm_{angle_det}deg_run{run}.pdf', dpi=200)
+            elif runtype=='bkg' and norm==True:
+                plt.savefig(f'./plots/{campaign}normalized_{runtype}_DCR_60keV_run{run}.png', dpi=200)
+                plt.savefig(f'./plots/{campaign}normalized_{runtype}_DCR_60keV_run{run}.pdf', dpi=200)
+            elif runtype=='alp' and norm==False:
+                plt.savefig(f'./plots/{campaign}{runtype}_DCR_60keV_{radius_fn}mm_{angle_det}deg_run{run}.png', dpi=200)
+                plt.savefig(f'./plots/{campaign}{runtype}_DCR_60keV_{radius_fn}mm_{angle_det}deg_run{run}.pdf', dpi=200)
+            elif runtype=='bkg' and norm==False:
+                plt.savefig(f'./plots/{campaign}{runtype}_DCR_60keV_run{run}.png', dpi=200)
+                plt.savefig(f'./plots/{campaign}{runtype}_DCR_60keV_run{run}.pdf', dpi=200)
             # plt.show()
             plt.clf()
             plt.close()
@@ -484,14 +604,14 @@ def normalized_dcr_AvE(runs, plot_list=[], corr_DCR=True, corr_AoE=True, corr_To
             nbx = int((ahi-alo)/apb)
             #nby = int((dhi-dlo)/dpb)
 
-            fig.suptitle(f'A/E vs DCR', horizontalalignment='center', fontsize=16)
+            fig.suptitle(f'A/E vs DCR', horizontalalignment='center', fontsize=16, y=0.95)
 
             aoeVdcr_hist_norm, xedges, yedges = np.histogram2d(df_cut['AoE_plot'], df_cut['dcr_plot'], bins=[nbx, d_bins], range=([alo, ahi], [dlo, dhi]), weights=wts)
             X, Y = np.mgrid[alo:ahi:nbx*1j, dlo:dhi:d_bins*1j]
 
             #aoeVdcr_hist_norm = np.divide(aoeVdcr_hist, (rt_min))
 
-            pcm = plt.pcolormesh(X, Y, aoeVdcr_hist_norm, norm=LogNorm(0.001, 10))
+            pcm = plt.pcolormesh(X, Y, aoeVdcr_hist_norm, shading='nearest', norm=LogNorm(0.001, 10))
 
             cb = plt.colorbar()
             if norm==True:
@@ -505,20 +625,24 @@ def normalized_dcr_AvE(runs, plot_list=[], corr_DCR=True, corr_AoE=True, corr_To
             plt.setp(ax.get_yticklabels(), fontsize=14)
 
             # plt.legend()
-            ax.text(0.95, 0.83, f'r = {radius} mm \ntheta = {angle_det} deg', verticalalignment='bottom',
+            ax.text(0.95, 0.81, f'r = {radius} mm', verticalalignment='bottom',
                         horizontalalignment='right', transform=ax.transAxes, color='green', fontsize=14, bbox={'facecolor': 'white', 'alpha': 0.5, 'pad': 10})
 
-            plt.title(f'\n{runtype} run {run}, {rt_min:.2f} mins', fontsize=12)
+            plt.title(f'{runtype} run {run}, {rt_min:.2f} mins', fontsize=12)
             plt.tight_layout()
             # plt.savefig(f'./plots/normScan/cal_normScan/{runtype}_AoE_vs_dcr_run{run}.png', dpi=200)
             if runtype=='alp' and norm==True:
-                plt.savefig(f'./plots/{campaign}normalized_{runtype}_AoEvDCR_{radius}mm_{angle_det}deg_run{run}.png', dpi=200)
+                plt.savefig(f'./plots/{campaign}normalized_{runtype}_AoEvDCR_{radius_fn}mm_{angle_det}deg_run{run}.png', dpi=200)
+                plt.savefig(f'./plots/{campaign}normalized_{runtype}_AoEvDCR_{radius_fn}mm_{angle_det}deg_run{run}.pdf', dpi=200)
             elif runtype=='bkg' and norm==True:
                 plt.savefig(f'./plots/{campaign}normalized_{runtype}_AoEvDCR_run{run}.png', dpi=200)
+                plt.savefig(f'./plots/{campaign}normalized_{runtype}_AoEvDCR_run{run}.pdf', dpi=200)
             elif runtype=='alp' and norm==False:
-                plt.savefig(f'./plots/{campaign}{runtype}_AoEvDCR_{radius}mm_{angle_det}deg_run{run}.png', dpi=200)
+                plt.savefig(f'./plots/{campaign}{runtype}_AoEvDCR_{radius_fn}mm_{angle_det}deg_run{run}.png', dpi=200)
+                plt.savefig(f'./plots/{campaign}{runtype}_AoEvDCR_{radius_fn}mm_{angle_det}deg_run{run}.pdf', dpi=200)
             elif runtype=='bkg' and norm==False:
                 plt.savefig(f'./plots/{campaign}{runtype}_AoEvDCR_run{run}.png', dpi=200)
+                plt.savefig(f'./plots/{campaign}{runtype}_AoEvDCR_run{run}.pdf', dpi=200)
             # plt.show()
             plt.clf()
             plt.close()
@@ -544,14 +668,14 @@ def normalized_dcr_AvE(runs, plot_list=[], corr_DCR=True, corr_AoE=True, corr_To
             nbx = int((ToEhi-ToElo)/ToEpb)
 
 
-            fig.suptitle(f'T/E vs DCR', horizontalalignment='center', fontsize=16)
+            fig.suptitle(f'T/E vs DCR', horizontalalignment='center', fontsize=16, y=0.95)
 
             ToEVdcr_hist_norm, xedges, yedges = np.histogram2d(df_cut['ToE_plot'], df_cut['dcr_plot'], bins=[nbx, d_bins], range=([ToElo, ToEhi], [dlo, dhi]), weights=wts)
             X, Y = np.mgrid[ToElo:ToEhi:nbx*1j, dlo:dhi:d_bins*1j]
 
             #aoeVdcr_hist_norm = np.divide(aoeVdcr_hist, (rt_min))
 
-            pcm = plt.pcolormesh(X, Y, ToEVdcr_hist_norm, norm=LogNorm(0.001, 10))
+            pcm = plt.pcolormesh(X, Y, ToEVdcr_hist_norm, shading='nearest', norm=LogNorm(0.001, 10))
 
             cb = plt.colorbar()
             if norm==True:
@@ -565,20 +689,24 @@ def normalized_dcr_AvE(runs, plot_list=[], corr_DCR=True, corr_AoE=True, corr_To
             plt.setp(ax.get_yticklabels(), fontsize=14)
 
             # plt.legend()
-            ax.text(0.95, 0.83, f'r = {radius} mm \ntheta = {angle_det} deg', verticalalignment='bottom',
+            ax.text(0.95, 0.81, f'r = {radius} mm', verticalalignment='bottom',
                         horizontalalignment='right', transform=ax.transAxes, color='green', fontsize=14, bbox={'facecolor': 'white', 'alpha': 0.5, 'pad': 10})
 
-            plt.title(f'\n{runtype} run {run}, {rt_min:.2f} mins', fontsize=12)
+            plt.title(f'{runtype} run {run}, {rt_min:.2f} mins', fontsize=12)
             plt.tight_layout()
             # plt.savefig(f'./plots/normScan/cal_normScan/{runtype}_AoE_vs_dcr_run{run}.png', dpi=200)
             if runtype=='alp' and norm==True:
-                plt.savefig(f'./plots/{campaign}normalized_{runtype}_ToEvDCR_{radius}mm_{angle_det}deg_run{run}.png', dpi=200)
+                plt.savefig(f'./plots/{campaign}normalized_{runtype}_ToEvDCR_{radius_fn}mm_{angle_det}deg_run{run}.png', dpi=200)
+                plt.savefig(f'./plots/{campaign}normalized_{runtype}_ToEvDCR_{radius_fn}mm_{angle_det}deg_run{run}.pdf', dpi=200)
             elif runtype=='bkg' and norm==True:
                 plt.savefig(f'./plots/{campaign}normalized_{runtype}_ToEvDCR_run{run}.png', dpi=200)
+                plt.savefig(f'./plots/{campaign}normalized_{runtype}_ToEvDCR_run{run}.pdf', dpi=200)
             elif runtype=='alp' and norm==False:
-                plt.savefig(f'./plots/{campaign}{runtype}_ToEvDCR_{radius}mm_{angle_det}deg_run{run}.png', dpi=200)
+                plt.savefig(f'./plots/{campaign}{runtype}_ToEvDCR_{radius_fn}mm_{angle_det}deg_run{run}.png', dpi=200)
+                plt.savefig(f'./plots/{campaign}{runtype}_ToEvDCR_{radius_fn}mm_{angle_det}deg_run{run}.pdf', dpi=200)
             elif runtype=='bkg' and norm==False:
                 plt.savefig(f'./plots/{campaign}{runtype}_ToEvDCR_run{run}.png', dpi=200)
+                plt.savefig(f'./plots/{campaign}{runtype}_ToEvDCR_run{run}.pdf', dpi=200)
             # plt.show()
             plt.clf()
             plt.close()
@@ -587,7 +715,7 @@ def normalized_dcr_AvE(runs, plot_list=[], corr_DCR=True, corr_AoE=True, corr_To
         if 'tp050_v_DCR' in plot_list:
 
             fig, ax = plt.subplots()
-            fig.suptitle(f'DCR vs 50% rise time', horizontalalignment='center', fontsize=16)
+            fig.suptitle(f'DCR vs 50% rise time', horizontalalignment='center', fontsize=16, y=0.95)
 
             tlo, thi, tpb = 0, 400, 10
 
@@ -606,7 +734,7 @@ def normalized_dcr_AvE(runs, plot_list=[], corr_DCR=True, corr_AoE=True, corr_To
 
             DCRvTp050_hist_norm = np.divide(DCRvTp050_hist, (rt_min))
 
-            pcm = plt.pcolormesh(X, Y, DCRvTp050_hist_norm, norm=LogNorm(0.001, 10))
+            pcm = plt.pcolormesh(X, Y, DCRvTp050_hist_norm, shading='nearest', norm=LogNorm(0.001, 10))
 
             cb = plt.colorbar()
             if norm==True:
@@ -620,29 +748,33 @@ def normalized_dcr_AvE(runs, plot_list=[], corr_DCR=True, corr_AoE=True, corr_To
             plt.setp(ax.get_yticklabels(), fontsize=14)
 
             # plt.legend()
-            ax.text(0.95, 0.83, f'r = {radius} mm \ntheta = {angle_det} deg', verticalalignment='bottom',
+            ax.text(0.95, 0.81, f'r = {radius} mm', verticalalignment='bottom',
                         horizontalalignment='right', transform=ax.transAxes, color='green', fontsize=14, bbox={'facecolor': 'white', 'alpha': 0.95, 'pad': 10})
 
-            plt.title(f'\n{runtype} run {run}, {rt_min:.2f} mins', fontsize=12)
+            plt.title(f'{runtype} run {run}, {rt_min:.2f} mins', fontsize=12)
             plt.tight_layout()
             # plt.savefig(f'./plots/normScan/cal_normScan/{runtype}_dcr_vs_tp0_50_run{run}.png', dpi=200)
             if runtype=='alp' and norm==True:
-                plt.savefig(f'./plots/{campaign}normalized_{runtype}_DCRvTp050_{radius}mm_{angle_det}deg_run{run}.png', dpi=200)
+                plt.savefig(f'./plots/{campaign}normalized_{runtype}_DCRvTp050_{radius_fn}mm_{angle_det}deg_run{run}.png', dpi=200)
+                plt.savefig(f'./plots/{campaign}normalized_{runtype}_DCRvTp050_{radius_fn}mm_{angle_det}deg_run{run}.pdf', dpi=200)
             elif runtype=='bkg' and norm==True:
                 plt.savefig(f'./plots/{campaign}normalized_{runtype}_DCRvTp050_run{run}.png', dpi=200)
+                plt.savefig(f'./plots/{campaign}normalized_{runtype}_DCRvTp050_run{run}.pdf', dpi=200)
             elif runtype=='alp' and norm==False:
-                plt.savefig(f'./plots/{campaign}{runtype}_DCRvTp050_{radius}mm_{angle_det}deg_run{run}.png', dpi=200)
+                plt.savefig(f'./plots/{campaign}{runtype}_DCRvTp050_{radius_fn}mm_{angle_det}deg_run{run}.png', dpi=200)
+                plt.savefig(f'./plots/{campaign}{runtype}_DCRvTp050_{radius_fn}mm_{angle_det}deg_run{run}.pdf', dpi=200)
             elif runtype=='bkg' and norm==False:
                 plt.savefig(f'./plots/{campaign}{runtype}_DCRvTp050_run{run}.png', dpi=200)
+                plt.savefig(f'./plots/{campaign}{runtype}_DCRvTp050_run{run}.pdf', dpi=200)
             # plt.show()
             plt.clf()
             plt.close()
             
-        # DCR vs tp_50___________
+        # DCR vs tp_0210___________
         if 'tp0210_v_DCR' in plot_list:
 
             fig, ax = plt.subplots()
-            fig.suptitle(f'DCR vs 2-10% rise time', horizontalalignment='center', fontsize=16)
+            fig.suptitle(f'DCR vs 2-10% rise time', horizontalalignment='center', fontsize=16, y=0.95)
 
             tlo, thi, tpb = 0, 500, 10
 
@@ -661,7 +793,7 @@ def normalized_dcr_AvE(runs, plot_list=[], corr_DCR=True, corr_AoE=True, corr_To
 
             DCRvTp0210_hist_norm = np.divide(DCRvTp050_hist, (rt_min))
 
-            pcm = plt.pcolormesh(X, Y, DCRvTp0210_hist_norm, norm=LogNorm(0.001, 10))
+            pcm = plt.pcolormesh(X, Y, DCRvTp0210_hist_norm, shading='nearest', norm=LogNorm(0.001, 10))
 
             cb = plt.colorbar()
             if norm==True:
@@ -675,20 +807,83 @@ def normalized_dcr_AvE(runs, plot_list=[], corr_DCR=True, corr_AoE=True, corr_To
             plt.setp(ax.get_yticklabels(), fontsize=14)
 
             # plt.legend()
-            ax.text(0.95, 0.83, f'r = {radius} mm \ntheta = {angle_det} deg', verticalalignment='bottom',
+            ax.text(0.95, 0.81, f'r = {radius} mm', verticalalignment='bottom',
                         horizontalalignment='right', transform=ax.transAxes, color='green', fontsize=14, bbox={'facecolor': 'white', 'alpha': 0.95, 'pad': 10})
 
-            plt.title(f'\n{runtype} run {run}, {rt_min:.2f} mins', fontsize=12)
+            plt.title(f'{runtype} run {run}, {rt_min:.2f} mins', fontsize=12)
             plt.tight_layout()
             # plt.savefig(f'./plots/normScan/cal_normScan/{runtype}_dcr_vs_tp0_50_run{run}.png', dpi=200)
             if runtype=='alp' and norm==True:
-                plt.savefig(f'./plots/{campaign}normalized_{runtype}_DCRvTp0210_{radius}mm_{angle_det}deg_run{run}.png', dpi=200)
+                    plt.savefig(f'./plots/{campaign}normalized_{runtype}_DCRvTp0210_{radius_fn}mm_{angle_det}deg_run{run}.png', dpi=200)
+                    plt.savefig(f'./plots/{campaign}normalized_{runtype}_DCRvTp0210_{radius_fn}mm_{angle_det}deg_run{run}.pdf', dpi=200)
             elif runtype=='bkg' and norm==True:
                 plt.savefig(f'./plots/{campaign}normalized_{runtype}_DCRvTp0210_run{run}.png', dpi=200)
+                plt.savefig(f'./plots/{campaign}normalized_{runtype}_DCRvTp0210_run{run}.pdf', dpi=200)
             elif runtype=='alp' and norm==False:
-                plt.savefig(f'./plots/{campaign}{runtype}_DCRvTp0210_{radius}mm_{angle_det}deg_run{run}.png', dpi=200)
+                plt.savefig(f'./plots/{campaign}{runtype}_DCRvTp0210_{radius_fn}mm_{angle_det}deg_run{run}.png', dpi=200)
+                plt.savefig(f'./plots/{campaign}{runtype}_DCRvTp0210_{radius_fn}mm_{angle_det}deg_run{run}.pdf', dpi=200)
             elif runtype=='bkg' and norm==False:
                 plt.savefig(f'./plots/{campaign}{runtype}_DCRvTp0210_run{run}.png', dpi=200)
+                plt.savefig(f'./plots/{campaign}{runtype}_DCRvTp0210_run{run}.pdf', dpi=200)
+            # plt.show()
+            plt.clf()
+            plt.close()
+            
+        # DCR vs tp_0220___________
+        if 'tp0220_v_DCR' in plot_list:
+
+            fig, ax = plt.subplots()
+            fig.suptitle(f'DCR vs 2-20% rise time', horizontalalignment='center', fontsize=16)
+
+            tlo, thi, tpb = 0, 500, 10
+
+            if run>=36 and run<117:
+                dlo, dhi = -40, 170
+                d_bins = 200
+            elif run>=117:
+                # dlo, dhi, dpb = -20., 40, 0.1
+                dlo, dhi = -40, 170
+                d_bins = 200
+
+            nby = int((thi-tlo)/tpb)
+
+            DCRvTp050_hist, xedges, yedges = np.histogram2d(df_cut['dcr_plot'], df_cut['tp0220'], bins=[d_bins, nby], range=([dlo, dhi], [tlo, thi]))
+            X, Y = np.mgrid[dlo:dhi:d_bins*1j, tlo:thi:nby*1j]
+
+            DCRvTp0210_hist_norm = np.divide(DCRvTp050_hist, (rt_min))
+
+            pcm = plt.pcolormesh(X, Y, DCRvTp0210_hist_norm, shading='nearest', norm=LogNorm(0.001, 10))
+
+            cb = plt.colorbar()
+            if norm==True:
+                cb.set_label("counts/min", ha = 'right', va='center', rotation=270, fontsize=14)
+            else:
+                cb.set_label("counts", ha = 'right', va='center', rotation=270, fontsize=14)
+            cb.ax.tick_params(labelsize=12)
+            ax.set_xlabel('DCR (arb)', fontsize=16)
+            ax.set_ylabel('tp 02-20 (ns)', fontsize=16)
+            plt.setp(ax.get_xticklabels(), fontsize=14)
+            plt.setp(ax.get_yticklabels(), fontsize=14)
+
+            # plt.legend()
+            ax.text(0.95, 0.81, f'r = {radius} mm', verticalalignment='bottom',
+                        horizontalalignment='right', transform=ax.transAxes, color='green', fontsize=14, bbox={'facecolor': 'white', 'alpha': 0.95, 'pad': 10})
+
+            plt.title(f'{runtype} run {run}, {rt_min:.2f} mins', fontsize=12)
+            plt.tight_layout()
+            # plt.savefig(f'./plots/normScan/cal_normScan/{runtype}_dcr_vs_tp0_50_run{run}.png', dpi=200)
+            if runtype=='alp' and norm==True:
+                plt.savefig(f'./plots/{campaign}normalized_{runtype}_DCRvTp0220_{radius_fn}mm_{angle_det}deg_run{run}.png', dpi=200)
+                plt.savefig(f'./plots/{campaign}normalized_{runtype}_DCRvTp0220_{radius_fn}mm_{angle_det}deg_run{run}.pdf', dpi=200)
+            elif runtype=='bkg' and norm==True:
+                plt.savefig(f'./plots/{campaign}normalized_{runtype}_DCRvTp0220_run{run}.png', dpi=200)
+                plt.savefig(f'./plots/{campaign}normalized_{runtype}_DCRvTp0220_run{run}.pdf', dpi=200)
+            elif runtype=='alp' and norm==False:
+                plt.savefig(f'./plots/{campaign}{runtype}_DCRvTp0220_{radius_fn}mm_{angle_det}deg_run{run}.png', dpi=200)
+                plt.savefig(f'./plots/{campaign}{runtype}_DCRvTp0220_{radius_fn}mm_{angle_det}deg_run{run}.pdf', dpi=200)
+            elif runtype=='bkg' and norm==False:
+                plt.savefig(f'./plots/{campaign}{runtype}_DCRvTp0220_run{run}.png', dpi=200)
+                plt.savefig(f'./plots/{campaign}{runtype}_DCRvTp0220_run{run}.pdf', dpi=200)
             # plt.show()
             plt.clf()
             plt.close()

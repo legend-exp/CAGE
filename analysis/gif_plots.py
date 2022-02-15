@@ -5,23 +5,23 @@ import glob
 
 def main():
 
-    runs = [64, 44, 66, 48, 70, 50, 72, 54, 38, 60, 42] #starting at 7.5mm so if doesn't show up in ppt at least will show a plot with alphas
+    runs = [64, 66, 70, 72, 60] #starting at 7.5mm so if doesn't show up in ppt at least will show a plot with alphas
     # plot_dir = './plots/normScan/cal_normScan/'
 
     # plot_dir = './plots/angleScan/'
-    plot_dir = './plots/new_normScan/lowE/'
+    plot_dir = './plots/new_normScan/'
 
     # radii = ['10', '15', '18'] #source angle scan
-    radii = ['7.5', '10.0', '12.5', '15.0', '17.5', '20.0', '22.5', '25.0', '0.0', '2.5', '5.0'] #norm scan
+    radii = ['7_5', '12_5', '17_5', '22_5', '2_5'] #norm scan
     
-    dsp_params = ['alp_ToE_60keV_']
-    outputs_files = ['toeVsE_60keV.gif']
+    # dsp_params = ['alp_ToE_60keV_']
+    # outputs_files = ['toeVsE_60keV.gif']
     
     # dsp_params = ['alp_ToEvDCR_', 'alp_ToE_60keV_', 'alp_ToE_']
     # outputs_files = ['toeVsdcr.gif','toeVsE_60keV.gif', 'toeVsE.gif']
 
-    # dsp_params = ['alp_energy_60keV_', 'alp_energy_', 'alp_AoE_', 'alp_DCR_', 'alp_AoEvDCR_', 'alp_DCRvTp050_']
-    # outputs_files = ['energy_60keV.gif','energy.gif', 'aoeVsE.gif', 'dcrVsE.gif', 'aoeVsdcr.gif', 'dcrVstp0_50.gif']
+    dsp_params = ['alp_energy_60keV_', 'alp_energy_', 'alp_AoE_', 'alp_DCR_', 'alp_AoEvDCR_', 'alp_DCRvTp0220_', 'alp_ToE_60keV_']
+    outputs_files = ['energy_60keV.gif','energy.gif', 'aoeVsE.gif', 'dcrVsE.gif', 'aoeVsdcr.gif', 'dcrVstp0220.gif', 'toeVsE_60keV.gif']
 
     dsp_gif(dsp_params, runs, radii, plot_dir, outputs_files)
     # dsp_gif_byRadius(dsp_params, radii, plot_dir, outputs_files)

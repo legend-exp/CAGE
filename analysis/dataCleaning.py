@@ -24,12 +24,16 @@ import cage_utils
 mpl.use('Agg')
 
 def main():
+    """
+    use these functions with cut parameters determined by running ./dataCleaning.ipynb !
+    """
+    
     runs = [60, 64, 66, 70, 72] # alpha runs for dsp_id = 2
     # runs = [62, 68, 74] #bkg runs for dsp_id = 2
     # campaign = 'angleScan/'
-    campaign = 'new_normScan/centeringScans/'
+    campaign = 'new_normScan/'
     
-    run=95
+    run=64
 
     user = True
     hit = True
@@ -55,6 +59,10 @@ def main():
     allCuts(run, campaign, df_raw, dg, runtype, rt_min, radius, angle_det, rotary, cut_keys_raw)
 
 def n_minus_1(run, campaign, df, dg, runtype, rt_min, radius, angle_det, rotary, cut_keys):
+    """
+    Make plots for every parameter used as a cut, with all other cuts applied except that parameter, to see if it is 
+    actually a necessary parameter to use as a cut
+    """
 
     with open('./cuts.json') as f:
         cuts = json.load(f)
@@ -139,7 +147,8 @@ def n_minus_1(run, campaign, df, dg, runtype, rt_min, radius, angle_det, rotary,
         
         plt.tight_layout()
 
-        plt.savefig(f'./plots/{campaign}N_minus_1/raw/{str(run)}/except_{cut_out}_bl_mean_raw.png', dpi=200)
+        plt.savefig(f'./plots/{campaign}dataCleaning/N_minus_1/raw/{str(run)}/except_{cut_out}_bl_mean_raw.png', dpi=200)
+        plt.savefig(f'./plots/{campaign}dataCleaning/N_minus_1/raw/{str(run)}/except_{cut_out}_bl_mean_raw.pdf', dpi=200)
         plt.clf()
         plt.close()
         
@@ -182,6 +191,7 @@ def n_minus_1(run, campaign, df, dg, runtype, rt_min, radius, angle_det, rotary,
         plt.tight_layout()
 
         plt.savefig(f'./plots/{campaign}dataCleaning/N_minus_1/raw/{str(run)}/except_{cut_out}_bl_slope_raw.png', dpi=200)
+        plt.savefig(f'./plots/{campaign}dataCleaning/N_minus_1/raw/{str(run)}/except_{cut_out}_bl_slope_raw.pdf', dpi=200)
         plt.clf()
         plt.close()
 
@@ -220,6 +230,7 @@ def n_minus_1(run, campaign, df, dg, runtype, rt_min, radius, angle_det, rotary,
 
 
         plt.savefig(f'./plots/{campaign}dataCleaning/N_minus_1/raw/{str(run)}/except_{cut_out}_bl_sig_raw.png', dpi=200)
+        plt.savefig(f'./plots/{campaign}dataCleaning/N_minus_1/raw/{str(run)}/except_{cut_out}_bl_sig_raw.pdf', dpi=200)
         plt.clf()
         plt.close()
 
@@ -257,6 +268,7 @@ def n_minus_1(run, campaign, df, dg, runtype, rt_min, radius, angle_det, rotary,
         plt.tight_layout()
 
         plt.savefig(f'./plots/{campaign}dataCleaning/N_minus_1/raw/{str(run)}/except_{cut_out}_ftp_max_raw.png', dpi=200)
+        plt.savefig(f'./plots/{campaign}dataCleaning/N_minus_1/raw/{str(run)}/except_{cut_out}_ftp_max_raw.pdf', dpi=200)
         plt.clf()
         plt.close()
 
@@ -273,7 +285,7 @@ def n_minus_1(run, campaign, df, dg, runtype, rt_min, radius, angle_det, rotary,
         X, Y = np.mgrid[wflo:wfhi:wf_bins*1j, elo:ehi:e_bins*1j]
 
 
-        pcm = plt.pcolormesh(X, Y, wf_maxVEnergy,norm=LogNorm())
+        pcm = plt.pcolormesh(X, Y, wf_maxVEnergy,shading='nearest', norm=LogNorm())
         cb = plt.colorbar()
         cb.set_label("counts", ha = 'right', va='center', rotation=270, fontsize=14)
         cb.ax.tick_params(labelsize=12)
@@ -308,17 +320,20 @@ def n_minus_1(run, campaign, df, dg, runtype, rt_min, radius, angle_det, rotary,
         plt.xlim(0, 800)
 
         plt.savefig(f'./plots/{campaign}dataCleaning/N_minus_1/raw/{str(run)}/except_{cut_out}_wf_max_raw_lowE.png', dpi=200)
+        plt.savefig(f'./plots/{campaign}dataCleaning/N_minus_1/raw/{str(run)}/except_{cut_out}_wf_max_raw_lowE.pdf', dpi=200)
 
         plt.ylim(1200, 1550)
         plt.xlim(3300, 4300)
 
         plt.savefig(f'./plots/{campaign}dataCleaning/N_minus_1/raw/{str(run)}/except_{cut_out}_wf_max_raw_1460.png', dpi=200)
+        plt.savefig(f'./plots/{campaign}dataCleaning/N_minus_1/raw/{str(run)}/except_{cut_out}_wf_max_raw_1460.pdf', dpi=200)
 
 
         plt.ylim(2400, 2750)
         plt.xlim(6600, 8000)
 
         plt.savefig(f'./plots/{campaign}dataCleaning/N_minus_1/raw/{str(run)}/except_{cut_out}_wf_max_raw_2615.png', dpi=200)
+        plt.savefig(f'./plots/{campaign}dataCleaning/N_minus_1/raw/{str(run)}/except_{cut_out}_wf_max_raw_2615.pdf', dpi=200)
         plt.clf()
         plt.close()
 
@@ -377,11 +392,15 @@ def n_minus_1(run, campaign, df, dg, runtype, rt_min, radius, angle_det, rotary,
         plt.tight_layout()
 
         plt.savefig(f'./plots/{campaign}dataCleaning/N_minus_1/raw/{str(run)}/except_{cut_out}_fit_60keV_raw.png', dpi=200)
+        plt.savefig(f'./plots/{campaign}dataCleaning/N_minus_1/raw/{str(run)}/except_{cut_out}_fit_60keV_raw.pdf', dpi=200)
         plt.clf()
         plt.close()
 
 
 def allCuts(run, campaign, df, dg, runtype, rt_min, radius, angle_det, rotary, cut_keys):
+    """
+    Make parameter plots with all cuts applied
+    """
 
     with open('./cuts.json') as f:
         cuts = json.load(f)
@@ -460,6 +479,7 @@ def allCuts(run, campaign, df, dg, runtype, rt_min, radius, angle_det, rotary, c
     plt.tight_layout()
 
     plt.savefig(f'./plots/{campaign}dataCleaning/allCuts/{str(run)}/allCuts_bl_mean_raw.png', dpi=200)
+    plt.savefig(f'./plots/{campaign}dataCleaning/allCuts/{str(run)}/allCuts_bl_mean_raw.pdf', dpi=200)
     plt.clf()
     plt.close()
         
@@ -502,6 +522,7 @@ def allCuts(run, campaign, df, dg, runtype, rt_min, radius, angle_det, rotary, c
     plt.tight_layout()
 
     plt.savefig(f'./plots/{campaign}dataCleaning/allCuts/{str(run)}/allCuts_bl_slope_raw.png', dpi=200)
+    plt.savefig(f'./plots/{campaign}dataCleaning/allCuts/{str(run)}/allCuts_bl_slope_raw.pdf', dpi=200)
     plt.clf()
     plt.close()
 
@@ -540,6 +561,7 @@ def allCuts(run, campaign, df, dg, runtype, rt_min, radius, angle_det, rotary, c
 
 
     plt.savefig(f'./plots/{campaign}dataCleaning/allCuts/{str(run)}/allCuts_bl_sig_raw.png', dpi=200)
+    plt.savefig(f'./plots/{campaign}dataCleaning/allCuts/{str(run)}/allCuts_bl_sig_raw.pdf', dpi=200)
     plt.clf()
     plt.close()
 
@@ -577,6 +599,7 @@ def allCuts(run, campaign, df, dg, runtype, rt_min, radius, angle_det, rotary, c
     plt.tight_layout()
 
     plt.savefig(f'./plots/{campaign}dataCleaning/allCuts/{str(run)}/allCuts_ftp_max_raw.png', dpi=200)
+    plt.savefig(f'./plots/{campaign}dataCleaning/allCuts/{str(run)}/allCuts_ftp_max_raw.pdf', dpi=200)
     plt.clf()
     plt.close()
 
@@ -593,7 +616,7 @@ def allCuts(run, campaign, df, dg, runtype, rt_min, radius, angle_det, rotary, c
     X, Y = np.mgrid[wflo:wfhi:wf_bins*1j, elo:ehi:e_bins*1j]
 
 
-    pcm = plt.pcolormesh(X, Y, wf_maxVEnergy,norm=LogNorm())
+    pcm = plt.pcolormesh(X, Y, wf_maxVEnergy, shading='nearest', norm=LogNorm())
     cb = plt.colorbar()
     cb.set_label("counts", ha = 'right', va='center', rotation=270, fontsize=14)
     cb.ax.tick_params(labelsize=12)
@@ -628,17 +651,20 @@ def allCuts(run, campaign, df, dg, runtype, rt_min, radius, angle_det, rotary, c
     plt.xlim(0, 800)
 
     plt.savefig(f'./plots/{campaign}dataCleaning/allCuts/{str(run)}/allCuts_wf_max_raw_lowE.png', dpi=200)
+    plt.savefig(f'./plots/{campaign}dataCleaning/allCuts/{str(run)}/allCuts_wf_max_raw_lowE.pdf', dpi=200)
 
     plt.ylim(1200, 1550)
     plt.xlim(3300, 4300)
 
     plt.savefig(f'./plots/{campaign}dataCleaning/allCuts/{str(run)}/allCuts_wf_max_raw_1460.png', dpi=200)
+    plt.savefig(f'./plots/{campaign}dataCleaning/allCuts/{str(run)}/allCuts_wf_max_raw_1460.pdf', dpi=200)
 
 
     plt.ylim(2400, 2750)
     plt.xlim(6600, 8000)
 
     plt.savefig(f'./plots/{campaign}dataCleaning/allCuts/{str(run)}/allCuts_wf_max_raw_2615.png', dpi=200)
+    plt.savefig(f'./plots/{campaign}dataCleaning/allCuts/{str(run)}/allCuts_wf_max_raw_2615.pdf', dpi=200)
     plt.clf()
     plt.close()
 
@@ -683,9 +709,9 @@ def allCuts(run, campaign, df, dg, runtype, rt_min, radius, angle_det, rotary, c
     plt.setp(ax.get_xticklabels(), fontsize=12)
     plt.setp(ax.get_yticklabels(), fontsize=12)
 
-    ax.text(0.05, 0.75,  f'r = {radius} mm \ntheta = {angle_det} deg \nruntime {rt_min:.2f}', verticalalignment='bottom',
+    ax.text(0.05, 0.75,  f'r = {radius} mm \ntheta = {angle_det} deg \nruntime {rt_min:.2f} min', verticalalignment='bottom',
             horizontalalignment='left', transform=ax.transAxes, color='black', fontsize=10, bbox={'facecolor': 'white', 'alpha': 0.5, 'pad': 8})
-    ax.text(0.95, 0.72,  f'mean: {mean_fit:.2f} \nsigma: {width_fit:.3f} \nFWHM at 60 keV: {fwhm:.2f} keV\n({(fwhm/mean_fit)*100:.2f}%)', verticalalignment='bottom',
+    ax.text(0.95, 0.72,  f'mean: {mean_fit:.2f} keV \nsigma: {width_fit:.3f} keV \nFWHM at 60 keV: {fwhm:.2f} keV \n({(fwhm/mean_fit)*100:.2f}%)', verticalalignment='bottom',
             horizontalalignment='right', transform=ax.transAxes, color='black', fontsize=10, bbox={'facecolor': 'white', 'alpha': 0.5, 'pad': 8})
         
     plt.legend(loc='center right')
@@ -693,6 +719,7 @@ def allCuts(run, campaign, df, dg, runtype, rt_min, radius, angle_det, rotary, c
     plt.tight_layout()
 
     plt.savefig(f'./plots/{campaign}dataCleaning/allCuts/{str(run)}/allCuts_fit_60keV_raw.png', dpi=200)
+    plt.savefig(f'./plots/{campaign}dataCleaning/allCuts/{str(run)}/allCuts_fit_60keV_raw.pdf', dpi=200)
     plt.clf()
     plt.close()
 
