@@ -32,15 +32,15 @@
   <quantity name="body_sourceOffset_radius" type="length" value="13./2" unit="mm"/>
   <quantity name="body_sourceOffset_height" type="length" value="0.25" unit="mm"/>
 
-  <quantity name="body_middle_innerradius" type="length" value="1.25/2" unit="mm"/>
+  <quantity name="body_middle_innerradius" type="length" value="1/2" unit="mm"/>
   <quantity name="body_middle_radius" type="length" value="31.75/2" unit="mm"/>
   <quantity name="body_middle_height" type="length" value="2.1" unit="mm"/> <!-- bottom of source offset to soldered lip -->
 
-  <quantity name="body_lip_innerradius" type="length" value="1.25/2" unit="mm"/>
+  <quantity name="body_lip_innerradius" type="length" value="1/2" unit="mm"/>
   <quantity name="body_lip_radius" type="length" value="30/2" unit="mm"/>
   <quantity name="body_lip_height" type="length" value="1.75" unit="mm"/> <!-- soldered lip -->
 
-  <quantity name="body_bottom_innerradius" type="length" value="1.25/2" unit="mm"/>
+  <quantity name="body_bottom_innerradius" type="length" value="1/2" unit="mm"/>
   <quantity name="body_bottom_radius" type="length" value="10./2" unit="mm"/>
   <quantity name="body_bottom_height" type="length" value="6.75" unit="mm"/> 
 

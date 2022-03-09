@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no" ?>
 <gdml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://service-spi.web.cern.ch/service-spi/app/releases/GDML/schema/gdml.xsd">
 
+<!--##########################################-->
 
  <define>
 
@@ -18,7 +19,7 @@
   <quantity name="ditch_radius2" type="length" value="15.8" unit="mm"/>
   <quantity name="ditch_depth" type="length" value="1.95" unit="mm"/>
 
-  <quantity name="hole_depth" type="length" value="55.7" unit="mm"/>
+  <quantity name="hole_depth" type="length" value="40" unit="mm"/> <!-- Needs to be measured -->
   <quantity name="hole_radius" type="length" value="2.85" unit="mm"/>
 
   <quantity name="pc_depth" type="length" value="1.7" unit="mm"/>
@@ -52,7 +53,7 @@
     <second ref="ditch_subtraction" />
     <position name="ditch_pos" x="0" y="0" z="cylinder_height/2.0 - ditch_depth/2.0" />
     <rotationref ref="identity"/>
-  </union>
+  </subtraction>
 
   <subtraction name="detector_ditch_hole">
     <first ref="detector_ditch" />
