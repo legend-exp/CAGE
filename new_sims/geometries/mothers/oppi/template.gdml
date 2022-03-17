@@ -82,8 +82,8 @@ See these elogs for more diagrams and information: https://elog.legend-exp.org/U
 
    <physvol>
      <file name="./geometries/sourceRotationVolume.gdml"/>
-     <position name= "source_center" x="0.0" y="0.0" z="0.0" unit="mm"/>
-     <rotation name="identity" x="0.00" unit="deg"/>
+     <position name= "source_center" x="0.0" y="0.0" z="0" unit="mm"/>
+     <rotation name="source_Rotation" z="0" unit="deg"/>
    </physvol>
 
    <physvol>
@@ -95,7 +95,7 @@ See these elogs for more diagrams and information: https://elog.legend-exp.org/U
    <physvol>
      <file name="./geometries/OPPI1_diving_board_volume.gdml"/>
      <position name= "LMFE_center" x="0." y="0." z="OPPI1_diving_board_height" unit="mm"/>
-     <rotation name="OPPI1_diving_board_volume_Rotation" z="(180-17.92)" unit="deg"/> <!-- diving board rotation. linear motor drive is not perpendiculat to LMFE diving board in real life, (180-17.92) ccount for this. Additional rotation is to simulate rotating rotary motor -->
+     <rotation name="OPPI1_diving_board_volume_Rotation" z="-(90+17.92)" unit="deg"/> <!-- diving board rotation. linear motor drive is not perpendiculat to LMFE diving board in real life, (180-17.92) ccount for this. Additional rotation is to simulate rotating rotary motor -->
    </physvol>
 
    <physvol>
