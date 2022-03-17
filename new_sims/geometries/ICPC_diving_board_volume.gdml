@@ -27,8 +27,8 @@ This file is a "mother file" that contains everything relevant to the diving boa
   <quantity name="substrate_board_thickness" type="length" value="0.5" unit="mm"/>
 
   <quantity name="world_size" type="length" value="3" unit="m"/>
-  <quantity name="diving_board_vacuum_radius" type="length" value="40" unit="mm"/>
-  <quantity name="diving_board_vacuum_height" type="length" value="7" unit="mm"/> <!-- Additional 0.25 mm above and below center of vacuum volume (0.125 mm at top since lmfe_substrate is 0.125 mm above PEEK)-->
+  <quantity name="diving_board_vacuum_radius" type="length" value="50" unit="mm"/>
+  <quantity name="diving_board_vacuum_height" type="length" value="8" unit="mm"/> <!-- Additional 0.25 mm above and below center of vacuum volume (0.125 mm at top since lmfe_substrate is 0.125 mm above PEEK)-->
 
   <quantity name="diving_board_overhang" type="length" value="5" unit="mm"/> <!-- diving board extends 5mm over detector center-->
   <quantity name="diving_board_x" type="length" value="-(board_length/2 - diving_board_overhang)" unit="mm"/> <!-- diving board x-placement. Add 5 mm b/c diving board extends 5mm over detector center-->
