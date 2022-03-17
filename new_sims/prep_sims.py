@@ -18,16 +18,16 @@ def main():
 
     G. Othman
     """
-    radius = [5, 6, 7, 8, 9, 10]
-    source_angle = [90]
-    rotary = [162.08]
+    radius = [15]
+    source_angle = [90, 75, 60, 45]
+    rotary = [0]
 #     rotary = np.linspace(4, 144, 15)
     # print(rotary)
     # exit()
     mac_dir = './macros/'
     gdml_dir = './geometries/mothers/'
     hdf5_dir = '$[TMPDIR]/' #format environment variables as $[VARNAME] 
-    run = 'spot_size_scan/' #ex 'centering_scan/'
+    run = 'source_angle_scan/' #ex 'centering_scan/'
     det = 'oppi'
     primaries = 1000000
     jobs = 100
@@ -59,8 +59,8 @@ def writeFiles(radius, source_angle, rotary='0', det='oppi', run = '', primaries
                     mac = file.readlines()
 
                 mac_rotation, gdml_source_center, gdml_source_rotation = positionCalc(r, theta_det)
-                gdml_divingBoard_rotation = f'     <rotation name="OPPI1_diving_board_volume_Rotation" z="(180-17.92)-{theta_rot}" unit="deg"/> <!-- diving board rotation. linear motor drive --> \n'
-                gdml_det_rotation = f'     <rotation name="OPPI_Rotation" x="0" y="0" z="-{theta_rot}" unit="deg"/> <!--Add same additional rotation to "OPPI1_diving_board_volume_Rotation" here to simulte rotating rotary motor--> \n'
+                gdml_divingBoard_rotation = f'     <rotation name="ICPC_diving_board_volume_Rotation" z="-(90+17.92)-{theta_rot}" unit="deg"/> <!-- diving board rotation. linear motor drive --> \n'
+                gdml_det_rotation = f'     <rotation name="ICPC_Rotation" x="0" y="0" z="-{theta_rot}" unit="deg"/> <!--Add same additional rotation to "OPPI1_diving_board_volume_Rotation" here to simulte rotating rotary motor--> \n'
 
                 gdml[84] = gdml_source_center
                 gdml[85] = gdml_source_rotation
@@ -71,7 +71,7 @@ def writeFiles(radius, source_angle, rotary='0', det='oppi', run = '', primaries
                 mac[13] = '/g4simple/setFileName ' + hdf5_out_file + ' \n'
 
                 if int(theta_det)==90:
-                    mac[43] = f'/gps/pos/centre 0.0 {float(r)} 4.475 mm \n'
+                    mac[43] = f'/gps/pos/centre 0.0 {float(r)} 3.875 mm \n'
 
                 else:
                     mac[43] = ''

@@ -1,7 +1,10 @@
 # use QGSP_BERT just to have something - this one loads fast.
 /g4simple/setReferencePhysList QGSP_BERT
 
-/g4simple/setDetectorGDML ./geometries/mothers/oppi/centering_scan/y8_thetaDet90_rotary0_241Am_1000000.gdml false
+#/g4simple/setDetectorGDML ./geometries/mothers/oppi/centering_scan/y15_thetaDet90_rotary145_241Am_1000000.gdml false
+/g4simple/setDetectorGDML ./geometries/mothers/oppi/source_angle_scan/y15_thetaDet45_rotary0_241Am_1000000.gdml
+#/g4simple/setDetectorGDML ./geometries/mothers/oppi/template.gdml false
+#/g4simple/setDetectorGDML ./geometries/mothers/icpc/template.gdml false
 #/g4simple/setDetectorGDML ./geometries/translations_gscanner_241Am.gdml false
 
 /run/initialize
@@ -12,7 +15,7 @@
 # Camera setting
 /vis/viewer/set/style surface
 /vis/viewer/set/upVector 0 0 1
-/vis/viewer/set/viewpointThetaPhi 60 -100
+/vis/viewer/set/viewpointThetaPhi 80 90
 #/vis/viewer/set/viewpointThetaPhi 0 0
 #/vis/viewer/set/viewpointThetaPhi 90 0
 /vis/viewer/set/background white 1.
@@ -28,13 +31,16 @@
 /vis/geometry/set/visibility diving_board_volume 0 false
 
 #/vis/geometry/set/colour vacuum_volume -1 0 0 0 0.01
+#/vis/geometry/set/colour ICPC_ring -0.2 0.82 0.76 0.53 1
+#/vis/geometry/set/colour ICPC_diving_board -0.2 0.82 0.76 0.53 1
+#/vis/geometry/set/colour ICPC_Detector -0.2 0.4 0.4 0.4 1
 /vis/geometry/set/colour OPPI1_Detector -0.2 0.4 0.4 0.4 1
 /vis/geometry/set/colour Outer_Vessel 0 0.9 0.7 0.7 0.
 /vis/geometry/set/colour Cold_Plate 0.9 0.4 0 0.2 1
 /vis/geometry/set/colour Top_Hat 0.9 0.4 0 0.2 0.1
-/vis/geometry/set/colour Am_Collimator_new 0 0.9 0.7 0.7 0.2
+/vis/geometry/set/colour Am_Collimator_v3 0 0.9 0.7 0.7 0.2
 /vis/geometry/set/colour ss_sourceDisk_ezag -1 1 1 0.5 1
-/vis/geometry/set/colour Copper_Band 0.9 0.4 0 0.2 0.2
+#/vis/geometry/set/colour Copper_Band 0.9 0.4 0 0.2 0.2
 
 # Camera setting
 /vis/drawVolume

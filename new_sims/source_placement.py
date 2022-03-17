@@ -16,12 +16,12 @@ def main():
     # set icpc=False if scanning a PPC (or other detector with no ditch)-- But note, all other dimensions must be updated first for the output to be correct!!
     # All dimensions in mm, angles in deg
 
-    calculate_CollClearances()
+    #calculate_CollClearances()
 
-    # positionCalc(y_final=14, theta_det=71.36, icpc=False)
+    positionCalc(y_final=15, theta_det=45, icpc=False)
     # rotaryCalc(radius=12.0, d_theta=10)
-    maxRotation(min_clearance_toLMFE=5.0, icpc=True)
-    checkRotation(theta_det=45, min_clearance_toLMFE=5.0, icpc=True)
+    # maxRotation(min_clearance_toLMFE=5.0, icpc=True)
+    # checkRotation(theta_det=45, min_clearance_toLMFE=5.0, icpc=True)
     # thetaCalc(y_final=12., icpc=False)
 
 def positionCalc(y_final, theta_det, icpc=False):
@@ -41,7 +41,7 @@ def positionCalc(y_final, theta_det, icpc=False):
         rotAxis_height = 23.8 # height for OPPI in mm from top of detector to rotation axis, which is (0, 0, 0) in the mother geometry of the simulation
         print('Using OPPI axis height: % .1f' %rotAxis_height)
     else:
-        rotAxis_height = 23.6 # height in mm from top of detector to rotation axis, which is (0, 0, 0) in the mother geometry of the simulation
+        rotAxis_height = 25.2 # height in mm from top of detector to rotation axis, which is (0, 0, 0) in the mother geometry of the simulation
         print('Using ICPC axis height: % .1f' %rotAxis_height)
 
     delta_y_source = rotAxis_toSource_height*(math.cos((90.+theta_rot)*deg_to_rad)) # change in mm of the y-position of the source activity within the collimator from source being rotated
@@ -75,33 +75,35 @@ def positionCalc(y_final, theta_det, icpc=False):
     delta_y_tot = delta_y_rotation + delta_y_ditch # total y displacement, wrt the rotation axis, from rotating the source and from final desired y position (y_final) being in the ditch if it is
     axis_yPos = y_final - delta_y_tot # final y-position the axis of the collimator (y-coord of center of "sourceRotationVolume")
     lab_axis_yPos = axis_yPos
-    source_yPos = axis_yPos - np.abs(delta_y_source) # final y-position of the source activity within the collimator (specified in g4simple run macro)
+    source_yPos = (axis_yPos - np.abs(delta_y_source)) # final y-position of the source activity within the collimator (specified in g4simple run macro)
 
     rotUnitVec_y = math.cos(theta_rot*deg_to_rad) # determines the y-coordinate of the rotation vector (/gps/pos/rot2) for rotating the source activity in the g4simple run macro
     rotUnitVec_z = math.sin(theta_rot*deg_to_rad) # determines the z-coordinate of the rotation vector (/gps/pos/rot2) for rotating the source activity in the g4simple run macro
 
+    dirUnitVec_y = math.sin(theta_rot*deg_to_rad)
+    dirUnitVec_z = -math.cos(theta_rot*deg_to_rad)
     if axis_yPos < 0.:
         rotary_motor_theta = -180.
-        theta_rot_motor = -1*(180.+theta_rot)
+        source_rot_motor = (180.+theta_rot)
         lab_axis_yPos *= -1 # this needs to be positive, since will be driving the linear stage "forward" at -180 deg, but its equivalent to a negative axis_yPos
 
     else:
         rotary_motor_theta = 0.
+        source_rot_motor = (theta_rot)
 
-    macro_rotation = f'/gps/pos/rot1 1 0 0 \n/gps/pos/rot2 0 {rotUnitVec_y:.5f} {rotUnitVec_z:.5f} \n/gps/pos/centre 0.0 {source_yPos:.3f} {source_zPos:.3f} mm \n'
-    gdml_source_center = f'     <position name= "source_center" x="0.0" y="{axis_yPos:.3f}" z="0.0" unit="mm"/>\n'
-    gdml_source_rotation = f'     <rotation name="source{theta_rot:.0f}" x="-{theta_rot:.2f}" unit="deg"/>\n'
+    macro_rotation = f'/gps/pos/rot1 0 1 0 \n/gps/pos/rot2 {rotUnitVec_y:.5f} 0 {rotUnitVec_z:.5f} \n/gps/pos/centre {source_yPos:.3f} 0.0 {source_zPos:.3f} mm \n'
+    # macro_rotation = f'/gps/pos/rot1 0 1 0 \n/gps/pos/rot2 {rotUnitVec_y:.5f} 0 {rotUnitVec_z:.5f} \n/gps/pos/centre {source_yPos:.3f} 0.0 {source_zPos:.3f} mm \n/gps/direction 0 {dirUnitVec_y:.5f} {dirUnitVec_z:.5f}'
+    gdml_source_center = f'     <position name= "source_center" x="{axis_yPos:.3f}" y="0.0" z="0" unit="mm"/>\n'
+    gdml_source_rotation = f'   <rotation name="source{theta_rot:.0f}" y="{theta_rot:.2f}" unit="deg"/> \n'
 
 
     print('For theta_det= %.1f deg, radius= %.1f mm:' %(theta_det, y_final))
-    print('Source activity in the run macro should be rotated to and centered according to: \n/gps/pos/rot1 1 0 0 \n/gps/pos/rot2 0 %.5f %.5f' %(rotUnitVec_y, rotUnitVec_z))
-    print('/gps/pos/centre 0.0 %.3f %.3f mm \n' %( source_yPos, source_zPos))
+    print(f'Source activity in the run macro should be rotated to and centered according to: \n{macro_rotation}')
 
 
-    print('Position of the source ("sourceRotationVolume") in the mother GDML file, should be placed at: \n<position name= "source_center" x="0.0" y="%.3f" z="0.0" unit="mm"/> \n<rotation name="source%.0f" x="-%.2f" unit="deg"/> \n' %(axis_yPos, theta_rot, theta_rot))
+    print(f'Position of the source ("sourceRotationVolume") in the mother GDML file, should be placed at: \n {gdml_source_center} {gdml_source_rotation}')
 
-    # print('In the lab, to correspond to theta_det= %.1f deg, at radius= %.1f mm: \nsource motor should be rotated to %.1f deg \nsource should be translated to %.3f mm from center' %(theta_det, y_final, theta_rot_motor, axis_yPos))
-    print(f'In the lab, to correspond to theta_det= {theta_det:.1f} deg, at radius= {y_final:.1f} mm: \nrotary motor should be rotated to {rotary_motor_theta:.1f} deg \nsource should be translated to {lab_axis_yPos:.3f} mm from center \nsource motor should be rotated to {theta_rot_motor:.1f} deg ')
+    print(f'In the lab, to correspond to theta_det= {theta_det:.1f} deg, at radius= {y_final:.1f} mm: \nrotary motor should be rotated to {rotary_motor_theta:.1f} deg \nsource should be translated to {lab_axis_yPos:.3f} mm from center \nsource motor should be rotated to {source_rot_motor:.1f} deg ')
 
     return macro_rotation, gdml_source_center, gdml_source_rotation
 
@@ -175,8 +177,8 @@ def maxRotation(min_clearance_toLMFE=5.0, icpc=False):
     rad_to_deg = 180./math.pi
     deg_to_rad = math.pi/180.
     if icpc==True:
-        rotAxis_height = 23.6 # height in mm from top of detector to rotation axis, which is (0, 0, 0) in the mother geometry of the simulation
-        height_det_to_LMFE = 7.0 # height in mm between hieghest point of LMFE and detector surface (NEEDS TO BE UPDATED)
+        rotAxis_height = 25.2 # height in mm from top of detector to rotation axis, which is (0, 0, 0) in the mother geometry of the simulation
+        height_det_to_LMFE = 7.95 # height in mm between hieghest point of LMFE and detector surface (NEEDS TO BE UPDATED)
         print('Calculating maximum rotation angle for ICPC')
     else:
         rotAxis_height = 23.8 # height in mm from top of detector to rotation axis, which is (0, 0, 0) in the mother geometry of the simulation
@@ -187,14 +189,16 @@ def maxRotation(min_clearance_toLMFE=5.0, icpc=False):
 #    coll_Radius_solder =  15.04 # mm
 #    coll_solder_to_ax = 0.125 # mm
 #    coll_eff_Radius_solder = np.sqrt(coll_Radius_solder**2+coll_solder_to_ax**2) # in mm. since G10 shaft, hence rotation axis, is actually about 0.125 mm below part soldered onto collimator, get the hypotenuse for "effective radius"
-    coll_Radius =  31.75/2 # mm
-    coll_to_ax = .825 # mm
+    coll_Radius =  31.6/2 # mm
+    coll_to_ax = 1 # mm
     coll_eff_Radius = np.sqrt(coll_Radius**2+coll_to_ax**2) # in mm. since G10 shaft, hence rotation axis, is actually about (1.75 + 0.125) mm below lower part of "attenuator" part of collimator, get the hypotenuse for "effective radius"
 
 #    theta_i_solder = math.atan(coll_solder_to_ax/coll_Radius_solder)*rad_to_deg 
     theta_i = math.atan(coll_to_ax/coll_Radius)*rad_to_deg
+    theta_rot_max = math.asin((height_LMFE_to_ax-min_clearance_toLMFE)/coll_eff_Radius)*rad_to_deg - theta_i
 
-    theta_rot_max = math.asin((height_LMFE_to_ax-min_clearance_toLMFE)/coll_eff_Radius)*rad_to_deg + theta_i
+    print("Initial theta: ", theta_i)
+
 #    theta_rot_max_solder = math.asin((height_LMFE_to_ax-min_clearance_toLMFE)/coll_eff_Radius_solder)*rad_to_deg +theta_i_solder
 
 #    if theta_rot_max < theta_rot_max_solder:
@@ -219,8 +223,8 @@ def checkRotation(theta_det, min_clearance_toLMFE=5.0, icpc=False):
     theta_rot = (90 - theta_det)
 
     if icpc==True:
-        rotAxis_height = 23.6 # height in mm from top of detector to rotation axis, which is (0, 0, 0) in the mother geometry of the simulation
-        height_det_to_LMFE = 7.0 # height in mm between hieghest point of LMFE and detector surface
+        rotAxis_height = 25.1 # height in mm from top of detector to rotation axis, which is (0, 0, 0) in the mother geometry of the simulation
+        height_det_to_LMFE = 8.0 # height in mm between hieghest point of LMFE and detector surface
         print('Calculating maximum ratoation angle for ICPC')
     else:
         rotAxis_height = 23.8 # height in mm from top of detector to rotation axis, which is (0, 0, 0) in the mother geometry of the simulation
