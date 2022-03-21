@@ -10,60 +10,29 @@ import h5py
 import pandas as pd
 import sys
 from particle import PDGID
+
 mpl.rcParams['text.usetex'] = True
 mpl.use('Agg')
 
 def main():
-    radius = [10]
-    thetaDet = [90]
+    radius = [15]
+    thetaDet = [45, 60, 75, 90]
     rotAngle = [0]
-    scan = 'large_hole_rate'
+    scan = 'source_angle_scan'
+    plot = True
+
+    rates = scanRate(scan, radius, thetaDet, rotAngle)
+    print(rates)
+    if plot:
+        x_ax = 'thetaDet' # 'radius', 'thetaDet', OR 'rotary'
+        lines = 'radius' # same choices
+        name = f'{scan}_rates'
+        plotRates(rates, x_ax, lines, name) 
 #   radius = [5, 6, 7, 8, 9, 10]
 #   thetaDet = [90]
 #   rotAngle = [162]
 #   scan = 'spot_size_scan'
-    processed_dir = f'../data/oppi/{scan}'
-    primaries = 1e8
-    source_activity = 4e4 #40 kBq = 4e4 decays/s
-    activity_err = 4e4*0.3 # +- 30%
-    time_seconds = primaries/(source_activity)
-
-    r12_alp = []
-    r14_alp = []
-    angled_alp = []
     
-    spot = []
-    for r in radius:
-        for theta in thetaDet:
-            if r == 12 and theta == 71:
-                continue
-            for rot in rotAngle:
-                name = f'y{r}_thetaDet{theta}_rotary{rot}'
-                sixty = 0
-                alphas = 0
-                total = 0
-                for file in os.listdir(f'{processed_dir}/{name}'):
-                    file_name = f'{processed_dir}/{name}/{file}'
-                    sixty += getCounts_cut(file_name, 0.058, 0.061)
-                    alphas += getCounts_cut(file_name, 5.3, 5.5)
-                    total += getCounts(file_name)
-                    
-                rate = total/time_seconds #(rate in counts/s)
-                rate_sixty = sixty/time_seconds #(rate in counts/s)
-                rate_alpha = alphas/time_seconds #(rate in counts/s)
-                alp_err = (np.sqrt(alphas)*source_activity + alphas*activity_err)/primaries
-                print(name + ':')
-                print(f'{rate} total counts/second')
-                print(f'{rate_sixty} 60 keV gamma counts/second')
-                print(f'{rate_alpha} alpha counts/second w/ err {alp_err}')
-                spot.append((rate_alpha, alp_err))
-                if r == 12:
-                    r12_alp.append((rate_alpha, alp_err))
-                if r == 14:
-                    if theta == 90:
-                        r14_alp.append((rate_alpha, alp_err))
-                    if theta == 71:
-                        angled_alp.append((rate_alpha, alp_err))
 
 #   plt.figure()
 #   plt.errorbar(rotAngle, [r12_alp[i][0] for i in range(len(rotAngle))], [r12_alp[i][1] for i in range(len(rotAngle))], label="r=12", marker='.', ls='none')
@@ -81,6 +50,41 @@ def main():
 #   plt.legend()
 #   plt.title("spot size scan alpha rates")
 #   plt.savefig('spot_size_scan_rates.jpg')
+def scanRate(scan, radius, thetaDet, rotAngle):
+    processed_dir = f'../data/oppi/{scan}'
+    primaries = 1e8
+    source_activity = 4e4 #40 kBq = 4e4 decays/s
+    activity_err = 4e4*0.3 # +- 30%
+    time_seconds = primaries/(source_activity)
+    rate_arr = []
+    rates = pd.DataFrame(columns=['radius', 'thetaDet', 'rotary', 'rate', 'rate_err']) 
+
+    for r in radius:
+        for theta in thetaDet:
+            for rot in rotAngle:
+                name = f'y{r}_thetaDet{theta}_rotary{rot}'
+                sixty = 0
+                alphas = 0
+                total = 0
+                for file in os.listdir(f'{processed_dir}/{name}'):
+                    file_name = f'{processed_dir}/{name}/{file}'
+                    sixty += getCounts_cut(file_name, 0.058, 0.061)
+                    alphas += getCounts_cut(file_name, 5.3, 5.5)
+                    total += getCounts(file_name)
+                    
+                rate = total/time_seconds #(rate in counts/s)
+                rate_sixty = sixty/time_seconds #(rate in counts/s)
+                rate_alpha = alphas/time_seconds #(rate in counts/s)
+                alp_err = (np.sqrt(alphas)*source_activity + alphas*activity_err)/primaries
+                entry = [r, theta, rot, rate_alpha, alp_err]
+                rate_arr.append(entry)
+                print(name + ':')
+                print(f'{rate} total counts/second')
+                print(f'{rate_sixty} 60 keV gamma counts/second')
+                print(f'{rate_alpha} alpha counts/second w/ err {alp_err}')
+    rate_arr = np.array(rate_arr)
+    rates = pd.DataFrame(data=rate_arr, columns=['radius', 'thetaDet', 'rotary', 'rate', 'rate_err'])
+    return rates
 
 def getCounts(processed_filename):
     df = pd.read_hdf(processed_filename, keys='procdf')
@@ -108,68 +112,26 @@ def getRate(processed_filename, primaries, elo, ehi):
 
     return(rate, rate_err)
 
-def plotRate(radius, rotary_angles, elo, ehi, rotary=False):
-    rates_arr = []
-    rates_uncertainty = []
-    fig, ax = plt.subplots(figsize=(6,5))
+def plotRates(rates, x_ax, lines, name): 
+    if x_ax == lines:
+        print('Cannot have x_ax == lines')
+        return
 
-    if rotary==True:
-#         cmap = plt.cm.get_cmap('jet', len(rotary_angles))
-        cmap = ['g', 'b', 'r']
-        for rot, i in zip (rotary_angles, range(len(rotary_angles))):
-            rates_arr = []
-            rates_uncertainty = []
-            for r in radius:
-                rate, rate_err = getRate(f'../alpha/processed_out/oppi/centering_scan/processed_y{r}_norm_rotary{rot}_241Am_100000000.hdf5', 10000000, elo, ehi)
-                rates_arr.append(rate)
-                rates_uncertainty.append(rate_err)
-                
-            plt.errorbar(radius, rates_arr, yerr=rates_uncertainty, marker = '.', c=cmap[i], ls='none', label=f'rotary: {rot} deg')
-            
-#     print(rates_arr)
+    axis = np.sort(rates[x_ax].drop_duplicates().to_list())
+    l = np.sort(rates[lines].drop_duplicates().to_list())
 
-#     fig, ax = plt.subplots(figsize=(6,5))
-#     plt.errorbar(radius, rates_arr, yerr=rates_uncertainty, marker = '.', ls='none')
-#     plt.plot(radius, rates_arr, '.r')
-    plt.xlabel('Radius (mm)', fontsize=16)
-    plt.ylabel('Rate (cts/sec)', fontsize=16)
-    plt.title(f'Rate for {elo} to {ehi} MeV', fontsize=16)
-    plt.setp(ax.get_xticklabels(), fontsize=14)
-    plt.setp(ax.get_yticklabels(), fontsize=14)
+    plt.figure(figsize=(12,8))
+    plt.xlabel(x_ax)
+    plt.ylabel("Alpha Rate (cts/sec)")
+    plt.title(name)
+    for line in l:
+        dl = rates.loc[rates[lines] == line].sort_values(x_ax)
+        data = dl['rate']
+        data_err = dl['rate_err']
+        plt.errorbar(axis, data, data_err, label=line, marker='.', ls='none')
     plt.legend()
-    plt.savefig(f'./rates_rotary_{elo}_{ehi}.png',  dpi=200)
-    return(rate)
+    plt.savefig(f'{name}.jpg')
 
-def rotary_plotRate(radius, rotary_angles, elo, ehi, processed_dir):
-    rates_arr = []
-    rates_uncertainty = []
-    fig, ax = plt.subplots(figsize=(6,5))
-
-    cmap = plt.cm.get_cmap('jet', len(radius))
-    cmap = ['b', 'g', 'r']
-    for r, i in zip (radius, range(len(radius))):
-        rates_arr = []
-        rates_uncertainty = []
-        for rot in rotary_angles:
-            rate, rate_err = getRate(f'{processed_dir}processed_y{r}_thetaDet61_rotary{int(rot)}_241Am_100000000.hdf5', 10000000, elo, ehi)
-            rates_arr.append(rate)
-            rates_uncertainty.append(rate_err)
-                
-    plt.errorbar(rotary_angles, rates_arr, yerr=rates_uncertainty, marker = '.', c=cmap[i], ls='none', label=f'radius: {r} mm')
-            
-#     print(rates_arr)
-
-#     fig, ax = plt.subplots(figsize=(6,5))
-#     plt.errorbar(radius, rates_arr, yerr=rates_uncertainty, marker = '.', ls='none')
-#     plt.plot(radius, rates_arr, '.r')
-    plt.xlabel('Rotary Position (deg)', fontsize=16)
-    plt.ylabel('Rate (cts/sec)', fontsize=16)
-    plt.title(f'Rate for {elo} to {ehi} MeV', fontsize=16)
-    plt.setp(ax.get_xticklabels(), fontsize=14)
-    plt.setp(ax.get_yticklabels(), fontsize=14)
-    plt.legend()
-    plt.savefig(f'./rates_angled_rotary_centering_{elo}_{ehi}.png',  dpi=200)
-    return(rate)
 
 if __name__ == '__main__':
 	main()
