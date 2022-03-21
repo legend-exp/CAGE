@@ -71,7 +71,7 @@ def writeFiles(radius, source_angle, rotary='0', det='oppi', run = '', primaries
                 mac[13] = '/g4simple/setFileName ' + hdf5_out_file + ' \n'
 
                 if int(theta_det)==90:
-                    mac[43] = f'/gps/pos/centre 0.0 {float(r)} 3.875 mm \n'
+                    mac[43] = f'/gps/pos/centre {float(r)} 0.0 3.875 mm \n'
 
                 else:
                     mac[43] = ''
