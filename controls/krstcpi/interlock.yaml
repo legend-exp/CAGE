@@ -23,12 +23,12 @@ sensors:
   - target: krstc_baseline
     alarms:
       - payload_field: value_cal
-        max_value: -1.5
+        max_value: 0.5
         alarm_message: "@wisecg and @pettus and @stortini: the baseline has risen above -1.5 V, the detector has been biased down"
         alarm_limit: 1
         alarm_recurrence: 3600
       - payload_field: value_cal
-        min_value: -9.5
+        min_value: -2.0
         alarm_message: "@wisecg and @pettus and @stortini: the baseline has dropped below -9.5 V, the detector has been biased down"
         alarm_limit: 1
         alarm_recurrence: 3600
