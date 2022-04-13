@@ -18,20 +18,16 @@ def main():
 
     G. Othman
     """
-    radius = [15]
-    source_angle = [90, 75, 60, 45]
-    rotary = [0]
-#     rotary = np.linspace(4, 144, 15)
-    # print(rotary)
-    # exit()
+    radius = [14]
+    source_angle = [45, 60, 75, 90]
+    rotary = [0, 180, 145]
     mac_dir = './macros/'
     gdml_dir = './geometries/mothers/'
     hdf5_dir = '$[TMPDIR]/' #format environment variables as $[VARNAME] 
-    run = 'source_angle_scan/' #ex 'centering_scan/'
-    det = 'oppi'
+    run = 'ditch_scan/' #ex 'centering_scan/'
+    det = 'icpc'
     primaries = 1000000
     jobs = 100
-    # print(f'./geometries/mothers/{det}/{run}test.gdml')
     writeFiles(radius, source_angle, rotary, det, run, primaries, jobs, hdf5_dir=hdf5_dir, write_shell=True, run_job=False)
 
 
@@ -58,7 +54,11 @@ def writeFiles(radius, source_angle, rotary='0', det='oppi', run = '', primaries
                     # read a list of lines into data
                     mac = file.readlines()
 
-                mac_rotation, gdml_source_center, gdml_source_rotation = positionCalc(r, theta_det)
+                if det=='icpc':
+                    icpc = True
+                else: 
+                    icpc = False
+                mac_rotation, gdml_source_center, gdml_source_rotation = positionCalc(r, theta_det, icpc)
                 gdml_divingBoard_rotation = f'     <rotation name="ICPC_diving_board_volume_Rotation" z="-(90+17.92)-{theta_rot}" unit="deg"/> <!-- diving board rotation. linear motor drive --> \n'
                 gdml_det_rotation = f'     <rotation name="ICPC_Rotation" x="0" y="0" z="-{theta_rot}" unit="deg"/> <!--Add same additional rotation to "OPPI1_diving_board_volume_Rotation" here to simulte rotating rotary motor--> \n'
 
@@ -71,7 +71,7 @@ def writeFiles(radius, source_angle, rotary='0', det='oppi', run = '', primaries
                 mac[13] = '/g4simple/setFileName ' + hdf5_out_file + ' \n'
 
                 if int(theta_det)==90:
-                    mac[43] = f'/gps/pos/centre {float(r)} 0.0 3.875 mm \n'
+                    mac[43] = f'/gps/pos/centre {float(r)} 0.0 3.85 mm \n'
 
                 else:
                     mac[43] = ''

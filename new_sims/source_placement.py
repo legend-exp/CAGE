@@ -18,7 +18,7 @@ def main():
 
     #calculate_CollClearances()
 
-    positionCalc(y_final=15, theta_det=45, icpc=False)
+    positionCalc(y_final=14, theta_det=45, icpc=True)
     # rotaryCalc(radius=12.0, d_theta=10)
     # maxRotation(min_clearance_toLMFE=5.0, icpc=True)
     # checkRotation(theta_det=45, min_clearance_toLMFE=5.0, icpc=True)
@@ -36,12 +36,12 @@ def positionCalc(y_final, theta_det, icpc=False):
         # exit()
 
     ditch_depth = 2. # ditch depth for ICPC in mm
-    rotAxis_toSource_height = 3.875 # height difference in mm from the rotation axis to where the activity is located (updated for collimator v3)
+    rotAxis_toSource_height = 3.85 # height difference in mm from the rotation axis to where the activity is located (updated for collimator v3)
     if icpc==False:
         rotAxis_height = 23.8 # height for OPPI in mm from top of detector to rotation axis, which is (0, 0, 0) in the mother geometry of the simulation
         print('Using OPPI axis height: % .1f' %rotAxis_height)
     else:
-        rotAxis_height = 25.2 # height in mm from top of detector to rotation axis, which is (0, 0, 0) in the mother geometry of the simulation
+        rotAxis_height = 25.1 # height in mm from top of detector to rotation axis, which is (0, 0, 0) in the mother geometry of the simulation
         print('Using ICPC axis height: % .1f' %rotAxis_height)
 
     delta_y_source = rotAxis_toSource_height*(math.cos((90.+theta_rot)*deg_to_rad)) # change in mm of the y-position of the source activity within the collimator from source being rotated
@@ -61,7 +61,7 @@ def positionCalc(y_final, theta_det, icpc=False):
         delta_y_rotation = rotAxis_height/(math.tan((theta_det)*deg_to_rad))
 
     if icpc==True:
-        if (13.<y_final<16.):
+        if (13<y_final<16.):
             print('Input final y position (radius) is located within the ditch.\nOffsetting by ditch depth value: %.1f mm \n'   %ditch_depth)
             delta_y_ditch = ditch_depth/(math.tan((theta_det*deg_to_rad)))
         else:
@@ -110,8 +110,8 @@ def positionCalc(y_final, theta_det, icpc=False):
 
 def thetaCalc(y_final, icpc=False):
     # Caluclate the rotation angle to rotate the source WHILE KEEPING IT CENTERED OVER P+ CONTACT to reach desired "y_final" radius in mm on detector surface
-    ditch_depth = 2. # ditch depth for ICPC in mm
-    rotAxis_toSource_height = 3.875 # height difference in mm from the rotation axis to where the activity is located (updated for collimator v3)
+    ditch_depth = 1.95 # ditch depth for ICPC in mm
+    rotAxis_toSource_height = 3.85 # height difference in mm from the rotation axis to where the activity is located (updated for collimator v3)
     # rotAxis_height = 22.5 # height in mm from top of detector to rotation axis, which is (0, 0, 0) in the mother geometry of the simulation
     pi = math.pi
     deg_to_rad = pi/180.
@@ -121,10 +121,10 @@ def thetaCalc(y_final, icpc=False):
         rotAxis_height = 23.8 # height for OPPI in mm from top of detector to rotation axis, which is (0, 0, 0) in the mother geometry of the simulation
         print('Using OPPI axis height: % .1f' %rotAxis_height)
     else:
-        rotAxis_height = 23.6 # height in mm from top of detector to rotation axis, which is (0, 0, 0) in the mother geometry of the simulation
+        rotAxis_height = 25.1 # height in mm from top of detector to rotation axis, which is (0, 0, 0) in the mother geometry of the simulation
         print('Using ICPC axis height: % .1f' %rotAxis_height)
 
-    if (icpc==True and (13.<y_final<16.)):
+    if (icpc==True and (12.9<y_final<15.8)):
         print('Input final y position (radius) is located within the ditch.\nOffsetting by ditch depth value: %.1f mm'   %ditch_depth)
         rotAxis_height += ditch_depth
 
@@ -177,8 +177,8 @@ def maxRotation(min_clearance_toLMFE=5.0, icpc=False):
     rad_to_deg = 180./math.pi
     deg_to_rad = math.pi/180.
     if icpc==True:
-        rotAxis_height = 25.2 # height in mm from top of detector to rotation axis, which is (0, 0, 0) in the mother geometry of the simulation
-        height_det_to_LMFE = 7.95 # height in mm between hieghest point of LMFE and detector surface (NEEDS TO BE UPDATED)
+        rotAxis_height = 25.1 # height in mm from top of detector to rotation axis, which is (0, 0, 0) in the mother geometry of the simulation
+        height_det_to_LMFE = 7.95 # height in mm between hieghest point of LMFE and detector surface 
         print('Calculating maximum rotation angle for ICPC')
     else:
         rotAxis_height = 23.8 # height in mm from top of detector to rotation axis, which is (0, 0, 0) in the mother geometry of the simulation
@@ -224,7 +224,7 @@ def checkRotation(theta_det, min_clearance_toLMFE=5.0, icpc=False):
 
     if icpc==True:
         rotAxis_height = 25.1 # height in mm from top of detector to rotation axis, which is (0, 0, 0) in the mother geometry of the simulation
-        height_det_to_LMFE = 8.0 # height in mm between hieghest point of LMFE and detector surface
+        height_det_to_LMFE = 7.95 # height in mm between hieghest point of LMFE and detector surface
         print('Calculating maximum ratoation angle for ICPC')
     else:
         rotAxis_height = 23.8 # height in mm from top of detector to rotation axis, which is (0, 0, 0) in the mother geometry of the simulation

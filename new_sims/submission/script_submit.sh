@@ -1,8 +1,8 @@
 #!/bin/bash
 
-rad=(5 6 7 8 9 10);
-det=(90);
-rot=(162);
+rad=(14);
+det=(60 75 90);
+rot=(0 180 145);
 
 for y in ${rad[@]}; do
     for d in ${det[@]}; do

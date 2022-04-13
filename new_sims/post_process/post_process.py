@@ -20,20 +20,21 @@ def main():
 #   rotAngle = [162]
 #   scan = 'spot_size_scan'
     
-    radius = [10]
-    thetaDet = [90]
-    rotAngle = [0]
-    scan = 'large_hole_rate'
-    if not os.path.isdir(f'../data/oppi/{scan}/'):
+    radius = [14]
+    thetaDet = [90, 75, 60, 45]
+    rotAngle = [0, 180, 145]
+    scan = 'ditch_scan'
+    det = 'icpc'
+    if not os.path.isdir(f'../data/{det}/{scan}/'):
         print(f'Creating data directory for scan: {scan}')
-        os.mkdir(f'../data/oppi/{scan}/')
+        os.mkdir(f'../data/{det}/{scan}/')
     
     for r in radius:
         for theta in thetaDet:
             for rot in rotAngle:
                 name = f'y{r}_thetaDet{theta}_rotary{rot}'
                 raw_dir = f'../../../jobs/data/{scan}/{name}/'
-                processed_dir = f'../data/oppi/{scan}/{name}/'
+                processed_dir = f'../data/{det}/{scan}/{name}/'
                 base_filenames = os.listdir(raw_dir)
                 
                 for file in range(len(base_filenames)):

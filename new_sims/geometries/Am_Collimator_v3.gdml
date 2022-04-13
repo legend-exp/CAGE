@@ -32,7 +32,7 @@
   <quantity name="round_height" type="length" value="7" unit="mm"/>
 
   <quantity name="innerVolume_radius" type="length" value="25.25/2" unit="mm"/>
-  <quantity name="innerVolume_height" type="length" value="0.5+0.1" unit="mm"/>
+  <quantity name="innerVolume_height" type="length" value="0.5" unit="mm"/>
 
   <quantity name="body_sourceOffset_radius" type="length" value="9.15/2" unit="mm"/>
   <quantity name="body_sourceOffset_height" type="length" value="0.05" unit="mm"/>
@@ -52,6 +52,7 @@
 
     <!-- Primary solids -->
     <box name="body_nub" x="body_nub_width" y="body_top_length" z="body_nub_height + 0.2" lunit="mm" /> <!--Add 0.2mm to remove gap between nub and round -->
+    <box name="body_top" x="body_top_width" y="body_top_length" z="body_top_height" lunit="mm" />
 
     <cone name="round" rmin1="0" rmax1="round_rad" rmin2="0" rmax2="round_rad" z="body_top_length" startphi="0" deltaphi="TWOPI" lunit="mm" aunit="rad" />
     <box name="sub" x="round_rad*2" y="round_rad*2" z="body_top_length" lunit="mm" />
@@ -63,7 +64,6 @@
         <rotationref ref="identity"/>
     </subtraction>
 
-    <box name="body_top" x="body_top_width" y="body_top_length" z="body_top_height" lunit="mm" />
 
     <!-- subtraction solids -->
     <cone name="body_sourceOffset" rmin1="0.0" rmax1="body_sourceOffset_radius" rmin2="0.0" rmax2="body_sourceOffset_radius" z="body_sourceOffset_height" startphi="0" deltaphi="TWOPI" aunit="rad" />
@@ -87,7 +87,7 @@
     <subtraction name="body_innerVolume_subtraction">
       <first ref="body_collimator" />
       <second ref="innerVolume" />
-      <position name="inner_pos" x="0" y="0" z="body_top_height/2 - 3.5 - innerVolume_height/2 + 0.005" />
+      <position name="inner_pos" x="0" y="0" z="body_top_height/2 - 3.5 - innerVolume_height/2" />
       <rotationref ref="identity"/>
     </subtraction>
 

@@ -15,46 +15,26 @@ mpl.rcParams['text.usetex'] = True
 mpl.use('Agg')
 
 def main():
-    radius = [15]
-    thetaDet = [45, 60, 75, 90]
-    rotAngle = [0]
-    scan = 'source_angle_scan'
+    radius = [14]
+    thetaDet = [90, 75, 60, 45]
+    rotAngle = [0, 180, 145]
+    scan = 'ditch_scan'
+    det = 'icpc'
     plot = True
 
-    rates = scanRate(scan, radius, thetaDet, rotAngle)
+    rates = scanRate(det, scan, radius, thetaDet, rotAngle)
     print(rates)
     if plot:
         x_ax = 'thetaDet' # 'radius', 'thetaDet', OR 'rotary'
-        lines = 'radius' # same choices
+        lines = 'rotary' # same choices
         name = f'{scan}_rates'
         plotRates(rates, x_ax, lines, name) 
-#   radius = [5, 6, 7, 8, 9, 10]
-#   thetaDet = [90]
-#   rotAngle = [162]
-#   scan = 'spot_size_scan'
     
-
-#   plt.figure()
-#   plt.errorbar(rotAngle, [r12_alp[i][0] for i in range(len(rotAngle))], [r12_alp[i][1] for i in range(len(rotAngle))], label="r=12", marker='.', ls='none')
-#   plt.errorbar(rotAngle, [r14_alp[i][0] for i in range(len(rotAngle))], [r14_alp[i][1] for i in range(len(rotAngle))], label="r=14", marker='.', ls='none')
-#   plt.errorbar(rotAngle, [angled_alp[i][0] for i in range(len(rotAngle))], [angled_alp[i][1] for i in range(len(rotAngle))], label="angled", marker='.', ls='none')
-#   plt.xlabel("rotary angle [deg]")
-#   plt.ylabel("rate [counts/sec]")
-#   plt.legend()
-#   plt.title("rotary centering scan alpha rates")
-#   plt.savefig('rotary_centering_scan_rates.jpg')
-#   plt.figure()
-#   plt.errorbar(radius, [spot[i][0] for i in range(len(radius))], [spot[i][1] for i in range(len(radius))], label="rot162", marker='.', ls='none')
-#   plt.xlabel("radius [mm]")
-#   plt.ylabel("rate [counts/sec]")
-#   plt.legend()
-#   plt.title("spot size scan alpha rates")
-#   plt.savefig('spot_size_scan_rates.jpg')
-def scanRate(scan, radius, thetaDet, rotAngle):
-    processed_dir = f'../data/oppi/{scan}'
+def scanRate(det, scan, radius, thetaDet, rotAngle):
+    processed_dir = f'../data/{det}/{scan}'
     primaries = 1e8
     source_activity = 4e4 #40 kBq = 4e4 decays/s
-    activity_err = 4e4*0.3 # +- 30%
+    activity_err = 1.2e4 # +- 30%
     time_seconds = primaries/(source_activity)
     rate_arr = []
     rates = pd.DataFrame(columns=['radius', 'thetaDet', 'rotary', 'rate', 'rate_err']) 
@@ -123,14 +103,16 @@ def plotRates(rates, x_ax, lines, name):
     plt.figure(figsize=(12,8))
     plt.xlabel(x_ax)
     plt.ylabel("Alpha Rate (cts/sec)")
-    plt.title(name)
+    #plt.title(name)
     for line in l:
         dl = rates.loc[rates[lines] == line].sort_values(x_ax)
         data = dl['rate']
         data_err = dl['rate_err']
         plt.errorbar(axis, data, data_err, label=line, marker='.', ls='none')
     plt.legend()
-    plt.savefig(f'{name}.jpg')
+    fname = name + '.jpg'
+    print(fname)
+    plt.savefig(fname)
 
 
 if __name__ == '__main__':

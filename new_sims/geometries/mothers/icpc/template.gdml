@@ -29,7 +29,7 @@ See these elogs for more diagrams and information: https://elog.legend-exp.org/U
   <quantity name="vacuum_radius" type="length" value="1" unit="m"/>
   <quantity name="vacuum_height" type="length" value="2" unit="m"/>
 
-  <quantity name="rotAxis_to_coldPlate_icpc" type="length" value="103" unit="mm"/>
+  <quantity name="rotAxis_to_coldPlate_icpc" type="length" value="103+15.7/2" unit="mm"/>
   <quantity name="coldPlate_to_detSurface_icpc" type="length" value="85.75" unit="mm"/>
   <quantity name="rotAxis_to_detSurface_icpc" type="length" value="rotAxis_to_coldPlate_icpc - coldPlate_to_detSurface_icpc" unit="mm"/>
 
@@ -65,6 +65,12 @@ See these elogs for more diagrams and information: https://elog.legend-exp.org/U
   <cone name="mother_vacuum_cylinder" rmin1="0" rmax1="vacuum_radius" rmin2="0" rmax2="vacuum_radius" z="vacuum_height" startphi="0" deltaphi="TWOPI" aunit="rad"/>
 
  </solids>
+
+
+
+
+
+
 
 <!--##########################################-->
 
