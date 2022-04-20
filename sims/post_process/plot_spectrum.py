@@ -10,6 +10,7 @@ plt.style.use('../../analysis/joule_dissertation.mplstyle')
 import h5py
 import pandas as pd
 import sys
+import os
 from particle import PDGID
 #matplotlib.rcParams['text.usetex'] = True
 import matplotlib as mpl
@@ -39,7 +40,7 @@ def main():
 
 
 	# plotDepth_alpGamma(processed_filename)
-	plot2Dhist(processed_filename, nbins=500, plot_title = 'Spot Size from $^{241}$Am (10$^8$ Primaries) \n all particles', source=False, particle = 'all')
+	plot2Dhist(processed_filename, nbins=500, plot_title = 'Spot Size from $^{241}$Am (10$^8$ Primaries) \n all particles', source=False, particle = 'all', multifile=True)
 	# spot_curve()
 	# plot1DSpot(processed_filename, axis='y', particle='alpha')
 
