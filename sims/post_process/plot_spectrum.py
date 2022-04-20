@@ -260,7 +260,7 @@ def ZplotSpot(filename):
 def plot2Dhist(filename, nbins=100, plot_title = '', source=False, particle = 'all', multifile=False):
 
 	if multifile:
-		dfs = [pd.read_hdf(filename, keys='procdf') for file in filename]
+		dfs = [pd.read_hdf(file, keys='procdf') for file in filename]
 		df = pd.concat(dfs)
 
 	else:
