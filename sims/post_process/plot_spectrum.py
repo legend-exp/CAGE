@@ -18,14 +18,20 @@ import matplotlib as mpl
 def main():
 
 	# processed_dir = '../alpha/processed_out/oppi/source_angle_scan/'
+
 	# file = 'processed_y15_thetaDet90_rotary0_241Am_100000000.hdf5'
+
+
+	# for files from Grace, use this
+	processed_dir = '/global/cfs/cdirs/m2676/users/grsong/sim_output/oppi/source_angle_scan/y15_thetaDet90_rotary0'
+	processed_filename = os.listdir(processed_dir)
 
 	# processed_filename = processed_dir + file
 
 #     processed_filename = '../alpha/processed_out/oppi/centering_scan/processed_y10_norm_rotary0_241Am_100000000.hdf5'
 
 	# processed_filename = '../alpha/processed_out/oppi/systematics/processed_oppi_ring_y10_norm_241Am_100000000.hdf5'
-	processed_filename = '../alpha/processed_out/oppi/source_angle_scan/processed_y15_thetaDet90_rotary0_241Am_100000000.hdf5'
+	# processed_filename = '../alpha/processed_out/oppi/source_angle_scan/processed_y15_thetaDet90_rotary0_241Am_100000000.hdf5'
 	# processed_filename = '../alpha/processed_out/oppi/source_angle_scan/processed_y15_thetaDet75_rotary0_241Am_100000000.hdf5'
 	# processed_filename = '../alpha/processed_out/oppi/source_angle_scan/processed_y15_thetaDet60_rotary0_241Am_100000000.hdf5'
 	# processed_filename = '../alpha/processed_out/oppi/source_angle_scan/processed_y15_thetaDet45_rotary0_241Am_100000000.hdf5'
@@ -33,7 +39,7 @@ def main():
 
 
 	# plotDepth_alpGamma(processed_filename)
-	# plot2Dhist(processed_filename, nbins=500, plot_title = 'Spot Size from $^{241}$Am (10$^8$ Primaries) \n60 keV gamma', source=False, particle = 'gamma')
+	plot2Dhist(processed_filename, nbins=500, plot_title = 'Spot Size from $^{241}$Am (10$^8$ Primaries) \n all particles', source=False, particle = 'all')
 	# spot_curve()
 	# plot1DSpot(processed_filename, axis='y', particle='alpha')
 
@@ -250,9 +256,14 @@ def ZplotSpot(filename):
 	plt.title('Spot Size, $^{241}$Am 10$^6$ Primaries', fontsize=16)
 	plt.show()
 
-def plot2Dhist(filename, nbins=100, plot_title = '', source=False, particle = 'all'):
+def plot2Dhist(filename, nbins=100, plot_title = '', source=False, particle = 'all', multifile=False):
 
-	df = pd.read_hdf(filename, keys='procdf')
+	if multifile:
+		dfs = [pd.read_hdf(filename, keys='procdf') for file in filenames]
+		df = pd.concat(dfs)
+
+	else:
+		df = pd.read_hdf(filename, keys='procdf')
 
 	if particle == 'all':
 		x = np.array(df['x'])
@@ -547,8 +558,13 @@ def old_plotContour(filename, source=False, particle = 'all'):
 		x_source = np.array(source_df['x'])
 		print(len(x_source))
 
-def plotDepth(filename, plot_title, source=False, particle = 'all', hist=True):
-	df = pd.read_hdf(filename, keys='procdf')
+def plotDepth(filename, plot_title, source=False, particle = 'all', hist=True, multifile=False):
+	if multifile:
+		dfs = [pd.read_hdf(file, keys='procdf') for file in filename]
+		df = pd.concat(dfs)
+
+	else:
+		df = pd.read_hdf(filename, keys='procdf')
 	# df = df.loc[(df.x > -0.25) & (df.x < 0.25) & df.energy > 0.01]
 
 	if particle == 'all':
