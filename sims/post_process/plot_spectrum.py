@@ -24,25 +24,28 @@ def main():
 
 
 	# for files from Grace, use this
-	processed_dir = '/global/cfs/cdirs/m2676/users/grsong/sim_output/oppi/source_angle_scan/y15_thetaDet90_rotary0'
-	processed_filename = os.listdir(processed_dir)
+	processed_dir = '/global/cfs/cdirs/m2676/users/grsong/sim_output/oppi/source_angle_scan/y15_thetaDet45_rotary0/'
+	filenames = os.listdir(processed_dir)
+	processed_filename = [processed_dir + file for file in filenames]
+	# print(processed_filename[0])
+	# exit()
 
 	# processed_filename = processed_dir + file
 
 #     processed_filename = '../alpha/processed_out/oppi/centering_scan/processed_y10_norm_rotary0_241Am_100000000.hdf5'
 
-	# processed_filename = '../alpha/processed_out/oppi/systematics/processed_oppi_ring_y10_norm_241Am_100000000.hdf5'
-	# processed_filename = '../alpha/processed_out/oppi/source_angle_scan/processed_y15_thetaDet90_rotary0_241Am_100000000.hdf5'
-	# processed_filename = '../alpha/processed_out/oppi/source_angle_scan/processed_y15_thetaDet75_rotary0_241Am_100000000.hdf5'
-	# processed_filename = '../alpha/processed_out/oppi/source_angle_scan/processed_y15_thetaDet60_rotary0_241Am_100000000.hdf5'
-	# processed_filename = '../alpha/processed_out/oppi/source_angle_scan/processed_y15_thetaDet45_rotary0_241Am_100000000.hdf5'
+	# processed_filename = ['../alpha/processed_out/oppi/systematics/processed_oppi_ring_y10_norm_241Am_100000000.hdf5']
+	# processed_filename = ['../alpha/processed_out/oppi/source_angle_scan/processed_y15_thetaDet90_rotary0_241Am_100000000.hdf5']
+	# processed_filename = ['../alpha/processed_out/oppi/source_angle_scan/processed_y15_thetaDet75_rotary0_241Am_100000000.hdf5']
+	# processed_filename = ['../alpha/processed_out/oppi/source_angle_scan/processed_y15_thetaDet60_rotary0_241Am_100000000.hdf5']
+	# processed_filename = ['../alpha/processed_out/oppi/source_angle_scan/processed_y15_thetaDet45_rotary0_241Am_100000000.hdf5']
 
 
 
 	# plotDepth_alpGamma(processed_filename)
-	plot2Dhist(processed_filename, nbins=500, plot_title = 'Spot Size from $^{241}$Am (10$^8$ Primaries) \n all particles', source=False, particle = 'all', multifile=True)
+	plot2Dhist(processed_filename, nbins=500, plot_title = 'Spot Size from $^{241}$Am (10$^8$ Primaries) \n new Collimator', source=False, particle = 'alpha', multifile=True)
 	# spot_curve()
-	# plot1DSpot(processed_filename, axis='y', particle='alpha')
+	# plot1DSpot(processed_filename, axis='x', particle='alpha')
 
 	# plotHist(processed_filename)
 	# post_process(filename, processed_filename, source=False)
@@ -51,7 +54,7 @@ def main():
 
 
 
-	plotDepth(processed_filename, source=False, hist=False, particle = 'alpha', plot_title='Depth for: \nalphas ($10^8$ primaries)')
+	# plotDepth(processed_filename, source=False, hist=False, particle = 'alpha', plot_title='Depth for: \nalphas ($10^8$ primaries)')
 	# plotContour(processed_filename, source=False, particle = 'all')
 	# testFit(filename)
 	# getCounts(processed_filename)
@@ -69,6 +72,18 @@ def post_process(filename, processed_filename, source=False):
 		procdf.to_hdf(processed_filename, key='procdf', mode='w')
 
 	print('File processed. Output saved to: ', processed_filename)
+
+def readSimData(filename):
+	print(f'Found {len(filename)} files')
+	if len(filename) > 1:
+		print('concating mulitple file dataframes')
+		dfs = [pd.read_hdf(file, keys='procdf') for file in filename]
+		df = pd.concat(dfs)
+
+	else:
+		df = pd.read_hdf(filename[0], keys='procdf')
+		
+	return df
 
 
 
@@ -258,13 +273,8 @@ def ZplotSpot(filename):
 	plt.show()
 
 def plot2Dhist(filename, nbins=100, plot_title = '', source=False, particle = 'all', multifile=False):
-
-	if multifile:
-		dfs = [pd.read_hdf(file, keys='procdf') for file in filename]
-		df = pd.concat(dfs)
-
-	else:
-		df = pd.read_hdf(filename, keys='procdf')
+	
+	df = readSimData(filename)
 
 	if particle == 'all':
 		x = np.array(df['x'])
@@ -317,13 +327,13 @@ def plot2Dhist(filename, nbins=100, plot_title = '', source=False, particle = 'a
 
 	ax.set_xlabel('x position (mm)')
 	ax.set_ylabel('y position (mm)')
-	plt.title(plot_title)
+	plt.title(plot_title + f'; {particle}')
 
 	ax.text(0.4, 0.92, f'15 mm; 45 deg', verticalalignment='bottom',
 						horizontalalignment='right', transform=ax.transAxes, color='k', fontsize=20, bbox={'facecolor': 'white', 'alpha': 0.4, 'pad': 10})
 	# plt.show()
-	plt.savefig(f'./2dHist_{particle}_y15_thetaDet45_rotary0_241Am_100000000.png', dpi=200)
-	plt.savefig(f'./2dHist_{particle}_y15_thetaDet45_rotary0_241Am_100000000.pdf', dpi=200)
+	plt.savefig(f'./newCollimator/2dHist_{particle}_y15_thetaDet45_rotary0_241Am_100000000.png', dpi=200)
+	plt.savefig(f'./newCollimator/2dHist_{particle}_y15_thetaDet45_rotary0_241Am_100000000.pdf', dpi=200)
 
 	# ax.set_xlabel('x position (mm)', fontsize=28)
 	# ax.set_ylabel('y position (mm)', fontsize=28)
@@ -769,7 +779,7 @@ def plotSpot(filename, source=False, plot_title = '', particle = 'all'):
 def plot1DSpot(filename, axis='x', particle = 'all', fit=True):
 	axis = str(axis)
 	particle = str(particle)
-	df = pd.read_hdf(filename, keys='procdf')
+	df = readSimData(filename)
 	energy = np.array(df['energy'])
 
 	if particle=='all':
@@ -924,13 +934,13 @@ def plot1DSpot(filename, axis='x', particle = 'all', fit=True):
 	# plt.ylim(0.0, 0.4)
 
 	# plt.title('Y-axis projection of spot-size. Gaussian KDE, %.2f bandwidth' % bw, fontsize=16)
-	plt.title('Y-axis projection of spot-size \nall particles')
+	plt.title(f'Y-axis projection of spot-size \n{particle}')
 
 	ax.text(0.3, 0.92, f'15 mm; 90 deg', verticalalignment='bottom',
 						horizontalalignment='right', transform=ax.transAxes, color='k', fontsize=20, bbox={'facecolor': 'white', 'alpha': 0.4, 'pad': 10})
 
-	plt.savefig(f'./1dHist_{particle}_y15_thetaDet90rotary0_241Am_100000000.png', dpi=200)
-	plt.savefig(f'./1dHist_{particle}_y15_thetaDet90rotary0_241Am_100000000.pdf', dpi=200)
+	plt.savefig(f'./newCollimator/1dHist_{particle}_y15_thetaDet90rotary0_241Am_100000000.png', dpi=200)
+	plt.savefig(f'./newCollimator/1dHist_{particle}_y15_thetaDet90rotary0_241Am_100000000.pdf', dpi=200)
 
 	plt.show()
 
