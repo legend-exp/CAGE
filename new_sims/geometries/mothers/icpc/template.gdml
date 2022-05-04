@@ -95,7 +95,7 @@ See these elogs for more diagrams and information: https://elog.legend-exp.org/U
    <physvol>
      <file name="./geometries/ICPC_diving_board_volume.gdml"/>
      <position name= "LMFE_center" x="0." y="0." z="ICPC_diving_board_height" unit="mm"/>
-     <rotation name="ICPC_diving_board_volume_Rotation" z="-(180-17.92)" unit="deg"/> <!-- diving board rotation. linear motor drive is not perpendiculat to LMFE diving board in real life, (180-17.92) ccount for this. Additional rotation is to simulate rotating rotary motor -->
+     <rotation name="ICPC_diving_board_volume_Rotation" z="-(180-(90-64.65)))" unit="deg"/> <!-- diving board rotation. linear motor drive is not perpendiculat to LMFE diving board in real life, (180-(90-64.65)) ccount for this. Additional rotation is to simulate rotating rotary motor -->
    </physvol>
 
    <physvol>
