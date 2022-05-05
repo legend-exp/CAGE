@@ -24,8 +24,8 @@ sourceMotor_unc = 2.2   #deg
 toRad = math.pi/180
 
 def main():
-    radii = [5, 6, 7, 8, 9, 10]
-    thetaRots = [180]
+    radii = [5]
+    thetaRots = [200]
     for radius in radii:
         for thetaRot in thetaRots:
             print(f"Rotary angle: {thetaRot}, Radius: {radius}")
@@ -80,7 +80,7 @@ def calculateMotorPos(radius, thetaRot, thetaDet=90):
             centerX = center_x
             centerY = center_y
         
-    linear = np.sqrt((closestY - centerY)**2 + (closestX - centerX)**2) - col_offset
+    linear = np.sqrt((closestY - centerY)**2 + (closestX - centerX)**2) + col_offset
     #TODO: Incorporate source angle
 
     return angle, linear 
@@ -117,14 +117,14 @@ def calculateDetPos(rotary, linear, source=0):
     '''
     Calculate the beam position on the detector for a given set of motor positions
     rotary: rotary angle, in degrees (0 <= rotary <= 270)
-    linear: linear distance measured from limit switch
+    linear: linear distance measured from "center", which is 2.5mm
     source: source angle, in degrees, 180 is normal incidence
     '''
     #TODO: Add source angles 
     rot_rad = rotary*math.pi/180
     center_x, center_x_unc, center_y, center_y_unc = rotate(rot_rad, rotZero_x, rotZero_x_unc, rotZero_y, rotZero_y_unc)
-    final_x = center_x + (linear+col_offset)*math.sin(rot_rad) 
-    final_y = center_y + (linear+col_offset)*math.cos(rot_rad)
+    final_x = center_x + (linear-col_offset)*math.sin(rot_rad) 
+    final_y = center_y + (linear-col_offset)*math.cos(rot_rad)
     linx2_unc = (linear*math.sin(rot_rad))*np.sqrt( (linMotor_unc/linear)**2  + ((math.cos(rot_rad)*rotMotor_unc*toRad)/math.sin(rot_rad))**2 )
     liny2_unc = (linear*math.cos(rot_rad))*np.sqrt( (linMotor_unc/linear)**2 + ((math.sin(rot_rad)*rotMotor_unc*toRad)/math.cos(rot_rad))**2 )
     colx2_unc = (col_offset*math.sin(rot_rad))*np.sqrt( (col_offset_unc/col_offset)**2  + ((math.cos(rot_rad)*rotMotor_unc*toRad)/math.sin(rot_rad))**2 )
