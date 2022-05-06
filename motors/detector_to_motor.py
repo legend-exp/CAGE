@@ -20,26 +20,33 @@ minorAxis = 183         #mm
 linMotor_unc = 0.01     #mm
 rotMotor_unc = 0.07     #deg
 sourceMotor_unc = 2.2   #deg
+sourceAxToDet = 25.1    #mm, for ICPC
+ditchDepth = 2          #mm, for ICPC
+
 
 toRad = math.pi/180
 
 def main():
-    radii = [5]
-    thetaRots = [200]
+    radii = [15]
+    thetaRots = [0, 145, 180]
+    thetaDets = [90, 75, 60, 45]
+    ditchScan = True
     for radius in radii:
         for thetaRot in thetaRots:
-            print(f"Rotary angle: {thetaRot}, Radius: {radius}")
-            rotary, linear = calculateMotorPos(radius, thetaRot)
-            print(f"Move rotary motor to: -{rotary} degrees")
-            print(f"Move linear motor to: {linear} mm")
-            pos_x, pos_x_unc, pos_y, pos_y_unc = calculateDetPos(rotary, linear)
-            print(f"This will put us at:     ({pos_x} +- {pos_x_unc}, {pos_y} +- {pos_y_unc})")
-            targetX = radius*math.sin(thetaRot*toRad)
-            targetY = radius*math.cos(thetaRot*toRad)
-            dist = np.sqrt((targetY-pos_y)**2 + (targetX-pos_x)**2)
-            dist_unc = np.sqrt( ((pos_x-targetX)**2/dist**2) * pos_x_unc**2 + ((pos_y-targetY)**2/dist**2) * pos_y_unc**2 )
-            print(f"This is {dist:0.3f} +- {dist_unc:0.3f} mm away from the target")
-            print()
+            for thetaDet in thetaDets:
+                print(f"Rotary angle: {thetaRot}, Radius: {radius}, Detector Angle: {thetaDet}")
+                rotary, linear, source = calculateMotorPos(radius, thetaRot, thetaDet)
+                print(f"Move rotary motor to: -{rotary} degrees")
+                print(f"Move linear motor to: {linear:0.3f} mm")
+                print(f"Move source motor to: {source} degrees")
+                pos_x, pos_x_unc, pos_y, pos_y_unc = calculateDetPos(rotary, linear, source, ditch=ditchScan)
+                print(f"This will put us at:     ({pos_x:0.3f} +- {pos_x_unc:0.3f}, {pos_y:0.3f} +- {pos_y_unc:0.3f})")
+                targetX = radius*math.sin(thetaRot*toRad)
+                targetY = radius*math.cos(thetaRot*toRad)
+                dist = np.sqrt((targetY-pos_y)**2 + (targetX-pos_x)**2)
+                dist_unc = np.sqrt( ((pos_x-targetX)**2/dist**2) * pos_x_unc**2 + ((pos_y-targetY)**2/dist**2) * pos_y_unc**2 )
+                print(f"This is {dist:0.3f} +- {dist_unc:0.3f} mm away from the target")
+                print()
 
 def calculateMotorPos(radius, thetaRot, thetaDet=90):
     '''Gives the motor commands that should be called to get the collimator beam to the given position on the detector
@@ -57,7 +64,21 @@ def calculateMotorPos(radius, thetaRot, thetaDet=90):
     '''
     targetX = radius*math.sin(thetaRot*toRad)
     targetY = radius*math.cos(thetaRot*toRad)
-    
+    print(f"Target: ({targetX}, {targetY})")
+
+    angle, linear, source = calculateMotorFromTarget(targetX, targetY, thetaRot, thetaDet)
+
+    if linear < -linear_center:
+        print(angle, linear, source)
+        print("We need to turn around")
+        return calculateMotorFromTarget(targetX, targetY, angle+180, 180-thetaDet, flipped=True)
+        #return calculateMotorPos(-radius, angle+180, 180-thetaDet, flipped=True)
+        #return angle+180, -(linear_center+linear), -180-(source+180)
+
+    return angle, linear, source
+
+def calculateMotorFromTarget(targetX, targetY, thetaRot, thetaDet=90, flipped=False):
+    radius = np.sqrt(targetX**2 + targetY**2)
     distance = 1e8
     angle = 0
     closestX = 0
@@ -65,10 +86,13 @@ def calculateMotorPos(radius, thetaRot, thetaDet=90):
     centerX = 0
     centerY = 0
     for r in np.arange(thetaRot-25, thetaRot+6):
-        center_x, _, center_y, _ = rotate(r*toRad) 
+        rot_rad = r*toRad
+        if rot_rad == 0:
+            rot_rad = 1e-15
+        center_x, _, center_y, _ = rotate(rot_rad) 
         d = np.abs(math.cos((90-r)*toRad)*(center_y - targetY) - math.sin((90-r)*toRad)*(center_x - targetX))
         if d < distance:
-            slope = 1/math.tan(r*toRad) 
+            slope = 1/math.tan(rot_rad) 
             intercept = center_y - center_x*slope 
             x = (targetX + slope*targetY - slope*intercept)/(slope**2 + 1)
             y = (slope*(targetX + slope*targetY) + intercept)/(slope**2 + 1)
@@ -79,13 +103,21 @@ def calculateMotorPos(radius, thetaRot, thetaDet=90):
             closestY = y 
             centerX = center_x
             centerY = center_y
-        
-    linear = np.sqrt((closestY - centerY)**2 + (closestX - centerX)**2) + col_offset
-    #TODO: Incorporate source angle
+    
+    sourceLinearDist = 0
+    if thetaDet != 90: #only need to care if not normal incidence
+        y = sourceAxToDet
+        if 13 < np.abs(radius) < 16:
+            y += ditchDepth
+        sourceLinearDist = y/math.tan(thetaDet*toRad)
+    
 
-    return angle, linear 
+    linear = np.sqrt((closestY - centerY)**2 + (closestX - centerX)**2) + col_offset - sourceLinearDist 
+    if flipped:
+        linear = -np.sqrt((closestY - centerY)**2 + (closestX - centerX)**2) + col_offset - sourceLinearDist 
+    source = -180 + (90-thetaDet)
 
-
+    return angle, linear, source
     
 
 def rotate(rot_rad, point_x=rotZero_x, point_x_unc=rotZero_x_unc, point_y=rotZero_y, point_y_unc=rotZero_y_unc, axis_x=rotAxis_x, axis_x_unc=rotAxis_x_unc, axis_y=rotAxis_y, axis_y_unc=rotAxis_y_unc):
@@ -96,6 +128,8 @@ def rotate(rot_rad, point_x=rotZero_x, point_x_unc=rotZero_x_unc, point_y=rotZer
     (point_x +- point_x_unc, point_y +- point_y_unc): the point to be rotated
     (axis_x +- axis_x_unc, axis_y +- axis_y_unc): the rotation axis
     '''
+    if rot_rad == 0:
+        rot_rad = 1e-20
     rotX = math.cos(rot_rad)*(point_x - axis_x) + math.sin(rot_rad)*(point_y - axis_y) + axis_x
     rotY = -math.sin(rot_rad)*(point_x - axis_x) + math.cos(rot_rad)*(point_y - axis_y) + axis_y
     xdif_unc = np.sqrt(point_x_unc**2 + axis_x_unc**2)
@@ -113,15 +147,17 @@ def rotate(rot_rad, point_x=rotZero_x, point_x_unc=rotZero_x_unc, point_y=rotZer
     rotY_unc = np.sqrt(y_unc1**2 + y_unc2**2 + axis_y_unc**2)
     return rotX, rotX_unc, rotY, rotY_unc
 
-def calculateDetPos(rotary, linear, source=0):
+def calculateDetPos(rotary, linear, source=-180, ditch=False):
     '''
     Calculate the beam position on the detector for a given set of motor positions
     rotary: rotary angle, in degrees (0 <= rotary <= 270)
     linear: linear distance measured from "center", which is 2.5mm
     source: source angle, in degrees, 180 is normal incidence
     '''
-    #TODO: Add source angles 
-    rot_rad = rotary*math.pi/180
+    rot_rad = rotary*toRad
+    if rot_rad == 0:
+        rot_rad = 1e-15
+        
     center_x, center_x_unc, center_y, center_y_unc = rotate(rot_rad, rotZero_x, rotZero_x_unc, rotZero_y, rotZero_y_unc)
     final_x = center_x + (linear-col_offset)*math.sin(rot_rad) 
     final_y = center_y + (linear-col_offset)*math.cos(rot_rad)
@@ -131,6 +167,22 @@ def calculateDetPos(rotary, linear, source=0):
     coly2_unc = (col_offset*math.cos(rot_rad))*np.sqrt( (col_offset_unc/col_offset)**2 + ((math.sin(rot_rad)*rotMotor_unc*toRad)/math.cos(rot_rad))**2 )
     final_x_unc = np.sqrt(center_x_unc**2 + (linx2_unc)**2 + (colx2_unc)**2)
     final_y_unc = np.sqrt(center_y_unc**2 + (liny2_unc)**2 + (coly2_unc)**2)
+
+    if source != -180: #only need to care if not normal incidence
+        y = sourceAxToDet
+        if ditch:
+            y += ditchDepth 
+        sourceLinearDist = y/math.tan(-(90+source)*toRad)
+        final_x += sourceLinearDist*math.sin(rot_rad) 
+        final_y += sourceLinearDist*math.cos(rot_rad) 
+
+        source_unc = y*sourceMotor_unc*toRad/(math.sin((90+source)*toRad)**2)
+        sourcex_unc = (sourceLinearDist*math.sin(rot_rad))*np.sqrt( (source_unc/sourceLinearDist)**2  + ((math.cos(rot_rad)*rotMotor_unc*toRad)/math.sin(rot_rad))**2 )
+        sourcey_unc = (sourceLinearDist*math.cos(rot_rad))*np.sqrt( (source_unc/sourceLinearDist)**2 + ((math.sin(rot_rad)*rotMotor_unc*toRad)/math.cos(rot_rad))**2 )
+        final_x_unc = np.sqrt( final_x_unc**2 + sourcex_unc**2)
+        final_y_unc = np.sqrt( final_y_unc**2 + sourcey_unc**2)
+
+
     return final_x, final_x_unc, final_y, final_y_unc 
 
 if __name__ == "__main__":
