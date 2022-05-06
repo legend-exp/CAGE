@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<gdml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://service-spi.web.cern.ch/service-spi/app/releases/GDML/schema/gdml.xsd">
+
+<!--##########################################
+
+# February 5, 2020
+# Gulden Othman
+# New collimator to be made of Pb. Drawing in this elog: https://elog.legend-exp.org/UWScanner/180
+# This way of unioning/differencing seems to work correctly
+
+# Aug 25, 2021
+# Grace Song
+# New-new collimator to be made of Pb. Dimensions in this elog: https://elog.legend-exp.org/UWScanner/380
+# This way of unioning/differencing seems to work correctly
+##########################################-->
+
+ <define>
+
+  <constant name="HALFPI" value="pi/2."/>
+  <constant name="PI" value="1.*pi"/>
+  <constant name="TWOPI" value="2.*pi"/>
+
+  <position name="center" x="0" y="0" z="0"/>
+  <rotation name="identity" x="0" y="0" z="0"/>
+
+  <quantity name="body_top_radius" type="length" value="31.75/2" unit="mm"/>
+  <quantity name="body_top_height" type="length" value="6.15" unit="mm"/> <!-- top of collimator to bottom of source offset -->
+
+  <quantity name="innerVolume_radius" type="length" value="25.5/2" unit="mm"/>
+  <quantity name="innerVolume_height" type="length" value="2.4" unit="mm"/>
+
+  <quantity name="body_sourceOffset_radius" type="length" value="13./2" unit="mm"/>
+  <quantity name="body_sourceOffset_height" type="length" value="0.25" unit="mm"/>
+
+  <quantity name="body_middle_innerradius" type="length" value="1/2" unit="mm"/>
+  <quantity name="body_middle_radius" type="length" value="31.75/2" unit="mm"/>
+  <quantity name="body_middle_height" type="length" value="2.1" unit="mm"/> <!-- bottom of source offset to soldered lip -->
+
+  <quantity name="body_lip_innerradius" type="length" value="1/2" unit="mm"/>
+  <quantity name="body_lip_radius" type="length" value="30/2" unit="mm"/>
+  <quantity name="body_lip_height" type="length" value="1.75" unit="mm"/> <!-- soldered lip -->
+
+  <quantity name="body_bottom_innerradius" type="length" value="1/2" unit="mm"/>
+  <quantity name="body_bottom_radius" type="length" value="10./2" unit="mm"/>
+  <quantity name="body_bottom_height" type="length" value="6.75" unit="mm"/> 
+
+ </define>
+
+<!--##########################################-->
+
+ <materials>
+
+
+ </materials>
+
+<!--##########################################-->
+
+<!-- with the union done in this way, the identity (0,0) corresponds to the center point of the body_bottom -->
+
+ <solids>
+
+    <!-- Primary solids -->
+    <cone name="body_bottom" rmin1="body_bottom_innerradius" rmax1="body_bottom_radius" rmin2="body_bottom_innerradius" rmax2="body_bottom_radius" z="body_bottom_height" startphi="0" deltaphi="TWOPI" aunit="rad" />
+
+    <cone name="body_lip" rmin1="body_lip_innerradius" rmax1="body_lip_radius" rmin2="body_lip_innerradius" rmax2="body_lip_radius" z="body_lip_height" startphi="0" deltaphi="TWOPI" aunit="rad" />
+
+    <cone name="body_middle" rmin1="body_middle_innerradius" rmax1="body_middle_radius" rmin2="body_middle_innerradius" rmax2="body_middle_radius" z="body_middle_height" startphi="0" deltaphi="TWOPI" aunit="rad" /> 
+
+    <cone name="body_top" rmin1="0.0" rmax1="body_top_radius" rmin2="0.0" rmax2="body_top_radius" z="body_top_height" startphi="0" deltaphi="TWOPI" aunit="rad" />
+  
+    <box name = "screw_connector" x="0.95" y="6.5" z="1.75" lunit= "mm"/>
+    <box name = "body_screw" x="10.875" y="6.5" z="body_bottom_height" lunit= "mm"/>
+
+
+    <!-- subtraction solids -->
+    <cone name="body_sourceOffset" rmin1="0.0" rmax1="body_sourceOffset_radius" rmin2="0.0" rmax2="body_sourceOffset_radius" z="body_sourceOffset_height" startphi="0" deltaphi="TWOPI" aunit="rad" />
+    <cone name="innerVolume" rmin1="0.0" rmax1="innerVolume_radius" rmin2="0.0" rmax2="innerVolume_radius" z="innerVolume_height" startphi="0" deltaphi="TWOPI" aunit="rad" />
+
+    <union name="whole_screw">
+      <first ref="body_screw" />
+      <second ref="screw_connector" />
+      <position name="screw_pos" x="10.875/2 - 0.95/2" y="0" z="body_bottom_height/2 + 1.75/2" /> 
+      <rotationref ref="identity"/>
+    </union>
+
+    <union name="body_bottom_screw">
+      <first ref="body_bottom" />
+      <second ref="whole_screw" />
+      <position name="bottom_pos" x="10.4375" y="0" z="0" /> 
+      <rotationref ref="identity"/>
+    </union>
+
+    <union name="body_bottom_collimator">
+      <first ref="body_bottom_screw" />
+      <second ref="body_lip" />
+      <position name="lip_bottom_pos" x="0" y="0" z="(body_bottom_height/2)+(body_lip_height/2)" /> 
+      <rotationref ref="identity"/>
+    </union>
+
+    <union name="body_lip_collimator">
+      <first ref="body_bottom_collimator" />
+      <second ref="body_middle" />
+      <position name="bottom_mid_pos" x="0" y="0" z="(body_bottom_height/2)+body_lip_height+(body_middle_height/2)" /> 
+      <rotationref ref="identity"/>
+    </union>
+
+    <union name="body_collimator">
+      <first ref="body_lip_collimator" />
+      <second ref="body_top" />
+      <position name="mid_top_pos" x="0" y="0" z="(body_bottom_height/2)+body_lip_height+body_middle_height+(body_top_height/2)" />
+      <rotationref ref="identity"/>
+    </union>
+
+    <subtraction name="body_innerVolume_subtraction">
+      <first ref="body_collimator" />
+      <second ref="innerVolume" />
+      <position name="inner_pos" x="0" y="0" z="(body_bottom_height/2)+ body_lip_height + (body_middle_height)+ body_sourceOffset_height + (innerVolume_height/2)" />
+      <rotationref ref="identity"/>
+    </subtraction>
+
+   <subtraction name="am_collimator">
+      <first ref="body_innerVolume_subtraction" />
+      <second ref="body_sourceOffset" />
+      <position name="coll_pos" x="0" y="0" z="(body_bottom_height/2)+(body_middle_height) + body_lip_height +(body_sourceOffset_height/2)" />
+      <rotationref ref="identity"/>
+    </subtraction>
+
+
+ </solids>
+
+<!--##########################################-->
+
+ <structure>
+
+ <volume name="Am_Collimator_new">
+   <materialref ref="G4_Pb"/>
+   <solidref ref="am_collimator"/>
+  </volume>
+
+ </structure>
+
+<!--##########################################-->
+
+ <setup name="Default" version="1.0">
+  <world ref="Am_Collimator_new"/>
+ </setup>
+</gdml>

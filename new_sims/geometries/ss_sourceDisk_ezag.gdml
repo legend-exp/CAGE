@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<gdml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://service-spi.web.cern.ch/service-spi/app/releases/GDML/schema/gdml.xsd">
+
+<!--##########################################
+
+# This is the actual source geometry of the 241Am source from Eckert-Ziegler
+# This is the stainless steel Disk on which the 241Am is deposited.
+# see Construction section of https://www.ezag.com/home/products/isotope_products/isotrak_calibration_sources/reference_sources/alpha_spectroscopy_sources/
+
+##########################################-->
+
+ <define>
+
+  <constant name="HALFPI" value="pi/2."/>
+  <constant name="PI" value="1.*pi"/>
+  <constant name="TWOPI" value="2.*pi"/>
+
+  <quantity name="ss_radius" type="length" value="25.0/2" unit="mm"/>
+  <quantity name="ss_thickness" type="length" value="0.5" unit="mm"/>
+
+ </define>
+
+ <materials>
+ </materials>
+<!--##########################################-->
+
+ <solids>
+
+  <cone name="ss_cylinder" rmin1="0" rmax1="ss_radius" rmin2="0" rmax2="ss_radius" z="ss_thickness" startphi="0" deltaphi="TWOPI" aunit="rad"/>
+
+ </solids>
+
+<!--##########################################-->
+
+ <structure>
+
+ <volume name="ss_sourceDisk_ezag">
+   <materialref ref="G4_STAINLESS-STEEL"/>
+   <solidref ref="ss_cylinder"/>
+ </volume>
+
+ </structure>
+
+<!--##########################################-->
+
+ <setup name="Default" version="1.0">
+  <world ref="ss_sourceDisk_ezag"/>
+ </setup>
+</gdml>
