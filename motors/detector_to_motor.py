@@ -36,7 +36,7 @@ def main():
             for thetaDet in thetaDets:
                 print(f"Rotary angle: {thetaRot}, Radius: {radius}, Detector Angle: {thetaDet}")
                 rotary, linear, source = calculateMotorPos(radius, thetaRot, thetaDet)
-                print(f"Move rotary motor to: -{rotary} degrees")
+                print(f"Move rotary motor to: {-rotary} degrees")
                 print(f"Move linear motor to: {linear:0.3f} mm")
                 print(f"Move source motor to: {source} degrees")
                 pos_x, pos_x_unc, pos_y, pos_y_unc = calculateDetPos(rotary, linear, source, ditch=ditchScan)
