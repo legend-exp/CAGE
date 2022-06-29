@@ -68,7 +68,7 @@ def main():
     # override default options
     t_sleep = args['t_sleep'][0] if args['t_sleep'] else 0.01 # sec
     com_spd = args['com_spd'][0] if args['com_spd'] else 100000  # Hz
-    max_reads = args['max_reads'][0] if args['max_reads'] else 3 # tries
+    max_reads = args['max_reads'][0] if args['max_reads'] else 10 # tries
     angle_check = args['angle_check'][0] if args['angle_check'] else 180 # degrees
     verbose = args['verbose'] # overall verbosity (currently T/F)
     constraints = args['constraints'] # DISABLE motor step checks (DON'T!)
@@ -687,8 +687,8 @@ def center_motor(motor_name, angle_check, history_df, verbose, constraints=True)
     # zero_motor(motor_name, angle_check=mconf['angle_check'], verbose)
 
     if motor_name == "linear":
-        print("move the thing forward 3.175 mm")
-        move_motor("linear", 3.175, history_df, angle_check, constraints, verbose)
+        print("move the thing forward 2.5 mm")
+        move_motor("linear", 2.5, history_df, angle_check, constraints, verbose)
     elif motor_name == "source":
         print('do the special limit checks')
         move_motor("source", -180, history_df, angle_check, constraints, verbose)
