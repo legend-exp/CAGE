@@ -400,6 +400,6 @@
     "391":["2546-2561", "bkg", "elog 406. improved n+ electronics! 4 hour bkg run"],
     
     "392":["2562-2565", "alp", "elog 437. oppi wellness checks, skip 2562"],
-    "393":["2543-2545", "bkg", "elog 437. overnight background run"],
-    "394":["2543-2545", "ba133", "elog 437. 5 min Ba run"]
+    "393":["2566-2617", "bkg", "elog 437. overnight background run"],
+    "394":["2618", "ba133", "elog 437. 5 min Ba run"]
 }
