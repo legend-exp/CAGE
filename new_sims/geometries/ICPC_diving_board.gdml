@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<gdml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://service-spi.web.cern.ch/service-spi/app/releases/GDML/schema/gdml.xsd">
+
+<!--##########################################
+
+#cylinder_height + cone_height = detector height
+#cylinder_radius = cone's larger radius = detector radius
+#cone_radius1 = cone's smaller radius
+#cone_radius2 = cone's larger radius
+
+##########################################-->
+
+ <define>
+
+  <constant name="HALFPI" value="pi/2."/>
+  <constant name="PI" value="1.*pi"/>
+  <constant name="TWOPI" value="2.*pi"/>
+
+  <position name="center" x="0" y="0" z="0"/>
+  <rotation name="identity" x="0" y="0" z="0" />
+
+  <quantity name="board_width" type="length" value="13.15" unit="mm"/>
+  <quantity name="board_length" type="length" value="58.4" unit="mm"/> 
+  <quantity name="board_thickness" type="length" value="1.75" unit="mm"/>
+
+  <quantity name="joiner_length" type="length" value="10." unit="mm"/> <!--ie ring max thickness -->
+  <quantity name="joiner_thickness" type="length" value="1" unit="mm"/>
+
+  <quantity name="bridge_length" type="length" value="6.35" unit="mm"/> 
+  <quantity name="bridge_thickness" type="length" value="3.75" unit="mm"/>
+
+  <quantity name="cutout_radius" type="length" value="7." unit="mm"/>
+
+ </define>
+
+<!--##########################################-->
+<materials>
+
+  <material name="peek" formula="C19H12O3">
+    <D value="1.31" />
+    <fraction n="0.76" ref="G4_C"/>
+    <fraction n="0.08" ref="G4_H" />
+    <fraction n="0.16" ref="G4_O" />
+  </material>
+
+</materials>
+
+<!--##########################################-->
+
+ <solids>
+
+  <box name = "board" x="board_length" y="board_width" z="board_thickness" lunit= "mm"/>
+  <box name = "joiner" x="joiner_length" y="board_width" z="joiner_thickness" lunit= "mm"/>
+  <box name = "bridge" x="bridge_length" y="board_width" z="bridge_thickness" lunit= "mm"/>
+  <cone name= "cutout" rmin1="0.0" rmax1="cutout_radius" rmin2="0.0" rmax2="cutout_radius" z="joiner_thickness+board_thickness" startphi="0" deltaphi="TWOPI" aunit="rad" />
+
+    <union name="board_joiner">
+        <first ref="board" />
+        <second ref="joiner" />
+        <position name="joiner_pos" x="-(board_length/2-joiner_length/2)" y="0" z="-(board_thickness+joiner_thickness)/2" lunit="mm"/> 
+        <rotationref ref="identity"/>
+    </union>
+                                   
+    <union name="board_bridge">
+        <first ref="board_joiner" />
+        <second ref="bridge" />
+        <position name="bridge_pos" x="-(board_length/2 - 11.9 - bridge_length/2)" y="0" z="(board_thickness+bridge_thickness)/2" lunit="mm"/> 
+        <rotationref ref="identity"/>
+    </union>
+
+    <subtraction name="diving_board">
+        <first ref="board_bridge" />
+        <second ref="cutout" />
+        <position name="cutout_pos" x="-(board_length/2 + 2.4)" y="0" z="-joiner_thickness/2" lunit="mm"/> 
+        <rotationref ref="identity"/>
+    </subtraction>
+
+ </solids>
+
+<!--##########################################-->
+
+ <structure>
+
+ <volume name="ICPC_diving_board">
+   <materialref ref="peek"/>
+   <solidref ref="diving_board"/>
+  </volume>
+
+ </structure>
+
+<!--##########################################-->
+
+ <setup name="Default" version="1.0">
+  <world ref="ICPC_diving_board"/>
+ </setup>
+</gdml>

@@ -62,7 +62,8 @@ def daq_cleanup(expDB):
         print("Error, we're not on the MJ60 DAQ machine.  Exiting ...")
         exit()
 
-    nersc_login = 'grsong@cori.nersc.gov'
+    # nersc_login = 'grsong@cori.nersc.gov'
+    nersc_login = 'wisecg@cori.nersc.gov'
 
     print('Building local and remote file lists ...')
 

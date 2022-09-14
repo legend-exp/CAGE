@@ -1,0 +1,175 @@
+import numpy as np
+import scipy
+import matplotlib
+from matplotlib.colors import LogNorm
+from scipy.stats import norm, kde
+from scipy.optimize import curve_fit
+import matplotlib.pyplot as plt
+import h5py
+import pandas as pd
+#import ROOT
+import sys
+import os
+#from particle import PDGID
+#matplotlib.rcParams['text.usetex'] = True
+
+def main():
+
+#   radius = [5, 6, 7, 8, 9, 10]
+#   thetaDet = [90]
+#   rotAngle = [162]
+#   scan = 'spot_size_scan'
+    
+    radius = [14]
+    thetaDet = [90, 75, 60, 45]
+    rotAngle = [0, 180, 145]
+    scan = 'ditch_scan'
+    det = 'icpc'
+    if not os.path.isdir(f'../data/{det}/{scan}/'):
+        print(f'Creating data directory for scan: {scan}')
+        os.mkdir(f'../data/{det}/{scan}/')
+    
+    for r in radius:
+        for theta in thetaDet:
+            for rot in rotAngle:
+                name = f'y{r}_thetaDet{theta}_rotary{rot}'
+                raw_dir = f'../../../jobs/data/{scan}/{name}/'
+                processed_dir = f'../data/{det}/{scan}/{name}/'
+                base_filenames = os.listdir(raw_dir)
+                
+                for file in range(len(base_filenames)):
+                    if os.path.isfile(processed_dir+'processed_'+ base_filenames[file]):
+                        print(base_filenames[file] + ' has been processed')
+                        continue
+                    else:
+                        post_process(raw_dir, processed_dir, base_filenames[file])
+        
+
+
+def post_process(raw_dir, processed_dir, base_filename, hits=False):
+    filename = raw_dir+base_filename
+    processed_filename = processed_dir+'processed_'+base_filename
+    #Create directory for future processed hdf5 output if doesn't alreasy exist
+    if not os.path.isdir(processed_dir):
+        print(f'Creating directory for processed hdf5 output file: {processed_dir}')
+        os.mkdir(processed_dir)
+    print('Processing file: ', filename)
+    # print(processed_filename)
+    # print(base_filename)
+    # exit()
+    if hits==True:
+        procdf, pos_df = pandarize(filename, hits=True)
+        # df.to_hdf('../alpha/processed_out/processed_newDet_test.hdf5', key='procdf', mode='w')
+        procdf.to_hdf(processed_filename, key='procdf', mode='w')
+        pos_df.to_hdf(processed_filename, key='pos_df', mode='w')
+    else:
+        procdf = pandarize(filename, hits=False)
+        # df.to_hdf('../alpha/processed_out/processed_newDet_test.hdf5', key='procdf', mode='w')
+        procdf.to_hdf(processed_filename, key='procdf', mode='w')
+
+    print('File processed. Output saved to: ', processed_filename)
+
+
+def pandarize(filename, hits=False, tracking=False):
+    # have to open the input file with h5py (g4 doesn't write pandas-ready hdf5)
+    g4sfile = h5py.File(filename, 'r')
+    g4sntuple = g4sfile['default_ntuples']['g4sntuple']
+
+    # build a pandas DataFrame from the hdf5 datasets we will use
+    # list(g4sfile['default_ntuples']['g4sntuple'].keys())=>['Edep','KE','columns','entries','event',
+    # 'forms','iRep','lx','ly','lz','nEvents','names','parentID','pid','step','t','trackID','volID','x','y','z']
+
+    g4sdf = pd.DataFrame(np.array(g4sntuple['event']['pages']), columns=['event'])
+
+    g4sdf = g4sdf.join(pd.DataFrame(np.array(g4sntuple['trackID']['pages']), columns=['trackID']), lsuffix = '_caller', rsuffix = '_other')
+    g4sdf = g4sdf.join(pd.DataFrame(np.array(g4sntuple['parentID']['pages']), columns=['parentID']), lsuffix = '_caller', rsuffix = '_other')
+    g4sdf = g4sdf.join(pd.DataFrame(np.array(g4sntuple['pid']['pages']), columns=['pid']), lsuffix = '_caller', rsuffix = '_other')
+    g4sdf = g4sdf.join(pd.DataFrame(np.array(g4sntuple['step']['pages']), columns=['step']), lsuffix = '_caller', rsuffix = '_other')
+    g4sdf = g4sdf.join(pd.DataFrame(np.array(g4sntuple['KE']['pages']), columns=['KE']), lsuffix = '_caller', rsuffix = '_other')
+    g4sdf = g4sdf.join(pd.DataFrame(np.array(g4sntuple['Edep']['pages']), columns=['Edep']), lsuffix = '_caller', rsuffix = '_other')
+    g4sdf = g4sdf.join(pd.DataFrame(np.array(g4sntuple['volID']['pages']), columns=['volID']), lsuffix = '_caller', rsuffix = '_other')
+    g4sdf = g4sdf.join(pd.DataFrame(np.array(g4sntuple['iRep']['pages']), columns=['iRep']), lsuffix = '_caller', rsuffix = '_other')
+    g4sdf = g4sdf.join(pd.DataFrame(np.array(g4sntuple['x']['pages']), columns=['x']), lsuffix = '_caller', rsuffix = '_other')
+    g4sdf = g4sdf.join(pd.DataFrame(np.array(g4sntuple['y']['pages']), columns=['y']), lsuffix = '_caller', rsuffix = '_other')
+    g4sdf = g4sdf.join(pd.DataFrame(np.array(g4sntuple['z']['pages']), columns=['z']), lsuffix = '_caller', rsuffix = '_other')
+
+
+
+    if tracking==True:
+        detector_hits = g4sdf.loc[(g4sdf.volID==1)] #do this when debugging/looking at tracks
+        procdf= pd.DataFrame(detector_hits.groupby(['event','volID'], as_index=False)['trackID', 'parentID', 'step', 'KE', 'Edep','x','y', 'z', 'pid'].sum())
+    else:
+        detector_hits = g4sdf.loc[(g4sdf.Edep>1.e-6)&(g4sdf.volID==1)] # this for normal post-processing
+        # detector_hits = g4sdf.loc[(g4sdf.Edep>0)&(g4sdf.volID==1)]
+
+        detector_hits['x_weights'] = detector_hits['x'] * detector_hits['Edep']
+        detector_hits['y_weights'] = detector_hits['y'] * detector_hits['Edep']
+        detector_hits['z_weights'] = detector_hits['z'] * detector_hits['Edep']
+
+        procdf= pd.DataFrame(detector_hits.groupby(['event','volID'], as_index=False)['Edep','x_weights','y_weights', 'z_weights', 'pid'].sum())
+
+
+
+
+    # rename the summed energy depositions for each step within the event to "energy". This is analogous to the event energy you'd see in your detector
+    procdf = procdf.rename(columns={'Edep':'energy'})
+
+    procdf['x'] = procdf['x_weights']/procdf['energy']
+    procdf['y'] = procdf['y_weights']/procdf['energy']
+    procdf['z'] = procdf['z_weights']/procdf['energy']
+
+    del procdf['x_weights']
+    del procdf['y_weights']
+    del procdf['z_weights']
+
+    return procdf
+
+
+    if hits==True:
+        # apply E cut / detID cut and sum Edeps for each event using loc, groupby, and sum
+    	# write directly into output dataframe
+        detector_hits = g4sdf.loc[(g4sdf.Edep>1.e-6)&(g4sdf.volID==1)]
+        eventArr = []
+        for eventNum in detector_hits['event']:
+            if eventNum not in eventArr:
+                eventArr.append(eventNum)
+        energies = []
+        r_arr = []
+        phi_arr = []
+        z_arr= []
+
+        for eventNum in eventArr:
+            temp_df = detector_hits.loc[(detector_hits.event==eventNum)]
+            energies.append(np.array(temp_df['Edep']))
+            x = (np.array(temp_df['x']))
+            y = (np.array(temp_df['y']))
+            z = (np.array(temp_df['z']))
+            r = np.sqrt(x**2+y**2)
+            phi = np.arctan(y/x)
+            r_arr.append(r)
+            phi_arr.append(phi)
+            z_arr.append(z)
+
+        energies = np.array(energies)
+        phi_arr = np.array(phi_arr)
+        r_arr = np.array(r_arr)
+        z_arr = np.array(z_arr)
+
+        new_eventNum_arr = np.arange(len(eventArr))
+        pos_df = pd.DataFrame(new_eventNum_arr, columns=['event'])
+        pos_df = pos_df.join(pd.DataFrame(energies, columns=['energy']))
+        pos_df = pos_df.join(pd.DataFrame(r_arr, columns=['r']))
+        pos_df = pos_df.join(pd.DataFrame(phi_arr, columns=['phi']))
+        pos_df = pos_df.join(pd.DataFrame(z_arr, columns=['z']))
+
+        return pos_df
+
+        # print(g4sdf)
+        # xarr = np.array(g4sdf['volID'])
+        # print(xarr[:])
+        # print(type(g4sntuple['x']['pages']))
+        # exit()
+
+
+if __name__ == '__main__':
+	main()

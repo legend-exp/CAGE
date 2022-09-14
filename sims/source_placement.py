@@ -153,11 +153,11 @@ def rotaryCalc(radius=1.0, d_theta = 2.):
     d_s = (d_theta*deg_to_rad)*radius
 
     if d_theta >= 10:
-        theta_min = 72.08-(theta_tot)/2-2*d_theta
-        theta_max = 72.08+(theta_tot)/2+2*d_theta
+        theta_min = 64.65-(theta_tot)/2-2*d_theta
+        theta_max = 64.65+(theta_tot)/2+2*d_theta
     else:
-        theta_min = 72.08-(theta_tot)/2-20
-        theta_max = 72.08+(theta_tot)/2+20
+        theta_min = 64.65-(theta_tot)/2-20
+        theta_max = 64.65+(theta_tot)/2+20
 
 
 

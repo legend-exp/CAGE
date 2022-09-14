@@ -15,21 +15,25 @@ import os
 
 def main():
 
-    raw_dir = '../alpha/raw_out/oppi/source_angle_scan/'
-    processed_dir = '../alpha/processed_out/oppi/source_angle_scan/'
-    base_filenames = os.listdir(raw_dir)
+    raw_dir = '../alpha/raw_out/oppi/'
+    processed_dir = '../alpha/processed_out/oppi/systematics/'
+    # base_filenames = os.listdir(raw_dir)
+    
+    base_filenames = ['oppi_ring_y10_norm_241Am_100000000.hdf5', 'oppi_largeHole_ring_y10_norm_241Am_100000000.hdf5', 
+                      'oppi_smallHole_ring_y10_norm_241Am_100000000.hdf5']
     # print(base_filenames)
     # exit()
 
 
     for file in range(len(base_filenames)):
-        post_process(raw_dir, processed_dir, base_filenames[file])
+        post_process(raw_dir, processed_dir, base_filenames[file], hits=False, tracking=False)
         
 
 
-def post_process(raw_dir, processed_dir, base_filename, hits=False):
+def post_process(raw_dir, processed_dir, base_filename, hits=False, tracking=False):
     filename = raw_dir+base_filename
     processed_filename = processed_dir+'processed_'+base_filename
+
     #Create directory for future processed hdf5 output if doesn't alreasy exist
     if not os.path.isdir(processed_dir):
         print(f'Creating directory for processed hdf5 output file: {processed_dir}')
@@ -38,13 +42,18 @@ def post_process(raw_dir, processed_dir, base_filename, hits=False):
     # print(processed_filename)
     # print(base_filename)
     # exit()
+    if tracking:
+        processed_filename = processed_dir+'tracking_processed_'+base_filename
+        procdf, _ = pandarize(filename, hits=False, tracking=True)
+        procdf.to_hdf(processed_filename, key='procdf', mode='w')
     if hits==True:
+        processed_filename = processed_dir+'hits_processed_'+base_filename
         procdf, pos_df = pandarize(filename, hits=True)
         # df.to_hdf('../alpha/processed_out/processed_newDet_test.hdf5', key='procdf', mode='w')
         procdf.to_hdf(processed_filename, key='procdf', mode='w')
         pos_df.to_hdf(processed_filename, key='pos_df', mode='w')
     else:
-        procdf = pandarize(filename, hits=False)
+        procdf, _ = pandarize(filename, hits=False)
         # df.to_hdf('../alpha/processed_out/processed_newDet_test.hdf5', key='procdf', mode='w')
         procdf.to_hdf(processed_filename, key='procdf', mode='w')
 
@@ -61,6 +70,11 @@ def pandarize(filename, hits=False, tracking=False):
     # 'forms','iRep','lx','ly','lz','nEvents','names','parentID','pid','step','t','trackID','volID','x','y','z']
 
     g4sdf = pd.DataFrame(np.array(g4sntuple['event']['pages']), columns=['event'])
+    
+#     col_list = ['trackID', 'parentID', 'pid', 'step', 'KE', 'Edep', 'volID', 'iRep', 'x', 'y', 'z']
+    
+#     for key in col_list:
+#         g4sdf.loc[:,(key)] = np.array(g4sntuple[key]['pages'])
 
     g4sdf = g4sdf.join(pd.DataFrame(np.array(g4sntuple['trackID']['pages']), columns=['trackID']), lsuffix = '_caller', rsuffix = '_other')
     g4sdf = g4sdf.join(pd.DataFrame(np.array(g4sntuple['parentID']['pages']), columns=['parentID']), lsuffix = '_caller', rsuffix = '_other')
@@ -78,32 +92,57 @@ def pandarize(filename, hits=False, tracking=False):
 
     if tracking==True:
         detector_hits = g4sdf.loc[(g4sdf.volID==1)] #do this when debugging/looking at tracks
+
         procdf= pd.DataFrame(detector_hits.groupby(['event','volID'], as_index=False)['trackID', 'parentID', 'step', 'KE', 'Edep','x','y', 'z', 'pid'].sum())
     else:
-        detector_hits = g4sdf.loc[(g4sdf.Edep>1.e-6)&(g4sdf.volID==1)] # this for normal post-processing
+        detector_hits = g4sdf.loc[(g4sdf.Edep>8.e-6)&(g4sdf.volID==1)] # this for normal post-processing
         # detector_hits = g4sdf.loc[(g4sdf.Edep>0)&(g4sdf.volID==1)]
+        
+#         detector_hits.loc[:,('x_weights')] = detector_hits['x'] * detector_hits['Edep']
+#         detector_hits.loc[:,('y_weights')] = detector_hits['y'] * detector_hits['Edep']
+#         detector_hits.loc[:,('z_weights')] = detector_hits['z'] * detector_hits['Edep']
 
         detector_hits['x_weights'] = detector_hits['x'] * detector_hits['Edep']
         detector_hits['y_weights'] = detector_hits['y'] * detector_hits['Edep']
         detector_hits['z_weights'] = detector_hits['z'] * detector_hits['Edep']
 
         procdf= pd.DataFrame(detector_hits.groupby(['event','volID'], as_index=False)['Edep','x_weights','y_weights', 'z_weights', 'pid'].sum())
+    
+        # df_group = pd.DataFrame(detector_hits.groupby(['event','volID'], as_index=False))
+                
+        # procdf= pd.DataFrame(df_group['Edep'].sum())
+        
+#         procdf.loc[:,('x')] = df_group['x'][-1]
+#         procdf.loc[:,('y')] = df_group['y'][-1]
+#         procdf.loc[:,('z')] = df_group['z'][-1]
+#         #procdf.loc[:,('Edep')] = procdf['Edep'].sum()
+    
+        procdf['x'] = procdf['x_weights']/procdf['Edep']
+        procdf['y'] = procdf['y_weights']/procdf['Edep']
+        procdf['z'] = procdf['z_weights']/procdf['Edep']
+        
+#         procdf.loc[:,('x')] = procdf['x_weights']/procdf['Edep']
+#         procdf.loc[:,('y')] = procdf['y_weights']/procdf['Edep']
+#         procdf.loc[:,('z')] = procdf['z_weights']/procdf['Edep']
+        
+        del procdf['x_weights']
+        del procdf['y_weights']
+        del procdf['z_weights']
 
 
 
 
     # rename the summed energy depositions for each step within the event to "energy". This is analogous to the event energy you'd see in your detector
     procdf = procdf.rename(columns={'Edep':'energy'})
+    
 
-    procdf['x'] = procdf['x_weights']/procdf['energy']
-    procdf['y'] = procdf['y_weights']/procdf['energy']
-    procdf['z'] = procdf['z_weights']/procdf['energy']
 
-    del procdf['x_weights']
-    del procdf['y_weights']
-    del procdf['z_weights']
+#     procdf['x'] = procdf['x_weights']/procdf['energy']
+#     procdf['y'] = procdf['y_weights']/procdf['energy']
+#     procdf['z'] = procdf['z_weights']/procdf['energy']
 
-    return procdf
+
+    
 
 
     if hits==True:
@@ -122,6 +161,7 @@ def pandarize(filename, hits=False, tracking=False):
         for eventNum in eventArr:
             temp_df = detector_hits.loc[(detector_hits.event==eventNum)]
             energies.append(np.array(temp_df['Edep']))
+            x = (np.array(temp_df['x']))
             x = (np.array(temp_df['x']))
             y = (np.array(temp_df['y']))
             z = (np.array(temp_df['z']))
@@ -143,7 +183,9 @@ def pandarize(filename, hits=False, tracking=False):
         pos_df = pos_df.join(pd.DataFrame(phi_arr, columns=['phi']))
         pos_df = pos_df.join(pd.DataFrame(z_arr, columns=['z']))
 
-        return pos_df
+        return procdf, pos_df
+    else:
+        return procdf, None
 
         # print(g4sdf)
         # xarr = np.array(g4sdf['volID'])

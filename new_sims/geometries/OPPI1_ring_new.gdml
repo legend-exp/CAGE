@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<gdml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://service-spi.web.cern.ch/service-spi/app/releases/GDML/schema/gdml.xsd">
+
+<!--##########################################
+
+#cylinder_height + cone_height = detector height
+#cylinder_radius = cone's larger radius = detector radius
+#inner_radius1 = cone's larger radius
+#inner_radius2 = cone's smaller radius
+
+##########################################-->
+
+ <define>
+
+  <constant name="HALFPI" value="pi/2."/>
+  <constant name="PI" value="1.*pi"/>
+  <constant name="TWOPI" value="2.*pi"/>
+
+  <position name="center" x="0" y="0" z="0"/>
+  <rotation name="identity" x="0" y="0" z="0" />
+
+  <quantity name="outer_radius" type="length" value="38" unit="mm"/>
+  <quantity name="inner_radius1" type="length" value="31.5" unit="mm"/>
+  <quantity name="inner_radius2" type="length" value="27.41" unit="mm"/>
+
+  <quantity name="cone_height" type="length" value="6.0" unit="mm"/>
+ </define>
+
+<!--##########################################-->
+<materials>
+
+  <material name="peek" formula="C19H12O3">
+    <D value="1.31" />
+    <fraction n="0.76" ref="G4_C"/>
+    <fraction n="0.08" ref="G4_H" />
+    <fraction n="0.16" ref="G4_O" />
+  </material>
+
+</materials>
+
+<!--##########################################-->
+
+ <solids>
+
+  <cone name="ring" rmin1="inner_radius1" rmax1="outer_radius" rmin2="inner_radius2" rmax2="outer_radius" z="cone_height" startphi="0" deltaphi="TWOPI" aunit="rad" />
+
+
+ </solids>
+
+<!--##########################################-->
+
+ <structure>
+
+ <volume name="OPPI1_ring_new">
+   <materialref ref="peek"/>
+   <solidref ref="ring"/>
+  </volume>
+
+ </structure>
+
+<!--##########################################-->
+
+ <setup name="Default" version="1.0">
+  <world ref="OPPI1_ring_new"/>
+ </setup>
+</gdml>

@@ -5,32 +5,56 @@ from matplotlib.colors import LogNorm
 from scipy.stats import norm, kde
 from scipy.optimize import curve_fit
 import matplotlib.pyplot as plt
+from matplotlib.patches import Circle
+plt.style.use('../../analysis/joule_dissertation.mplstyle')
 import h5py
 import pandas as pd
-import ROOT
 import sys
+import os
 from particle import PDGID
-matplotlib.rcParams['text.usetex'] = True
+#matplotlib.rcParams['text.usetex'] = True
+import matplotlib as mpl
+# mpl.use('Agg') # if on Cori
 
 def main():
 
-	processed_dir = '../alpha/processed_out/oppi/source_angle_scan/'
-	file = 'processed_y15_thetaDet90_rotary0_241Am_100000000.hdf5'
+	# processed_dir = '../alpha/processed_out/oppi/source_angle_scan/'
 
-	processed_filename = processed_dir + file
-
+	# file = 'processed_y15_thetaDet90_rotary0_241Am_100000000.hdf5'
 
 
+	# for files from Grace, use this
+	processed_dir = '/global/cfs/cdirs/m2676/users/grsong/sim_output/oppi/source_angle_scan/y15_thetaDet45_rotary0/'
+	filenames = os.listdir(processed_dir)
+	processed_filename = [processed_dir + file for file in filenames]
+	# print(processed_filename[0])
+	# exit()
 
+	# processed_filename = processed_dir + file
+
+#     processed_filename = '../alpha/processed_out/oppi/centering_scan/processed_y10_norm_rotary0_241Am_100000000.hdf5'
+
+	# processed_filename = ['../alpha/processed_out/oppi/systematics/processed_oppi_ring_y10_norm_241Am_100000000.hdf5']
+	# processed_filename = ['../alpha/processed_out/oppi/source_angle_scan/processed_y15_thetaDet90_rotary0_241Am_100000000.hdf5']
+	# processed_filename = ['../alpha/processed_out/oppi/source_angle_scan/processed_y15_thetaDet75_rotary0_241Am_100000000.hdf5']
+	# processed_filename = ['../alpha/processed_out/oppi/source_angle_scan/processed_y15_thetaDet60_rotary0_241Am_100000000.hdf5']
+	# processed_filename = ['../alpha/processed_out/oppi/source_angle_scan/processed_y15_thetaDet45_rotary0_241Am_100000000.hdf5']
+
+
+
+	# plotDepth_alpGamma(processed_filename)
+	plot2Dhist(processed_filename, nbins=500, plot_title = 'Spot Size from $^{241}$Am (10$^8$ Primaries) \n new Collimator', source=False, particle = 'alpha', multifile=True)
+	# spot_curve()
+	# plot1DSpot(processed_filename, axis='x', particle='alpha')
 
 	# plotHist(processed_filename)
 	# post_process(filename, processed_filename, source=False)
 	# plotSpot(processed_filename, source=False, plot_title = 'Spot Size from $^{241}$Am (10$^8$ Primaries) \n90 deg at 15 mm', particle = 'all')
 	# ZplotSpot(filename)
-	# spot_curve()
-	plot1DSpot(processed_filename, axis='y', particle='alpha')
-	# plot2Dhist(processed_filename, nbins=500, plot_title = 'Spot Size from $^{241}$Am (10$^8$ Primaries) \nalphas only; 90 deg at 15 mm', source=False, particle = 'alpha')
-	# plotDepth(processed_filename, source=False, particle = 'all', plot_title='65 deg, 14mm, $10^8$ primaries')
+
+
+
+	# plotDepth(processed_filename, source=False, hist=False, particle = 'alpha', plot_title='Depth for: \nalphas ($10^8$ primaries)')
 	# plotContour(processed_filename, source=False, particle = 'all')
 	# testFit(filename)
 	# getCounts(processed_filename)
@@ -48,6 +72,18 @@ def post_process(filename, processed_filename, source=False):
 		procdf.to_hdf(processed_filename, key='procdf', mode='w')
 
 	print('File processed. Output saved to: ', processed_filename)
+
+def readSimData(filename):
+	print(f'Found {len(filename)} files')
+	if len(filename) > 1:
+		print('concating mulitple file dataframes')
+		dfs = [pd.read_hdf(file, keys='procdf') for file in filename]
+		df = pd.concat(dfs)
+
+	else:
+		df = pd.read_hdf(filename[0], keys='procdf')
+		
+	return df
 
 
 
@@ -169,49 +205,34 @@ def plotRate(radius, elo, ehi):
 	plt.show()
 
 def plotHist(filename):
-	# df = pandarize(filename)
-	pctResAt1MeV = 0.5 #0.5% energy resolution
+	pctResAt1MeV = 0.1 #0.5% energy resolution
 	df = pd.read_hdf(filename, keys='procdf')
 	# apply energy resolution function
-	# df['energy'] = df['energy'] + np.sqrt(df['energy'])*pctResAt1MeV/100.*np.random.randn(len(df['energy']))
+#     df['energy'] = df['energy'] + np.sqrt(df['energy'])*pctResAt1MeV/100.*np.random.randn(len(df['energy']))
 	energy = np.array(df['energy']*1000)
 
-	# print(energy)
-	# exit()
-	# pid = np.array(df['pid'])
-
-
-	# alpha_df = df.loc[df.energy > 5]
-	# energy = np.array(alpha_df['energy']*1000)
-	# energy = np.array(df['energy']*1000)
-	# print(tmp['pid'].astype(int).unique)
-	# print(df['pid'].astype(int).unique)
-	# exit()
-	# x = np.array(df['x'])
-	# y = np.array(df['y'])
-	# z = np.array(df['z'])
-
-	# x = np.array(alpha_df['x'])
-	# y = np.array(alpha_df['y'])
-	# z = np.array(alpha_df['z'])
-
-	# fig, ax = plt.subplots()
 	fig, ax = plt.subplots(figsize=(10,8))
-	plt.hist(energy, range = [0, 100], bins=200)
-	plt.yscale('log')
+
+	elo, ehi, epb = 5000, 6000, 10
+	nbx = int((ehi-elo)/epb)
+
+	energy_hist, ebins = np.histogram(energy, bins=nbx,
+				range=[elo, ehi])
+	plt.plot(ebins[1:], energy_hist, ds='steps', c='b', lw=1)
 	ax.set_xlabel('Energy (keV)', fontsize=16)
-	ax.set_ylabel('Counts/2 keV', fontsize=16)
+	ax.set_ylabel('Counts/10 keV', fontsize=16)
 	plt.setp(ax.get_xticklabels(), fontsize=14)
 	plt.setp(ax.get_yticklabels(), fontsize=14)
 	# plt.title('Collimated, $^{241}$Am 7*10$^5$ Primaries, 16 mm above detector', fontsize=18)
-	plt.title('$^{241}$Am 10$^8$ Primaries, normal incidence at 9 mm, 0.5 keV bins, assuming 0.5\% resolution', fontsize=18)
-	plt.show()
+	plt.title('$^{241}$Am 10$^8$ Primaries, normal incidence at 10 mm \nassuming 0.5% resolution', fontsize=18)
+	# plt.show()
+	plt.savefig('./energy_hist_alphas_res.png')
 
 def ZplotSpot(filename):
 	# df = pandarize(filename)
 	df = pd.read_hdf(filename, keys='procdf')
 	energy = np.array(df['energy']*1000)
-	# alpha_df = df.loc[df.energy > 5]
+	# alpha_df = df.query('(energy > 5.3) and (energy < 5.6)').copy()
 	# gamma_df = df.loc[(df.energy > .04) & (df.energy > 0.08)]
 
 	x = np.array(df['x'])
@@ -251,9 +272,9 @@ def ZplotSpot(filename):
 	plt.title('Spot Size, $^{241}$Am 10$^6$ Primaries', fontsize=16)
 	plt.show()
 
-def plot2Dhist(filename, nbins=100, plot_title = '', source=False, particle = 'all'):
-
-	df = pd.read_hdf(filename, keys='procdf')
+def plot2Dhist(filename, nbins=100, plot_title = '', source=False, particle = 'all', multifile=False):
+	
+	df = readSimData(filename)
 
 	if particle == 'all':
 		x = np.array(df['x'])
@@ -263,50 +284,65 @@ def plot2Dhist(filename, nbins=100, plot_title = '', source=False, particle = 'a
 		# plot_title = 'Spot Size, $^{241}$Am 10$^7$ Primaries, all energies'
 
 	elif particle == 'alpha':
-		alpha_df = df.loc[df.energy > 5]
+		alpha_df = df.query('(energy > 5.3) and (energy < 5.6)').copy()
 		x = np.array(alpha_df['x'])
 		y = np.array(alpha_df['y'])
 		z = np.array(alpha_df['z'])
 		energy = np.array(alpha_df['energy']*1000)
-		# plot_title = 'Spot Size, $^{241}$Am 10$^7$ Primaries, Energy $>$ 5 MeV'
 
 	elif particle == 'gamma':
-		gamma_df = df.loc[(df.energy > .04) & (df.energy < 0.08)]
+		gamma_df = df.query('(energy > .0585) and (energy < 0.0605)').copy()
 		x = np.array(gamma_df['x'])
 		y = np.array(gamma_df['y'])
 		z = np.array(gamma_df['z'])
 		energy = np.array(gamma_df['energy']*1000)
-		# plot_title = 'Spot Size, $^{241}$Am 10$^7$ Primaries, 60 kev $<$ Energy $<$ 80 keV'
 
 	else:
 		print('specify particle type!')
 		exit()
 
-
 	fig, ax = plt.subplots(figsize=(10,8))
 	nbins=nbins
+	nbx = 200
+	nby = 200
+	xlo, xhi = -25, 25
+	ylo, yhi = -25, 25
+	# hist = ax.hist2d(x, y, bins=10, cmap='plasma', norm=LogNorm(1, 10))
+	# cb = plt.colorbar(hist[3], ax=ax)
+	# cb.set_label("Counts", ha = 'right', va='bottom', rotation=270, fontsize=25)
 
-	# hist = ax.hist2d(x, y, bins=nbins, cmap='plasma', normed=True)
-	hist = ax.hist2d(x, y, bins=nbins, cmap='plasma', norm=LogNorm())
-	cb = plt.colorbar(hist[3], ax=ax)
-	cb.set_label("Counts", ha = 'right', va='bottom', rotation=270, fontsize=28)
-	# plt.xlim(-40,40)
-	# plt.ylim(-40,40)
-	# ax.set_xlabel('x position (mm)', fontsize=16)
-	# ax.set_ylabel('y position (mm)', fontsize=16)
-	# plt.setp(ax.get_xticklabels(), fontsize=14)
-	# plt.setp(ax.get_yticklabels(), fontsize=14)
-	# plt.title(plot_title, fontsize=16)
+	spot_hist, xedges, yedges = np.histogram2d(x, y, bins=[nbx, nby], range=([xlo, xhi], [ylo, yhi]))
+	X, Y = np.mgrid[xlo:xhi:nbx*1j, ylo:yhi:nby*1j]
+	pcm = plt.pcolormesh(X, Y, spot_hist, shading='nearest', norm=LogNorm(0.1, 200), cmap='plasma') #0.002, 0.2
+	cb = plt.colorbar()
+	cb.set_label("Counts/(0.25 mm)$^2$", ha = 'right', va='bottom', rotation=270, fontsize=25)
 
 	cb.ax.tick_params(labelsize=20)
 	plt.xlim(-40,40)
 	plt.ylim(-40,40)
-	ax.set_xlabel('x position (mm)', fontsize=28)
-	ax.set_ylabel('y position (mm)', fontsize=28)
-	plt.setp(ax.get_xticklabels(), fontsize=20)
-	plt.setp(ax.get_yticklabels(), fontsize=20)
-	plt.title(plot_title, fontsize=32)
-	plt.show()
+	ax.add_artist( Circle( (0, 0), 25, fc='none', ec='k', lw=1, zorder=10 , alpha=0.5) )
+	ax.add_artist( Circle( (0, 0), 31, fc='none', ec='k', lw=1, zorder=10 , alpha=0.8) )
+	# plt.Circle((0, 0), 25, fc='none', ec='k', lw=2, zorder=10)
+	# circles(0.5, 0.5, 0.2, c='g', ax=ax, facecolor='none', transform=ax.transAxes)
+
+	ax.set_xlabel('x position (mm)')
+	ax.set_ylabel('y position (mm)')
+	plt.title(plot_title + f'; {particle}')
+
+	ax.text(0.4, 0.92, f'15 mm; 45 deg', verticalalignment='bottom',
+						horizontalalignment='right', transform=ax.transAxes, color='k', fontsize=20, bbox={'facecolor': 'white', 'alpha': 0.4, 'pad': 10})
+	# plt.show()
+	plt.savefig(f'./newCollimator/2dHist_{particle}_y15_thetaDet45_rotary0_241Am_100000000.png', dpi=200)
+	plt.savefig(f'./newCollimator/2dHist_{particle}_y15_thetaDet45_rotary0_241Am_100000000.pdf', dpi=200)
+
+	# ax.set_xlabel('x position (mm)', fontsize=28)
+	# ax.set_ylabel('y position (mm)', fontsize=28)
+	# plt.setp(ax.get_xticklabels(), fontsize=20)
+	# plt.setp(ax.get_yticklabels(), fontsize=20)
+	# plt.title(plot_title, fontsize=32)
+
+	# plt.show()
+
 
 def plotContour(filename, source=False, particle = 'all'):
 
@@ -317,35 +353,37 @@ def plotContour(filename, source=False, particle = 'all'):
 		y = np.array(df['y'])
 		z = np.array(df['z'])
 		energy = np.array(df['energy']*1000)
-		plot_title = 'Spot Size, $^{241}$Am 10$^7$ Primaries, all energies'
 
 	elif particle == 'alpha':
-		alpha_df = df.loc[df.energy > 5]
+		alpha_df = df.query('(energy > 5.3) and (energy < 5.6)').copy()
 		x = np.array(alpha_df['x'])
 		y = np.array(alpha_df['y'])
 		z = np.array(alpha_df['z'])
 		energy = np.array(alpha_df['energy']*1000)
-		plot_title = 'Spot Size, $^{241}$Am 10$^7$ Primaries, Energy $>$ 5 MeV'
+		# plot_title = 'Spot Size, $^{241}$Am 10$^7$ Primaries, Energy $>$ 5 MeV'
 
 	elif particle == 'gamma':
-		gamma_df = df.loc[(df.energy > .04) & (df.energy < 0.08)]
+		gamma_df = df.query('(energy > .0585) and (energy < 0.0605)').copy()
 		x = np.array(gamma_df['x'])
 		y = np.array(gamma_df['y'])
 		z = np.array(gamma_df['z'])
 		energy = np.array(gamma_df['energy']*1000)
-		plot_title = 'Spot Size, $^{241}$Am 10$^7$ Primaries, 60 kev $<$ Energy $<$ 80 keV'
+		# plot_title = 'Spot Size, $^{241}$Am 10$^7$ Primaries, 60 kev $<$ Energy $<$ 80 keV'
 
 	else:
 		print('specify particle type!')
 		exit()
 
-
-	# fig, ax = plt.subplots(ncols=3, figsize=(16,8))
 	fig, ax = plt.subplots(figsize=(10,8))
+	# fig, ax = plt.subplots(ncols=3, figsize=(16,8))
 	nbins=100
+
 	counts, xbins, ybins = np.histogram2d(x, y, bins=nbins, normed=True)
 	# hist = ax[0].hist2d(x, y, bins=nbins, cmap='plasma', normed=True)
+
 	hist = ax.hist2d(x, y, bins=nbins, cmap='plasma', normed=True)
+
+	plt.show()
 	# plt.scatter(x, y, c=energy, s=1, cmap='plasma')
 	# cb = plt.colorbar()
 	# cb.set_label("Energy (keV)", ha = 'right', va='center', rotation=270, fontsize=14)
@@ -416,7 +454,6 @@ def plotContour(filename, source=False, particle = 'all'):
 	# plt.setp(ax[0].get_xticklabels(), fontsize=14)
 	# plt.setp(ax[0].get_yticklabels(), fontsize=14)
 	# plt.title(plot_title, fontsize=16)
-	plt.show()
 
 def old_plotContour(filename, source=False, particle = 'all'):
 
@@ -430,7 +467,7 @@ def old_plotContour(filename, source=False, particle = 'all'):
 		plot_title = 'Spot Size, $^{241}$Am 10$^7$ Primaries, all energies'
 
 	elif particle == 'alpha':
-		alpha_df = df.loc[df.energy > 5]
+		alpha_df = df.query('(energy > 5.3) and (energy < 5.6)').copy()
 		x = np.array(alpha_df['x'])
 		y = np.array(alpha_df['y'])
 		z = np.array(alpha_df['z'])
@@ -438,7 +475,7 @@ def old_plotContour(filename, source=False, particle = 'all'):
 		plot_title = 'Spot Size, $^{241}$Am 10$^7$ Primaries, Energy $>$ 5 MeV'
 
 	elif particle == 'gamma':
-		gamma_df = df.loc[(df.energy > .04) & (df.energy < 0.08)]
+		gamma_df = df.query('(energy > .0585) and (energy < 0.0605)').copy()
 		x = np.array(gamma_df['x'])
 		y = np.array(gamma_df['y'])
 		z = np.array(gamma_df['z'])
@@ -532,11 +569,14 @@ def old_plotContour(filename, source=False, particle = 'all'):
 		x_source = np.array(source_df['x'])
 		print(len(x_source))
 
-def plotDepth(filename, plot_title, source=False, particle = 'all'):
+def plotDepth(filename, plot_title, source=False, particle = 'all', hist=True, multifile=False):
+	if multifile:
+		dfs = [pd.read_hdf(file, keys='procdf') for file in filename]
+		df = pd.concat(dfs)
 
-	df = pd.read_hdf(filename, keys='procdf')
-	df = df.loc[(df.x > -0.25) & (df.x < 0.25) & df.energy > 0.01]
-
+	else:
+		df = pd.read_hdf(filename, keys='procdf')
+	# df = df.loc[(df.x > -0.25) & (df.x < 0.25) & df.energy > 0.01]
 
 	if particle == 'all':
 		x = np.array(df['x'])
@@ -545,50 +585,141 @@ def plotDepth(filename, plot_title, source=False, particle = 'all'):
 		energy = np.array(df['energy']*1000)
 
 	elif particle == 'alpha':
-		alpha_df = df.loc[df.energy > 5]
+		alpha_df = df.query('(energy > 5.3) and (energy < 5.6)').copy()
 		x = np.array(alpha_df['x'])
 		y = np.array(alpha_df['y'])
 		z = np.array(alpha_df['z'])
-		energy = np.array(alpha_df['energy']*1000)
+		energy = np.array(alpha_df['energy'])
 
 	elif particle == 'gamma':
-		gamma_df = df.loc[(df.energy > .04) & (df.energy < 0.08)]
+		gamma_df = df.query('(energy > .0585) and (energy < 0.0605)').copy()
 		x = np.array(gamma_df['x'])
 		y = np.array(gamma_df['y'])
 		z = np.array(gamma_df['z'])
 		energy = np.array(gamma_df['energy']*1000)
 
-
 	else:
 		print('specify particle type!')
 		exit()
 
-	z = z + 22.5 #make surface at 0 z depth
+	z = z + 22.0 #make surface at 0 z depth of OPPI1
 
 
 	fig, ax = plt.subplots(figsize=(9,8))
+	# fig.suptitle(f'Depth for: ', ha='center', va='top', fontsize=20, y=0.95)
 	# plot_title = 'Spot Size from $^{241}$Am, 10$^7$ Primaries'
-	plt.scatter(y, z, c=energy, s=1, cmap='plasma', norm=LogNorm(10,6000))
-	# plt.scatter(x, y, c=energy, s=1, cmap='plasma')
+	plt.scatter(y, z*1000, c=energy, s=1, cmap='plasma', vmin = 5.3, vmax =5.6) # for alphas
+	# plt.scatter(y, z, c=energy, s=1, cmap='plasma', vmin = 58.5, vmax =60.5) # for gammas
 	cb = plt.colorbar()
-	cb.set_label("Energy (keV)", ha = 'right', va='center', rotation=270, fontsize=20)
-	cb.ax.tick_params(labelsize=18)
-	plt.xlim(-31,31)
-	# plt.ylim(-0.05,0.01)
-	# plt.xlim(8,21)
-	plt.ylim(-2.5,0.5)
-	ax.set_xlabel('y position (mm)', fontsize=20)
-	ax.set_ylabel('z position (mm)', fontsize=20)
-	plt.setp(ax.get_xticklabels(), fontsize=18)
-	plt.setp(ax.get_yticklabels(), fontsize=18)
-	plt.title('Depth for: ' + plot_title, fontsize=20)
+	cb.set_label("Energy (keV)", ha = 'right', va='center', rotation=270, fontsize=25, labelpad = 20)
+	cb.ax.tick_params(labelsize=20)
+	# plt.xlim(10., 20.)
+	# plt.ylim(-23, -10) # for alphas
+	plt.ylim(-18.9, -18.2) # for alphas zoomed
+	# plt.ylim(-6.,0.5) # for gammas
+	ax.axhline(y=0, c='k', alpha=0.5, lw=0.5)
+	ax.set_xlabel('y position (mm)')
+	ax.set_ylabel('z position ($\mu$m)') # for alphas
+	# ax.set_ylabel('z position (mm)')
+	plt.title(plot_title)
+
+	ax.text(0.45, 0.1, f'15 mm; 90 deg', verticalalignment='bottom',
+						horizontalalignment='right', transform=ax.transAxes, color='k', fontsize=20, bbox={'facecolor': 'white', 'alpha': 0.4, 'pad': 10})
+
+	# ax.set_xlabel('y position (mm)', fontsize=25)
+	# ax.set_ylabel('z position ($\mu$m)', fontsize=25)
+	# plt.setp(ax.get_xticklabels(), fontsize=20)
+	# plt.setp(ax.get_yticklabels(), fontsize=20)
+	# plt.title(plot_title, fontsize=28)
+	plt.savefig(f'./depth_90deg_zoom_{particle}.png', dpi=200)
+	plt.savefig(f'./depth_90deg_zoom_{particle}.pdf', dpi=200)
 	plt.show()
+	plt.clf()
+	plt.close()
 
 	if source==True:
 		source_df = pd.read_hdf(filename, keys='sourcePV_df')
 		sourceEnergy = np.array(source_df['energy']*1000)
 		x_source = np.array(source_df['x'])
 		print(len(x_source))
+
+	if hist == True:
+		fig, ax = plt.subplots(figsize=(9,8))
+		# fig.suptitle(f'Depth for: ', ha='center', va='top', fontsize=20, y=0.95)
+		# zlo, zhi, zpb = -1., 0.05, 0.05
+		zlo, zhi, zpb = -0.025, 0.01, 0.005
+		xlo, xhi, xpb = 8., 12., 0.5
+		# xlo, xhi, xpb = 13., 17., 0.25
+		nbx = int((xhi-xlo)/xpb)
+		nby = int((zhi-zlo)/zpb)
+
+		depth_hist, xedges, yedges = np.histogram2d(alpha_df['y'], alpha_df['z']+22., bins=[nbx, nby],
+													range=([xlo, xhi], [zlo, zhi]))
+		X, Y = np.mgrid[xlo:xhi:nbx*1j, zlo:zhi:nby*1j]
+
+		pcm = plt.pcolormesh(X, Y, depth_hist, norm=LogNorm(), shading='nearest') #0.002, 0.2
+
+		cb = fig.colorbar()
+		cb.set_label("counts", ha = 'right', va='center', rotation=270, fontsize=14, labelpad = 20)
+		cb.ax.tick_params(labelsize=12)
+		ax.set_xlabel(f'Radial position (mm)', fontsize=16)
+		ax.set_ylabel('Depth (mm)', fontsize=16)
+		plt.setp(ax.get_xticklabels(), fontsize=14)
+		plt.setp(ax.get_yticklabels(), fontsize=14)
+		plt.title(plot_title, fontsize=20)
+		plt.savefig(f'./depth_hist_{particle}.png', dpi=200)
+
+def plotDepth_alpGamma(filename):
+	df = pd.read_hdf(filename, keys='procdf')
+	# df = df.loc[(df.x > -0.25) & (df.x < 0.25) & df.energy > 0.01]
+	alpha_df = df.query('(energy > 5.3) and (energy < 5.6)').copy()
+	alp_x = np.array(alpha_df['x'])
+	alp_y = np.array(alpha_df['y'])
+	alp_z = np.array(alpha_df['z'])
+	alp_energy = np.array(alpha_df['energy'])
+
+	gamma_df = df.query('(energy > .059) and (energy < 0.060)').copy()
+	gamma_x = np.array(gamma_df['x'])
+	gamma_y = np.array(gamma_df['y'])
+	gamma_z = np.array(gamma_df['z'])
+	gamma_energy = np.array(gamma_df['energy'])
+
+	alp_z = alp_z + 22.0 #make surface at 0 z depth of OPPI1
+	gamma_z = gamma_z + 22.0
+
+
+	fig, ax = plt.subplots(figsize=(9,8))
+	# figsize=(8, 10)
+	# fig.suptitle(f'Depth for: ', ha='center', va='top', fontsize=20, y=0.99)
+	# plot_title = 'Spot Size from $^{241}$Am, 10$^7$ Primaries'
+	plt.scatter(alp_y, alp_z, c=alp_energy, s=1, cmap='plasma', vmin = 0.059, vmax =6)
+	plt.scatter(gamma_y, gamma_z, c=gamma_energy, s=1, cmap='plasma', vmin = 0.059, vmax =6)#
+	# plt.scatter(x, y, c=energy, s=1, cmap='plasma')
+	cb = plt.colorbar()
+	cb.set_label("Energy (MeV)", ha = 'right', va='center',  rotation=270, fontsize=25, labelpad=20)
+	cb.ax.tick_params(labelsize=20, pad = 1)
+	plt.xlim(10., 20.)
+	# plt.xlim(10., 20.)
+	plt.ylim(-10., 0.25)
+	ax.axhline(y=0, c='k', alpha=0.5, lw=0.5)
+
+	ax.text(0.45, 0.1, f'15 mm; 45 deg', verticalalignment='bottom',
+						horizontalalignment='right', transform=ax.transAxes, color='k', fontsize=20, bbox={'facecolor': 'white', 'alpha': 0.4, 'pad': 10})
+
+	plt.xlabel('y position (mm)')
+	plt.ylabel('z position (mm)')
+	plt.title('Depth for: \n60 keV gamma & alphas (10$^8$ primaries)')
+
+	# plt.xlabel('y position (mm)', fontsize=18)
+	# plt.ylabel('z position (mm)', fontsize=18)
+	# plt.setp(ax.get_xticklabels(), fontsize=16)
+	# plt.setp(ax.get_yticklabels(), fontsize=16)
+	# plt.title('Depth for: \n60 keV gamma & alphas (10$^8$ primaries)', fontsize=20)
+	plt.savefig(f'./depth_alpGamma_45deg.png', dpi=200)
+	plt.savefig(f'./depth_alpGamma_45deg.pdf', dpi=200)
+	plt.show()
+	plt.clf()
+	plt.close()
 
 def plotSpot(filename, source=False, plot_title = '', particle = 'all'):
 
@@ -602,7 +733,7 @@ def plotSpot(filename, source=False, plot_title = '', particle = 'all'):
 		# plot_title = 'Spot Size, $^{241}$Am 10$^7$ Primaries'
 
 	elif particle == 'alpha':
-		alpha_df = df.loc[df.energy > 5]
+		alpha_df = df.query('(energy > 5.3) and (energy < 5.6)').copy()
 		x = np.array(alpha_df['x'])
 		y = np.array(alpha_df['y'])
 		z = np.array(alpha_df['z'])
@@ -610,7 +741,7 @@ def plotSpot(filename, source=False, plot_title = '', particle = 'all'):
 		# plot_title = 'Spot Size from $^{241}$Am, 10$^7$ Primaries, Energy $>$ 5 MeV'
 
 	elif particle == 'gamma':
-		gamma_df = df.loc[(df.energy > .04) & (df.energy < 0.08)]
+		gamma_df = df.query('(energy > .0585) and (energy < 0.0605)').copy()
 		x = np.array(gamma_df['x'])
 		y = np.array(gamma_df['y'])
 		z = np.array(gamma_df['z'])
@@ -648,7 +779,7 @@ def plotSpot(filename, source=False, plot_title = '', particle = 'all'):
 def plot1DSpot(filename, axis='x', particle = 'all', fit=True):
 	axis = str(axis)
 	particle = str(particle)
-	df = pd.read_hdf(filename, keys='procdf')
+	df = readSimData(filename)
 	energy = np.array(df['energy'])
 
 	if particle=='all':
@@ -662,7 +793,7 @@ def plot1DSpot(filename, axis='x', particle = 'all', fit=True):
 			exit()
 
 	elif particle=='alpha':
-		alpha_df = df.loc[df.energy > 5]
+		alpha_df = df.query('(energy > 5.3) and (energy < 5.6)').copy()
 		scale_std = 1.
 		if axis=='x':
 			x = np.array(alpha_df['x'])
@@ -673,7 +804,7 @@ def plot1DSpot(filename, axis='x', particle = 'all', fit=True):
 			exit()
 
 	elif particle=='gamma':
-		gamma_df = df.loc[(df.energy > .04) & (df.energy < 0.08)]
+		gamma_df = df.query('(energy > .0585) and (energy < 0.0605)').copy()
 		scale_std = 1.
 		if axis=='x':
 			x = np.array(gamma_df['x'])
@@ -702,23 +833,73 @@ def plot1DSpot(filename, axis='x', particle = 'all', fit=True):
 	print('median: ', median, ' std: ', std, ' mean: ', mean)
 	print('moment mean: ', mom_mean, 'moment variance: ', mom_var, 'moment_skew: ', mom_skew)
 
+	#### ____________________________________
 	# x1, y1, bw = kde1D(x, bins=500, bandwidth=0.25, optimize_bw=False)
-	x1, y1, bw = kde1D(x, bins=500, optimize_bw=False)
-	std_kde = np.std(y1)
-	print(std_kde)
+	# x1, y1, bw = kde1D(x, bins=500, optimize_bw=False)
+	# std_kde = np.std(y1)
+	# print(std_kde)
 	# exit()
 
 
 	#Fit the kde-smoothed histogram
-	popt, pcov = curve_fit(gauss_fit_func, xdata=x1, ydata=y1, p0=[1, median, std, 1])
-	perr = np.sqrt(np.abs(np.diag(pcov))) # Variances of each fit parameter
-	print(perr)
+	# popt, pcov = curve_fit(gauss_fit_func, xdata=x1, ydata=y1, p0=[1, median, std, 1])
+	# perr = np.sqrt(np.abs(np.diag(pcov))) # Variances of each fit parameter
+	# print(perr)
 	# print(pcov)
 	# print(type(popt))
+
+	# print('Amplitude: ', popt[0], ' Fit mean = ', popt[1], ' Fit Stdv = ', popt[2], 'C = ', popt[3])
+	# # print('mean = ', popt[1], 'stdev = ', popt[2])
+	# # print('popt: ', popt)
+	#
+	# sigma = np.abs(popt[2])
+	# fwhm = sigma*2.355
+	# array_fwhm = std*2.355
+	#
+	# sigma_uncertainty = perr[2]
+	# print('sigma = ', sigma, '+/- ', sigma_uncertainty)
+	# sigma_percentUncertainty = (sigma_uncertainty/sigma)*100
+	# print('sigma percent uncertainty ', sigma_percentUncertainty)
+	#
+	# print('FWHM = ', fwhm, '+/- ', 2.355*sigma_uncertainty)
+	#
+	# print('FWHM = ', fwhm,  '; array FWHM = ', array_fwhm)
+	#
+	# total_counts = len(x)
+	#
+	# error_fwhm = fwhm/np.sqrt(total_counts)
+	#
+	# print(f'Uncertainty: {error_fwhm}')
+	#### ____________________________________
+	fig, ax = plt.subplots(figsize=(10,8))
+	# ax.figure(figsize=(10,10))
+
+	n_bins = 25
+	# xlo, xhi =
+	# binsize = 0.25
+
+	counts, bins_hist = np.histogram(x, bins=n_bins, range=[10, 20])
+	total_counts = np.sum(counts)
+	max = np.amax(counts)
+	print(total_counts)
+	ax.hist(x, bins=n_bins, range=[10, 20], color='grey', alpha=0.75, label = f'Data: {total_counts:.0f} entries')
+
+
+	# plt.plot(bins_hist[:-1], counts, ds='steps', c='grey', lw=1)
+
+	# plt.hist(bins_hist[:-1], bins, color='grey', alpha=0.75, label = f'Normalized histogram \nof data: {len(x):.2f} entries \n{bins} bins')
+	# ax.hist(xfit, bins = bins, label = 'Data: %.f entries \n 0.25 mm bins' % len(xfit))
+
+	bin_centers= (bins_hist[:-1] + bins_hist[1:]) / 2.
+
+	popt, pcov = curve_fit(gauss_fit_func, xdata=bin_centers, ydata=counts, p0=[max, mean, std, 1])
+	perr = np.sqrt(np.abs(np.diag(pcov))) # Variances of each fit parameter
 
 	print('Amplitude: ', popt[0], ' Fit mean = ', popt[1], ' Fit Stdv = ', popt[2], 'C = ', popt[3])
 	# print('mean = ', popt[1], 'stdev = ', popt[2])
 	# print('popt: ', popt)
+
+	mean = popt[1]
 
 	sigma = np.abs(popt[2])
 	fwhm = sigma*2.355
@@ -733,49 +914,55 @@ def plot1DSpot(filename, axis='x', particle = 'all', fit=True):
 
 	print('FWHM = ', fwhm,  '; array FWHM = ', array_fwhm)
 
-	fig, ax = plt.subplots(figsize=(10,8))
-	# ax.figure(figsize=(10,10))
 
-	ax.hist(x, bins = 10, density=True, color='grey', alpha=0.75, label = 'Normalized histogram \nof data: %.f entries \n10 bins' % len(x))
-	# ax.hist(xfit, bins = bins, label = 'Data: %.f entries \n 0.25 mm bins' % len(xfit))
+	error_fwhm = fwhm/np.sqrt(total_counts)
+
+	print(f'Uncertainty: {error_fwhm}')
 
 	# ax.plot(x1, y1, 'k-', linewidth=3, label='Gaussian KDE of data: %.2f bandwidth' % bw)
 
 	# ax.plot(x1, gauss_fit_func(x1, *popt), 'r--', linewidth = 2, label='Gaussian Fit of KDE: FWHM = %.2f mm' % fwhm)
-	ax.plot(x1, gauss_fit_func(x1, *popt), 'r--', linewidth = 2, label='Gaussian Fit: \nFWHM = %.2f mm' % fwhm)
+	ax.plot(bin_centers, gauss_fit_func(bin_centers, *popt), 'r--', linewidth = 2, label=f'Gaussian Fit: \nFWHM = {fwhm:.2f} mm \nmean = {mean:.2f}')
 	legend = ax.legend(loc='upper right', shadow = False, fontsize='20')
 
 
 
-	ax.set_xlabel('y position (mm)', fontsize=28)
+	ax.set_xlabel('y position (mm)')
+	ax.set_ylabel('counts/ 0.25 mm ')
 
-	plt.setp(ax.get_xticklabels(), fontsize=20)
-
-	plt.setp(ax.get_yticklabels(), fontsize=20)
-	plt.xlim(11,21)
+	plt.xlim(10,22)
+	# plt.ylim(0.0, 0.4)
 
 	# plt.title('Y-axis projection of spot-size. Gaussian KDE, %.2f bandwidth' % bw, fontsize=16)
-	plt.title('Y-axis projection of spot-size with Gaussian fit \nalphas only; 90 deg at 15 mm', fontsize=25)
+	plt.title(f'Y-axis projection of spot-size \n{particle}')
+
+	ax.text(0.3, 0.92, f'15 mm; 90 deg', verticalalignment='bottom',
+						horizontalalignment='right', transform=ax.transAxes, color='k', fontsize=20, bbox={'facecolor': 'white', 'alpha': 0.4, 'pad': 10})
+
+	plt.savefig(f'./newCollimator/1dHist_{particle}_y15_thetaDet90rotary0_241Am_100000000.png', dpi=200)
+	plt.savefig(f'./newCollimator/1dHist_{particle}_y15_thetaDet90rotary0_241Am_100000000.pdf', dpi=200)
 
 	plt.show()
 
 def spot_curve():
 	angles = [90, 75, 60, 45]
-	spotSize = [1.975, 2.09,  2.618, 3.85]
-	uncertainty = [0.004878, 0.00477, 0.0074,  0.0111]
+	spotSize = [1.90, 2.00,  2.54, 3.92]
+	uncertainty = [0.018, 0.019, 0.0245, 0.0382]
 	# angles = [90, 75, 65, 55, 45]
 	# spotSize = [1.98, 2.08, 2.37, 2.87, 3.79]
 	# uncertainty = [0.00569, 0.00570, 0.0066, 0.00784, 0.0118]
 
 	fig, ax = plt.subplots(figsize=(10,8))
 
-	plt.errorbar(angles, spotSize, yerr=uncertainty, marker = 'o', ls='none', c='r', markersize=10)
+	plt.errorbar(angles, spotSize, yerr=uncertainty, marker = '.', ls='none', c='m') #, markersize=10
 
-	plt.xlabel('Source Angle (WRT det. surface) (deg)', fontsize=22)
-	plt.ylabel('FWHM (mm)', fontsize=22)
-	plt.setp(ax.get_xticklabels(), fontsize=20)
-	plt.setp(ax.get_yticklabels(), fontsize=20)
-	plt.title('Y-axis projection of spot-size for various source angles', fontsize=28)
+	plt.xlabel('Angle (deg)')
+	plt.ylabel('FWHM (mm)')
+
+	plt.title('Spot-size VS source angle')
+
+	plt.savefig('./spotSize_vs_sourceAngle.png', dpi=200)
+	plt.savefig('./spotSize_vs_sourceAngle.pdf', dpi=200)
 
 	plt.show()
 
@@ -784,22 +971,22 @@ def rate_curve():
 
 
 def get_hist(np_arr, bins=None, range=None, dx=None, wts=None):
-    """
-    """
-    if dx is not None:
-        bins = int((range[1] - range[0]) / dx)
+	"""
+	"""
+	if dx is not None:
+		bins = int((range[1] - range[0]) / dx)
 
-    if bins is None:
-        bins = 100 #override np.histogram default of just 10
+	if bins is None:
+		bins = 100 #override np.histogram default of just 10
 
-    hist, bins = np.histogram(np_arr, bins=bins, range=range, weights=wts)
-    hist = np.append(hist, 0)
+	hist, bins = np.histogram(np_arr, bins=bins, range=range, weights=wts)
+	hist = np.append(hist, 0)
 
-    if wts is None:
-        return hist, bins, hist
-    else:
-        var, bins = np.histogram(np_arr, bins=bins, weights=wts*wts)
-        return hist, bins, var
+	if wts is None:
+		return hist, bins, hist
+	else:
+		var, bins = np.histogram(np_arr, bins=bins, weights=wts*wts)
+		return hist, bins, var
 
 
 if __name__ == '__main__':

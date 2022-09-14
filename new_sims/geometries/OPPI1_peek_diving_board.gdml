@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<gdml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://service-spi.web.cern.ch/service-spi/app/releases/GDML/schema/gdml.xsd">
+
+<!--##########################################
+
+#cylinder_height + cone_height = detector height
+#cylinder_radius = cone's larger radius = detector radius
+#cone_radius1 = cone's smaller radius
+#cone_radius2 = cone's larger radius
+
+##########################################-->
+
+ <define>
+
+  <constant name="HALFPI" value="pi/2."/>
+  <constant name="PI" value="1.*pi"/>
+  <constant name="TWOPI" value="2.*pi"/>
+
+  <position name="center" x="0" y="0" z="0"/>
+  <rotation name="identity" x="0" y="0" z="0" />
+
+  <quantity name="board_width" type="length" value="12.52" unit="mm"/>
+  <quantity name="board_length" type="length" value="35.5+6.5" unit="mm"/> <!-- extends 6.5 mm over PC -->
+  <quantity name="board_thickness" type="length" value="1.5" unit="mm"/>
+
+  <quantity name="joiner_length" type="length" value="10." unit="mm"/> <!--ie ring max thickness -->
+  <quantity name="joiner_thickness" type="length" value="1.51" unit="mm"/>
+
+
+ </define>
+
+<!--##########################################-->
+<materials>
+
+  <material name="peek" formula="C19H12O3">
+    <D value="1.31" />
+    <fraction n="0.76" ref="G4_C"/>
+    <fraction n="0.08" ref="G4_H" />
+    <fraction n="0.16" ref="G4_O" />
+  </material>
+
+</materials>
+
+<!--##########################################-->
+
+ <solids>
+
+  <box name = "diving_board" x="board_length" y="board_width" z="board_thickness" lunit= "mm"/>
+
+
+  <!-- <union name="ring_divingBoard">
+    <first ref="ring" />
+    <second ref="diving_board" />
+    <position x="-(board_length/2.0) + 6.5" y="0" z="(cone_height/2.0 + joiner_thickness + board_thickness/2.0)" />
+    <position x="0" y="0" z="(body_bottom_height/2)+(body_middle_height)+(body_top_height/2)" />
+    <rotationref ref="identity"/>
+  </union> -->
+
+ </solids>
+
+<!--##########################################-->
+
+ <structure>
+
+ <volume name="OPPI1_peek_diving_board">
+   <materialref ref="peek"/>
+   <solidref ref="diving_board"/>
+  </volume>
+
+ </structure>
+
+<!--##########################################-->
+
+ <setup name="Default" version="1.0">
+  <world ref="OPPI1_peek_diving_board"/>
+ </setup>
+</gdml>

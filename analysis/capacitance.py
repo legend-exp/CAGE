@@ -5,6 +5,7 @@ import numpy as np
 import sys
 import math
 import matplotlib.pyplot as plt
+plt.style.use('./joule_dissertation.mplstyle')
 
 def main():
     oppi()
@@ -29,7 +30,7 @@ def oppi():
     V_1_m2 = np.array([528, 448, 360, 232, 148, 148, 144, 140, 140, 138, 138, 140, 140, 140, 144, 144, 144])
 
     cap_vs_V(c_f, biasV_m2, V_1_m2, V_in_m2, plot=True)
-    baseline_vs_V(biasV_m2_2, baseline_m2_2, plot=True)
+    # baseline_vs_V(biasV_m2_2, baseline_m2_2, plot=True)
     # baseline_vs_V(biasV_m2_1, baseline_m2_1, plot=True)
 
 def cap_vs_V(c_f, biasV, V_1, V_in, plot=True):
@@ -37,23 +38,31 @@ def cap_vs_V(c_f, biasV, V_1, V_in, plot=True):
     for i in range(len(V_1)):
         cap[i] = c_f*(V_1[i]/(V_in[i]))
     if plot:
-        fig = plt.figure()
+        fig, ax = plt.subplots(figsize=(9,7))
         plt.plot(biasV, cap, '.r')
         plt.title('OPPI Capacitance vs Voltage')
         plt.xlabel('Voltage (V)')
         plt.ylabel('Capacitance (pF)')
         # plt.yscale('log')
+
+        plt.savefig('./plots/Oppi_cap_vs_V.png', dpi=200)
+        plt.savefig('./plots/Oppi_cap_vs_V.pdf', dpi=200)
         plt.show()
+
+    print(cap)
     return(cap)
 
 def baseline_vs_V(biasV, baseline, plot=True):
-    fig = plt.figure()
+    fig, ax = plt.subplots(figsize=(12,7))
     plt.plot(biasV, baseline, '.r')
     plt.title('OPPI Baseline vs Voltage')
     # plt.title('OPPI Baseline vs Voltage\n (taken with pulser on)') # if using first, high-bias V scan from elog 224
     plt.xlabel('Voltage (V)')
     plt.ylabel('Average Baseline (mV)')
     # plt.ylim(-815, -789)
+
+    plt.savefig('./plots/Oppi_bl_vs_V.png', dpi=200)
+    plt.savefig('./plots/Oppi_bl_vs_V.pdf', dpi=200)
     plt.show()
 
 

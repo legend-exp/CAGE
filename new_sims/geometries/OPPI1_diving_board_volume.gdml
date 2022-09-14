@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<gdml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://service-spi.web.cern.ch/service-spi/app/releases/GDML/schema/gdml.xsd">
+
+<!--##########################################
+
+This file is a "mother file" that contains everything relevant to the diving board: peek diving board, LMFE substrate, in a vacuum volume so they can be placed as one volume. Center of this volume is center of the peek diving board.
+
+##########################################-->
+
+ <define>
+
+  <constant name="HALFPI" value="pi/2."/>
+  <constant name="PI" value="1.*pi"/>
+  <constant name="TWOPI" value="2.*pi"/>
+
+  <position name="center" x="0" y="0" z="0"/>
+  <rotation name="identity" x="0" y="0" z="0"/>
+
+  <!-- Peek diving board dimensions for reference -->
+  <quantity name="board_width" type="length" value="12.76" unit="mm"/>
+  <quantity name="board_length" type="length" value="30.8+5.1" unit="mm"/> <!-- extends 5.1 mm over PC -->
+  <quantity name="board_thickness" type="length" value="1.65" unit="mm"/>
+
+  <!-- LMFE substrate board dimensions for reference -->
+  <quantity name="substrate_board_width" type="length" value="7.0" unit="mm"/>
+  <quantity name="substrate_board_length" type="length" value="19.5" unit="mm"/> <!-- extends 4.5 mm over PC, but we account for this when it's placed in the mother gdml file -->
+  <quantity name="substrate_board_thickness" type="length" value="0.5" unit="mm"/>
+
+  <quantity name="world_size" type="length" value="3" unit="m"/>
+  <quantity name="diving_board_vacuum_radius" type="length" value="31" unit="mm"/>
+  <quantity name="diving_board_vacuum_height" type="length" value="board_thickness + substrate_board_thickness + 0.5" unit="mm"/> <!-- Additional 0.25 mm above and below center of vacuum volume (0.125 mm at top since lmfe_substrate is 0.125 mm above PEEK)-->
+
+  <quantity name="diving_board_overhang" type="length" value="5.1" unit="mm"/> <!-- diving board extends 5.1mm over detector center-->
+  <quantity name="diving_board_x" type="length" value="-(board_length/2)+diving_board_overhang" unit="mm"/> <!-- diving board x-placement. Add 5.1 mm b/c diving board extends 5.1mm over detector center-->
+
+  <quantity name="substrate_board_overhang" type="length" value="3.9" unit="mm"/> <!-- lmfe substrate board extends 3.9mm over detector center-->
+  <quantity name="substrate_board_x" type="length" value="-(substrate_board_length/2)+substrate_board_overhang" unit="mm"/> <!-- diving board x-placement. Add 3.9 mm b/c diving board extends 3.9mm over detector center-->
+
+
+ </define>
+
+<!--##########################################-->
+
+ <materials>
+ </materials>
+
+<!--##########################################-->
+
+<solids>
+
+  <cone name="diving_board_vacuum_cylinder" rmin1="0" rmax1="diving_board_vacuum_radius" rmin2="0" rmax2="diving_board_vacuum_radius" z="diving_board_vacuum_height" startphi="0" deltaphi="TWOPI" aunit="rad"/>
+
+ </solids>
+
+<!--##########################################-->
+
+ <structure>
+
+  <volume name="diving_board_volume">
+   <materialref ref="G4_Galactic"/>
+   <solidref ref="diving_board_vacuum_cylinder"/>
+   <!--<positionref ref="center"/>
+   <rotationref ref="identity"/>-->
+
+   <physvol>
+     <file name="./geometries/OPPI1_peek_diving_board.gdml"/>
+     <position name="OPPI1_peek_diving_board_Position" x="diving_board_x" y="0" z="0" unit="mm"/>
+     <rotation name="OPPI1_peek_diving_board_Rotation" x="0" y="0" z="0" unit="deg"/>
+   </physvol>
+
+   <physvol>
+     <file name="./geometries/lmfe_substrate.gdml"/>
+     <position name="lmfe_substrate_Position" x="substrate_board_x" y="0" z="board_thickness/2 + substrate_board_thickness/2 + 0.125" unit="mm"/> <!-- Give it 0.125 mm of vertical space from the PEEK diving board -->
+     <rotation name="lmfe_substrate_Rotation" x="0" y="0" z="0" unit="deg"/>
+   </physvol>
+
+  </volume>
+
+ </structure>
+
+<!--##########################################-->
+
+ <setup name="Default" version="1.0">
+  <world ref="diving_board_volume"/>
+ </setup>
+</gdml>

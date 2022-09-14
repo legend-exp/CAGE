@@ -366,7 +366,7 @@ class RabbitPlot(pg.GraphicsLayoutWidget):
         self.t_later = t_later
 
         print(self.endpoints)
-        exit()
+        # exit()
 
         print("Selected endpoints:", self.endpoints)
 

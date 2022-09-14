@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<gdml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://service-spi.web.cern.ch/service-spi/app/releases/GDML/schema/gdml.xsd">
+<!--##########################################
+
+# February 5, 2020
+# Gulden Othman
+# New collimator to be made of Pb. Drawing in this elog: https://elog.legend-exp.org/UWScanner/180
+# This way of unioning/differencing seems to work correctly
+
+# Aug 25, 2021
+# Grace Song
+# New-new collimator to be made of Pb. Dimensions in this elog: https://elog.legend-exp.org/UWScanner/380
+##########################################-->
+
+ <define>
+
+  <constant name="HALFPI" value="pi/2."/>
+  <constant name="PI" value="1.*pi"/>
+  <constant name="TWOPI" value="2.*pi"/>
+
+  <position name="center" x="0" y="0" z="0"/>
+  <rotation name="identity" x="0" y="0" z="0"/>
+
+  <!-- a box for top part of collimator -->
+  <quantity name="body_top_width" type="length" value="31.6" unit="mm"/> <!-- width of collimator measured perpendicular to shaft axis -->
+  <quantity name="body_top_length" type="length" value="35.85" unit="mm"/> <!-- length of collimator measured along shaft axis -->
+  <quantity name="body_top_height" type="length" value="7" unit="mm"/> <!-- height of flat part of collimator -->
+
+  <!-- elliptical tube for rounded part of collimator -->
+  <quantity name="round_rad" type="length" value="21.33" unit="mm"/>
+  <quantity name="round_center" type="length" value="14.33" unit="mm"/>
+  <quantity name="round_height" type="length" value="7" unit="mm"/>
+
+  <quantity name="innerVolume_radius" type="length" value="25.25/2" unit="mm"/>
+  <quantity name="innerVolume_height" type="length" value="0.5" unit="mm"/>
+
+  <quantity name="body_sourceOffset_radius" type="length" value="9.15/2" unit="mm"/>
+  <quantity name="body_sourceOffset_height" type="length" value="0.05" unit="mm"/>
+
+  <quantity name="body_nub_width" type="length" value="6.3" unit="mm"/>
+  <quantity name="body_nub_height" type="length" value="1.7" unit="mm"/>
+
+ </define>
+
+<!--##########################################-->
+
+<!--##########################################-->
+
+<!-- with the union done in this way, the identity (0,0) corresponds to the center point of the body_top -->
+
+ <solids>
+
+    <!-- Primary solids -->
+    <box name="body_nub" x="body_nub_width" y="body_top_length" z="body_nub_height + 0.2" lunit="mm" /> <!--Add 0.2mm to remove gap between nub and round -->
+    <box name="body_top" x="body_top_width" y="body_top_length" z="body_top_height" lunit="mm" />
+
+    <cone name="round" rmin1="0" rmax1="round_rad" rmin2="0" rmax2="round_rad" z="body_top_length" startphi="0" deltaphi="TWOPI" lunit="mm" aunit="rad" />
+    <box name="sub" x="round_rad*2" y="round_rad*2" z="body_top_length" lunit="mm" />
+
+    <subtraction name="body_round">
+        <first ref="round"/>
+        <second ref="sub"/>
+        <position name="sub_pos" x="0" y="round_height" z="0" /> 
+        <rotationref ref="identity"/>
+    </subtraction>
+
+
+    <!-- subtraction solids -->
+    <cone name="body_sourceOffset" rmin1="0.0" rmax1="body_sourceOffset_radius" rmin2="0.0" rmax2="body_sourceOffset_radius" z="body_sourceOffset_height" startphi="0" deltaphi="TWOPI" aunit="rad" />
+    <cone name="innerVolume" rmin1="0.0" rmax1="innerVolume_radius" rmin2="0.0" rmax2="innerVolume_radius" z="innerVolume_height" startphi="0" deltaphi="TWOPI" aunit="rad" />
+    <cone name="source_hole" rmin1="0.0" rmax1="0.5" rmin2="0.0" rmax2="0.5" z="11.7" startphi="0" deltaphi="TWOPI" lunit="mm" aunit="rad" />
+
+    <union name="top_round">
+      <first ref="body_top" />
+      <second ref="body_round" />
+      <position name="round_pos" x="0" y="0" z="round_center - body_top_height/2" lunit="mm"/> 
+      <rotation name="rot_round" x="pi/2" y="0" z="0" aunit="rad"/>
+    </union>
+
+    <union name="body_collimator">
+      <first ref="top_round" />
+      <second ref="body_nub" />
+      <position name="nub_pos" x="0" y="0" z="-body_top_height/2-round_height-body_nub_height/2 + 0.2/2" /> <!--Add 0.2/2 mm to remove gap between nub and round --> 
+      <rotationref ref="identity"/>
+    </union>
+
+    <subtraction name="body_innerVolume_subtraction">
+      <first ref="body_collimator" />
+      <second ref="innerVolume" />
+      <position name="inner_pos" x="0" y="0" z="body_top_height/2 - 3.5 - innerVolume_height/2" />
+      <rotationref ref="identity"/>
+    </subtraction>
+
+    <subtraction name="body_source_subtraction">
+      <first ref="body_innerVolume_subtraction" />
+      <second ref="body_sourceOffset" />
+      <position name="source_pos" x="0" y="0" z="body_top_height/2 - 3.5 - innerVolume_height - body_sourceOffset_height/2" />
+      <rotationref ref="identity"/>
+    </subtraction>
+
+   <subtraction name="am_collimator">
+      <first ref="body_source_subtraction" />
+      <second ref="source_hole" />
+      <position name="coll_pos" x="0" y="0" z="body_top_height/2 - 3.5 - innerVolume_height - body_sourceOffset_height - 11.7/2" />
+      <rotationref ref="identity"/>
+    </subtraction>
+
+
+ </solids>
+
+<!--##########################################-->
+
+ <structure>
+
+ <volume name="Am_Collimator_v3">
+   <materialref ref="G4_Pb"/>
+   <solidref ref="am_collimator"/>
+  </volume>
+
+ </structure>
+
+<!--##########################################-->
+
+ <setup name="Default" version="1.0">
+  <world ref="Am_Collimator_v3"/>
+ </setup>
+</gdml>
