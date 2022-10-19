@@ -29,13 +29,13 @@ with warnings.catch_warnings():
     from tqdm import tqdm
     tqdm.pandas()
 
-from pygama import DataGroup
-from pygama.io.orcadaq import parse_header
-import pygama.lh5 as lh5
-import pygama.analysis.metadata as pmd
-import pygama.analysis.histograms as pgh
-import pygama.analysis.calibration as pgc
-import pygama.analysis.peak_fitting as pgf
+from pygama.flow import DataGroup
+from orca_utils import parse_header
+from pygama.lgdo import lh5_store as lh5
+from orca_utils import write_pretty
+import pygama.math.histogram as pgh
+import pygama.pargen.energy_cal as pgc
+import pygama.math.peak_fitting as pgf
 
 def main():
     doc="""
@@ -252,7 +252,7 @@ def init_ecaldb(config):
 
     # pretty-print the JSON database to file
     raw_db = db_ecal.storage.read()
-    pmd.write_pretty(raw_db, f_db)
+    write_pretty(raw_db, f_db)
 
     # show the file as-is on disk
     with open(f_db) as f:
@@ -318,7 +318,7 @@ def check_raw_spectrum(dg, config, db_ecal):
     """
     # load energy data
     dsp_list = config['lh5_dir'] + dg.fileDB['dsp_path'] + '/' + dg.fileDB['dsp_file']
-    raw_data = lh5.load_nda(dsp_list, config['rawe'], config['input_table'], verbose=False)
+    raw_data = lh5.load_nda(dsp_list, config['rawe'], config['input_table'])
     runtime_min = dg.fileDB['runtime'].sum()
 
     print('\nShowing raw spectra ...')
@@ -443,7 +443,7 @@ def run_peakdet(dg, config, db_ecal):
     # show in-memory state and then write to file
     # pprint(db_ecal.storage.read())
     print('Writing results to ecalDB.')
-    pmd.write_pretty(db_ecal.storage.read(), config['ecaldb'])
+    write_pretty(db_ecal.storage.read(), config['ecaldb'])
 
 
 def peakdet_auto(df_group, config):
@@ -454,7 +454,7 @@ def peakdet_auto(df_group, config):
     """
     # load data and compute runtime
     dsp_list = config['lh5_dir'] + df_group['dsp_path'] + '/' + df_group['dsp_file']
-    edata = lh5.load_nda(dsp_list, config['rawe'], config['input_table'], verbose=False)
+    edata = lh5.load_nda(dsp_list, config['rawe'], config['input_table'])
     runtime_min = df_group['runtime'].sum()
     run = df_group.run.iloc[0]
     cyclo, cychi = df_group.cycle.iloc[0], df_group.cycle.iloc[-1]
@@ -697,7 +697,7 @@ def peakdet_input(df_group, config):
     """
     # load data and compute runtime
     dsp_list = config['lh5_dir'] + df_group['dsp_path'] + '/' + df_group['dsp_file']
-    edata = lh5.load_nda(dsp_list, config['rawe'], config['input_table'], verbose=False)
+    edata = lh5.load_nda(dsp_list, config['rawe'], config['input_table'])
     runtime_min = df_group['runtime'].sum()
     run = int(df_group.run.iloc[0])
     cyclo, cychi = df_group.cycle.iloc[0], df_group.cycle.iloc[-1]
@@ -855,7 +855,7 @@ def run_peakfit(dg, config, db_ecal):
     # show in-memory state and then write to file
     # pprint(db_ecal.storage.read())
     print('Writing results to ecalDB.')
-    pmd.write_pretty(db_ecal.storage.read(), config['ecaldb'])
+    write_pretty(db_ecal.storage.read(), config['ecaldb'])
 
 
 def peakfit(df_group, config, db_ecal):
@@ -884,7 +884,7 @@ def peakfit(df_group, config, db_ecal):
 
     # load data and compute runtime
     dsp_list = config['lh5_dir'] + df_group['dsp_path'] + '/' + df_group['dsp_file']
-    raw_data = lh5.load_nda(dsp_list, config['rawe'], config['input_table'], verbose=False)
+    raw_data = lh5.load_nda(dsp_list, config['rawe'], config['input_table'])
     runtime_min = df_group['runtime'].sum()
     print(f'  Runtime: {runtime_min:.1f} min.  Calibrating:', [f'{et}:{len(ev)} events' for et, ev in raw_data.items()])
     print(f'  Fitting to:', config['fit_func'])
@@ -1178,7 +1178,7 @@ def fit_peaks(epeaks, cal_pars, raw_data, runtime_min, range=[0, 3000, 5], ff_na
         # default: gaussian fit + step function : a, mu, sigma, bkg, step
         if ff_name == 'gauss_step':
 
-            fit_func = pgf.gauss_step
+            fit_func = pgf.gauss_step_pdf
 
             # set robust initial guesses
             step0 = bkg0 - bkg0_hi

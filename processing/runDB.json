@@ -401,5 +401,34 @@
     
     "392":["2562-2565", "alp", "elog 437. oppi wellness checks, skip 2562"],
     "393":["2566-2617", "bkg", "elog 437. overnight background run"],
-    "394":["2618", "ba133", "elog 437. 5 min Ba run"]
+    "394":["2618", "ba133", "elog 437. 5 min Ba run"],
+
+    "395":["2619-2684", "bkg", "elog 440.  ICPC first scans"],
+    "396":["2685", "alp", "elog 440"],
+    "397":["2686-2687", "alp", "elog 440"],
+    "398":["2688", "alp", "elog 440"],
+    "399":["2689", "alp", "elog 440"],
+    "400":["2690", "alp", "elog 440"],
+    "401":["2691", "alp", "elog 440"],
+    "402":["2692-2698", "alp", "elog 440"],
+    "403":["2699-2720", "alp", "elog 440"],
+    "404":["2721-2722", "alp", "elog 440"],
+    "405":["2723", "alp", "elog 440"],
+    "406":["2724", "alp", "elog 440"],
+    "407":["2725-2743", "alp", "elog 440"],
+    "408":["2744", "alp", "elog 440"],
+    "409":["2745", "alp", "elog 440"],
+    "410":["2746", "alp", "elog 440"],
+    "411":["2747", "alp", "elog 440"],
+    "412":["2748", "alp", "elog 440"],
+    "413":["2749-2754", "alp", "elog 440"],
+
+    "414":["2755-2783", "alp", "elog 443. Rebiasing icpc after attempted collimator fix.  HV lower at 3500 V."],
+    "415":["2784-2813", "alp", "elog 443.  may show settling of detector & improved resolution"],
+    "416":["2814-2855", "alp", "elog 443.  after preamp tuning and turning off motor controller noise."],
+    "417":["2856-2863", "alp", "elog 443  morning alpha runs"],
+
+    "418":["2864-2905", "bkg", "elog 444, stability study"],
+    "419":["2906-2917", "bkg", "elog 444, stability study"],
+    "420":["2918-2944", "bkg", "elog 444, stability study"]
 }

@@ -14,11 +14,11 @@ from tinydb.storages import MemoryStorage
 import matplotlib.pyplot as plt
 plt.style.use('../clint.mpl')
 
-from pygama import DataGroup
-import pygama.lh5 as lh5
-import pygama.analysis.histograms as pgh
-from pygama.io.daq_to_raw import daq_to_raw
-from pygama.io.raw_to_dsp import raw_to_dsp
+from pygama.flow import DataGroup
+import pygama.lgdo.lh5_store as lh5
+import pygama.math.histogram as pgh
+from pygama.raw import build_raw
+from pygama.dsp import build_dsp
 
 
 def main():
@@ -140,8 +140,8 @@ def d2r(dg, overwrite=False, nwfs=None, verbose=False, user=False, run_mc=False)
             }
 
         print(f'Processing cycle {cyc}')
-        daq_to_raw(f_daq, f_raw, config=dg.config, systems=subs, verbose=verbose,
-                   n_max=nwfs, overwrite=overwrite, subrun=subrun)
+        build_raw(in_stream=f_daq, in_stream_type='ORCA', out_spec='metadata/orca_config.json', verbose=verbose, n_max=nwfs, 
+                  overwrite=overwrite, f_raw=f_raw)
 
 
 def r2d(dg, overwrite=False, nwfs=None, verbose=False, user=False, run_mc=False):
@@ -158,6 +158,7 @@ def r2d(dg, overwrite=False, nwfs=None, verbose=False, user=False, run_mc=False)
 
         f_raw = f"{dg.lh5_dir}/{row['raw_path']}/{row['raw_file']}"
         f_dsp = f"{lh5_dir}/{row['dsp_path']}/{row['dsp_file']}"
+        print(f_dsp)
 
         if "sysn" in f_raw:
             tmp = {'sysn' : 'geds'} # hack for lpgta
@@ -176,7 +177,7 @@ def r2d(dg, overwrite=False, nwfs=None, verbose=False, user=False, run_mc=False)
         # load updated dsp config file
         if row.dsp_id > 0:
             f_config = dsp_dir + f'/dsp/dsp_{row.dsp_id:02d}.json'
-            print(f'Using DSP config: {dsp_dir}' + f'/dsp/dsp_{row.dsp_id:02d}.json')
+            print(f'Using DSP config: {f_config}')
 
         # load 2-channel DSP configs.  this is kinda hacky but should work
         if run_mc:
@@ -190,9 +191,7 @@ def r2d(dg, overwrite=False, nwfs=None, verbose=False, user=False, run_mc=False)
         # so the "db defaults" values in each of the JSON files will be used.
 
         print(f'Processing cycle {cyc}')
-        raw_to_dsp(f_raw, f_dsp, f_config, n_max=nwfs, verbose=verbose,
-                   overwrite=overwrite, lh5_tables=lh5_tables, chan_config=chan_config)
-
+        build_dsp(f_raw, f_dsp, f_config, n_max=nwfs, write_mode='r')#, chan_config=chan_config)
 
 def r2d_file(f_raw, f_dsp, overwrite=True, nwfs=None, verbose=False):
     """
@@ -299,7 +298,7 @@ def dsp_to_hit(df_row, dg=None, verbose=False, overwrite=False, lowE=False):
         return
 
     # create initial 'hit' DataFrame from dsp data
-    hit_store = lh5.Store()
+    hit_store = lh5.LH5Store()
     data, n_rows = hit_store.read_object(dg.config['input_table'], f_dsp)
     df_hit = data.get_dataframe()
 

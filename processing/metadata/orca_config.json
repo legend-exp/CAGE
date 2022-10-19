@@ -1,0 +1,9 @@
+{
+    "ORSIS3302DecoderForEnergy" : {
+        "ORSIS3302DecoderForEnergy" : {
+            "key_list" : ["*"],
+            "out_stream" : "{f_raw}",
+            "out_name" : "ORSIS3302DecoderForEnergy/raw"
+        }
+    }
+}

@@ -7,7 +7,6 @@
     "dcr", "dtrap_max", "qdrift",
     "lt_mean", "lt_sig", "lt_slope", "lt_int",
     "A_10", "AoE", "triE", "ToE",
-    "hf_max", "lf_max",
     "tp_max", "tp_02", "tp_05", "tp_10", "tp_20", "tp_30", "tp_40", "tp_50",
     "tp_60", "tp_70", "tp_80", "tp_90", "tp_96"
   ],
@@ -61,7 +60,7 @@
         "module": "pygama.dsp.processors",
         "args" : ["wf_pz[4250:8000]", "fltp", "fltp_sig", "fltp_slope", "fltp_int"],
         "prereqs": ["wf_pz"],
-        "unit": ["ADC", "ADC"]
+        "unit": ["ADC", "ADC", "ADC", "ADC"]
     },
     "wf_etrap": {
       "function": "trap_norm",
@@ -165,13 +164,11 @@
         "unit": ["ADC", "ADC", "ADC", "ADC"],
         "prereqs": ["wf_logtail"]
     },
-
     "curr": {
       "function": "avg_current",
       "module": "pygama.dsp.processors",
-      "args": ["wf_pz", 10, "curr(len(wf_pz)-10, f)"],
-      "unit": "ADC/sample",
-      "prereqs": ["wf_pz"]
+      "args": ["wf_pz", 10, "curr(len(wf_pz)-10, 'f')"],
+      "unit": "ADC/sample"
     },
     "A_10": {
       "function": "amax",
@@ -211,12 +208,11 @@
       "unit": "ADC",
       "prereqs": ["triE"]
     },
-
     "curr_psd": {
       "function": "psd",
       "module": "pygama.dsp.processors",
       "args": ["curr", "curr_psd"],
-      "init_args": ["curr", "curr_psd(len(curr)//2+1, f)"],
+      "init_args": ["curr", "curr_psd(len(curr)//2+1, 'f')"],
       "unit": "",
       "prereqs": ["curr"]
     },
@@ -224,7 +220,7 @@
       "function": "psd",
       "module": "pygama.dsp.processors",
       "args": ["wf_blsub[:3000]", "wf_psd"],
-      "init_args": ["wf_blsub[:3000]", "wf_psd(1501, f)"],
+      "init_args": ["wf_blsub[:3000]", "wf_psd(len(wf_blsub[:3000])//2+1, 'f')"],
       "unit": "",
       "prereqs": ["wf_blsub"]
     },
