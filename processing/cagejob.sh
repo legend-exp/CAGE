@@ -28,7 +28,7 @@ fi
 # NOTE: you need to update runDB.json before running this!
 # shifter python setup.py --update --orca -b
 
-shifter python processing.py -q 'run >= 418' --d2r
+shifter python processing.py -q 'run >= 428' --d2r
 
 # shifter python processing.py -q 'run >= 395' --d2r
 

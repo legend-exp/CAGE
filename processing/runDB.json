@@ -430,5 +430,18 @@
 
     "418":["2864-2905", "bkg", "elog 444, stability study"],
     "419":["2906-2917", "bkg", "elog 444, stability study"],
-    "420":["2918-2944", "bkg", "elog 444, stability study"]
+    "420":["2918-2944", "bkg", "elog 444, stability study"],
+    "421":["2945-2978", "bkg", "elog 444  stability study, friday runs"],
+    "422":["2979-2994", "bkg", "elog 444  saturday runs"],
+
+    "423":["2995-3002", "alp", "elog 445 rotary -180, linear 5"],
+    "424":["3003-3011", "alp", "elog 445 linear 6"],
+    "425":["3012-3018", "alp", "elog 445 linear 7 "],
+    "426":["3019-3032", "alp", "elog 445 linear 8 "],
+    "427":["3033-3088", "alp", "elog 445 linear 9 -- overnight alpha run"],
+
+    "428":["3089-3103", "alp", "linear 10"],
+    "429":["3104-3120", "alp", "linear 11"],
+    "430":["3121-3179", "alp", "linear 12 overnight run"]
+
 }
