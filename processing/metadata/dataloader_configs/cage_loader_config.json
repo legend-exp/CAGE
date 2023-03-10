@@ -1,0 +1,8 @@
+{
+    "levels": {
+        "hit": {
+            "tiers": ["raw", "dsp", "hit"]
+        }
+    },
+    "channel_map": {}
+}

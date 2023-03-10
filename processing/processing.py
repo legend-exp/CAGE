@@ -45,6 +45,7 @@ def main():
     arg('-v', '--verbose', action=st, help='verbose mode')
     arg('--mc', action=st, help='process with multi-channel mode (n+ readout)')
 
+    arg('--dsp', nargs=1, type=str, help='name of dsp config file')
     arg('-u', '--user', action=st, help='user lh5 mode')
     arg('-s', '--spec', nargs=1, type=int, help='select alt set of calib peaks')
     arg('-l', '--lowE', action=st, help='calibrate low-E region with different calibration constants')
@@ -80,7 +81,7 @@ def main():
 
     # -- run routines --
     if args.d2r: d2r(dg, args.over, nwfs, args.verbose, args.user, args.mc)
-    if args.r2d: r2d(dg, args.over, nwfs, args.verbose, args.user, args.mc)
+    if args.r2d: r2d(dg, args.over, nwfs, args.verbose, args.user, args.mc, args.dsp[0])
     if args.d2h: d2h(dg, args.over, nwfs, args.verbose, args.user, args.lowE)
 
     if args.r2d_file:
@@ -144,15 +145,19 @@ def d2r(dg, overwrite=False, nwfs=None, verbose=False, user=False, run_mc=False)
                   overwrite=overwrite, f_raw=f_raw)
 
 
-def r2d(dg, overwrite=False, nwfs=None, verbose=False, user=False, run_mc=False):
+def r2d(dg, overwrite=False, nwfs=None, verbose=False, user=False, run_mc=False, dsp=None):
     """
     $ ./processing.py -q 'run==[something]' --r2d
     """
     # load default DSP config file
-    dsp_dir = os.path.expandvars('$CAGE_SW/processing/metadata')
-    with open(dsp_dir + '/config_dsp.json') as f:
-        dsp_config = json.load(f, object_pairs_hook=OrderedDict)
-
+    dsp_dir = os.path.expandvars('$CAGE_SW/processing/metadata/dsp/')
+    if dsp is None:
+        with open(dsp_dir + 'config_dsp.json') as f:
+            f_config = json.load(f, object_pairs_hook=OrderedDict)
+    else:
+        with open(dsp_dir + dsp) as f:
+            f_config = json.load(f, object_pairs_hook=OrderedDict)
+        
     for i, row in dg.fileDB.iterrows():
         lh5_dir = dg.lh5_user_dir if user else dg.lh5_dir
 
@@ -175,9 +180,10 @@ def r2d(dg, overwrite=False, nwfs=None, verbose=False, user=False, run_mc=False)
             continue
 
         # load updated dsp config file
-        if row.dsp_id > 0:
-            f_config = dsp_dir + f'/dsp/dsp_{row.dsp_id:02d}.json'
+        if row.dsp_id > 0 and dsp is None:
+            f_config = dsp_dir + f'dsp_{row.dsp_id:02d}.json'
             print(f'Using DSP config: {f_config}')
+            
 
         # load 2-channel DSP configs.  this is kinda hacky but should work
         if run_mc:
