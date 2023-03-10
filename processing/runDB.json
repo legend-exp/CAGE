@@ -429,11 +429,11 @@
     "416":["2814-2855", "alp", "elog 443.  after preamp tuning and turning off motor controller noise."],
     "417":["2856-2863", "alp", "elog 443  morning alpha runs"],
 
-    "418":["2864-2905", "bkg", "elog 444, stability study"],
-    "419":["2906-2917", "bkg", "elog 444, stability study"],
-    "420":["2918-2944", "bkg", "elog 444, stability study"],
-    "421":["2945-2978", "bkg", "elog 444  stability study, friday runs"],
-    "422":["2979-2994", "bkg", "elog 444  saturday runs"],
+    "418":["2864-2905", "alp", "elog 444, stability study"],
+    "419":["2906-2917", "alp", "elog 444, stability study"],
+    "420":["2918-2944", "alp", "elog 444, stability study"],
+    "421":["2945-2978", "alp", "elog 444  stability study, friday runs"],
+    "422":["2979-2994", "alp", "elog 444  saturday runs"],
 
     "423":["2995-3002", "alp", "elog 445 rotary -180, linear 5"],
     "424":["3003-3011", "alp", "elog 445 linear 6"],
