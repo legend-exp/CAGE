@@ -446,5 +446,5 @@
     "430":["3121-3179", "alp", "linear 12 overnight run"],
     "431":["3180-3193", "alp", "linear 13"],
     
-    "432":["3194-3206", "alp", "Not sure what's happening, Clint please fill in from elog 446"]
+    "432":["3194-3206", "alp", "linear 13, after noise fixes"]
 }
