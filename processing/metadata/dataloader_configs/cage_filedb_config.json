@@ -15,18 +15,5 @@
         "dsp": "ORSIS3302DecoderForEnergy/dsp",
         "hit": "ORSIS3302DecoderForEnergy/hit"
     },
-    "tables": {
-        "raw": [0],
-        "dsp": [0],
-        "hit": [0]
-    },
-    "columns": {
-        "raw": ["card", "channel", "crate", "energy", "energy_first", "ievt", "packet_id", "timestamp", "waveform"],
-        "dsp": ["A_10", "AoE", "ToE", "atrap_max", "bl", "bl_intercept", "bl_sig", "bl_slope", "bl_slope_ftp", "dcr", 
-                "dtrap_max", "fltp", "fltp_sig", "hf_max", "lf_max", "lt_int", "lt_mean", "lt_sig", "lt_slope", "qdrift", 
-                "tp_0", "tp_02", "tp_05", "tp_10", "tp_20", "tp_30", "tp_40", "tp_50", "tp_60", "tp_70", "tp_80", "tp_90", "tp_96", 
-                "tp_max", "trapE_argmax", "trapEftp", "trapEmax_ctc", "trapEmax", "triE", "wf_argmax", "wf_max"],
-        "hit": ["trapEftp_cal", "ts_glo", "ts_sec"]
-    },
     "sortby": "cycle"
 }

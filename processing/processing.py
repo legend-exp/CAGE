@@ -81,7 +81,7 @@ def main():
 
     # -- run routines --
     if args.d2r: d2r(dg, args.over, nwfs, args.verbose, args.user, args.mc)
-    if args.r2d: r2d(dg, args.over, nwfs, args.verbose, args.user, args.mc, args.dsp[0])
+    if args.r2d: r2d(dg, args.over, nwfs, args.verbose, args.user, args.mc, args.dsp[0] if args.dsp is not None else None)
     if args.d2h: d2h(dg, args.over, nwfs, args.verbose, args.user, args.lowE)
 
     if args.r2d_file:

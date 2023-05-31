@@ -8,7 +8,7 @@
 #SBATCH --chdir=/global/project/projectdirs/legend/software/CAGE/processing
 #SBATCH --output=/global/project/projectdirs/legend/software/CAGE/processing/logs/cori-%j.txt
 #SBATCH --mail-type=begin,end,fail
-#SBATCH --mail-user=wisecg@uw.edu
+#SBATCH --mail-user=grsong@uw.edu
 
 echo "Job Start:"
 date
@@ -28,7 +28,7 @@ fi
 # NOTE: you need to update runDB.json before running this!
 # shifter python setup.py --update --orca -b
 
-shifter python processing.py -q 'run >= 428' --d2r
+# shifter python processing.py -q 'run >= 428' --d2r
 
 # shifter python processing.py -q 'run >= 395' --d2r
 
@@ -46,9 +46,13 @@ shifter python processing.py -q 'run >= 428' --d2r
 
 
 # run a bunch of DSP in parallel (lazy method, comment each line in & submit)
-#shifter python processing.py -q 'run >= 305 and run <= 306' --r2d
-#shifter python processing.py -q 'run >= 307 and run <= 313' --r2d
-#shifter python processing.py -q 'run >= 314 and run <= 319' --r2d
+#shifter python processing.py -q 'run >= 434 and run <= 439' -o --r2d --dsp dsp_cyc3207.json
+#shifter python processing.py -q 'run >= 441 and run <= 443' -o --r2d --dsp dsp_cyc3320.json
+#shifter python processing.py -q 'run >= 444 and run <= 448' --r2d --dsp dsp_cyc3409.json
+#shifter python processing.py -q 'run >= 449 and run <= 453' --r2d --dsp dsp_cyc3492.json
+#shifter python processing.py -q 'run >= 462 and run <= 463' -o --r2d --dsp dsp_cyc3590.json
+shifter python processing.py -q 'cycle >= 3819 and run <= 471' -o --r2d --dsp dsp_cyc3717.json
+#shifter python processing.py -q 'run == 430' --r2d --dsp dsp_cyc3121.json
 #shifter python processing.py -q 'run == 320' --r2d
 #shifter python processing.py -q 'run >= 321 and run <= 331' --d2r --r2d -o
 #shifter python processing.py -q 'run == 332' --d2r --r2d
