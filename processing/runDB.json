@@ -487,5 +487,16 @@
     "468":["3825-3832", "alp", "elog 449. rotary 0, linear 10"],
     "469":["3833-3841", "alp", "elog 449. rotary 0, linear 12"],
     "470":["3842-3862", "alp", "elog 449. rotary 0, linear 14, skip 3842"],
-    "471":["3863-3903", "bkg", "elog 449. background run, possibly skip 3886"]
+    "471":["3863-3903", "bkg", "elog 449. background run, possibly skip 3886"],
+    
+    "472":["3904-3907", "bkg", "elog 461. stability study, 1 day after initial bias"],
+    "473":["3908", "bkg", "elog 461. stability study, 2 days after initial bias"],
+    "474":["3909-3910", "bkg", "elog 461. stability study, 3 days after initial bias"],
+    "475":["3911-3924", "bkg", "elog 461. stability study, 4 days after initial bias"],
+    "476":["3925", "bkg", "elog 461. stability study, 5 days after initial bias"],
+    "477":["3926", "bkg", "elog 461. stability study, 6 days after initial bias"],
+    "478":["3927", "bkg", "elog 461. stability study, afer tuning varcap"],
+    "479":["3928", "bkg", "elog 461. stability study, HV pulser"],
+    "480":["3929", "bkg", "elog 461. stability study, amp side pulser"],
+    "481":["3930-3931", "ba133", "elog 461. stability study, barium"]    
 }
