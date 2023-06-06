@@ -498,5 +498,23 @@
     "478":["3927", "bkg", "elog 461. stability study, afer tuning varcap"],
     "479":["3928", "bkg", "elog 461. stability study, HV pulser"],
     "480":["3929", "bkg", "elog 461. stability study, amp side pulser"],
-    "481":["3930-3931", "ba133", "elog 461. stability study, barium"]    
+    "481":["3930-3931", "ba133", "elog 461. stability study, barium"],   
+
+    "482":["3932", "bkg", "elog 461. voltage sweep, 3900 V"],   
+    "483":["3933", "bkg", "elog 461. voltage sweep, 3800 V"],    
+    "484":["3934", "bkg", "elog 461. voltage sweep, 3700 V"],    
+    "485":["3935", "bkg", "elog 461. voltage sweep, 3600 V"],    
+    "486":["3936", "bkg", "elog 461. voltage sweep, 3500 V"],    
+    "487":["3937", "bkg", "elog 461. voltage sweep, 4000 V"],    
+    "488":["3938", "bkg", "elog 461. voltage sweep, 3925 V"],    
+    "489":["3939", "bkg", "elog 461. voltage sweep, 3950 V"],    
+    "490":["3940", "bkg", "elog 461. voltage sweep, 3975 V"],    
+
+    "491":["3941-3942", "bkg", "elog 461. background at 3900 V"],    
+    "492":["3943-4059", "bkg", "elog 461. background at 3500 V, interlock tripped, all trash"],    
+    "493":["4060-4064", "bkg", "elog 461. background at 3500 V after rebias"],    
+    "494":["4065-4096", "bkg", "elog 461. background at 3500 V after rebias and varcap tuning"],    
+    "495":["4097-4104", "bkg", "elog 461. background after weekend of settling"],    
+    "496":["4105-4116", "alp", "elog 461. Starting linear scans, rot 0/180/145, linear 0"],    
+    "497":["4117-4128", "alp", "elog 461. Rotary 180, linear 3"]    
 }
