@@ -79,7 +79,7 @@ def calculateMotorPos(radius, thetaRot, thetaDet=90):
     return angle, linear, source
 
 def calculateMotorFromTarget(targetX, targetY, thetaRot, thetaDet=90, flipped=False):
-    radius = np.sqrt(targetX**2 + targetY**2)
+    radius = round(np.sqrt(targetX**2 + targetY**2), 2)
     distance = 1e8
     angle = 0
     closestX = 0
@@ -108,7 +108,7 @@ def calculateMotorFromTarget(targetX, targetY, thetaRot, thetaDet=90, flipped=Fa
     sourceLinearDist = 0
     if thetaDet != 90: #only need to care if not normal incidence
         y = sourceAxToDet
-        if 13 < np.abs(radius) < 16:
+        if 13 <= np.abs(radius) <= 16:
             y += ditchDepth
         sourceLinearDist = y/math.tan(thetaDet*toRad)
     
