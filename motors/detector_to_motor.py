@@ -27,9 +27,10 @@ ditchDepth = 2          #mm, for ICPC
 toRad = math.pi/180
 
 def main():
-    radii = [3]
-    thetaRots = [0]
-    thetaDets = [143.1]
+    radii = [13, 14, 15, 16]
+    thetaRots = [0, 180, 145]
+    thetaDets = [65]
+    #thetaDets = [143.1]
     ditchScan = True
     for radius in radii:
         for thetaRot in thetaRots:
@@ -111,11 +112,10 @@ def calculateMotorFromTarget(targetX, targetY, thetaRot, thetaDet=90, flipped=Fa
             y += ditchDepth
         sourceLinearDist = y/math.tan(thetaDet*toRad)
     
-
     linear = np.sqrt((closestY - centerY)**2 + (closestX - centerX)**2) + col_offset - sourceLinearDist 
     if flipped:
         linear = -np.sqrt((closestY - centerY)**2 + (closestX - centerX)**2) + col_offset - sourceLinearDist 
-    source = -180 + (90-thetaDet)
+    source = -180 + thetaDet
 
     return angle, linear, source
     
