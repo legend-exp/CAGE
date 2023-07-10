@@ -5,9 +5,10 @@ import pandas as pd
 import numpy as np
 from pprint import pprint
 
-from pygama import DataGroup
-from pygama.io.orcadaq import parse_header
-import pygama.lh5 as lh5
+from pygama.flow import DataGroup
+import pygama.lgdo.lh5_store as lh5
+
+from orca_utils import parse_header
 
 import warnings
 with warnings.catch_warnings():
@@ -75,8 +76,8 @@ def show_fileDB(dg):
     """
     dg.load_df()
 
-    dbg_cols = ['run', 'cycle', 'unique_key', 'runtype', 'dsp_id']
-    dbg_cols.extend(['daq_dir', 'raw_path', 'raw_file'])
+    dbg_cols = ['run', 'cycle', 'runtype', 'dsp_id']
+    # dbg_cols.extend(['daq_dir', 'raw_file'])
 
     if 'startTime' in dg.fileDB.columns:
         dbg_cols += ['startTime']
@@ -85,7 +86,9 @@ def show_fileDB(dg):
         dbg_cols += ['runtime']
 
     print(dg.fileDB[dbg_cols].to_string())
-    print(dg.fileDB.columns)
+    # print(dg.fileDB[dbg_cols][:10].to_string())
+    # print(dg.fileDB.columns)
+    # print(dg.fileDB.query('cycle==[dbg_cols])
 
 
 def init(dg):
@@ -209,6 +212,7 @@ def get_cyc_info(row, dg):
     # return
 
     # label the detector (when hardware iteration changes)
+    # NOTE: this is incomplete as of Oct 2022.  We don't really use this column for much though.
     det_name = 'none'
     det_map = {
         'oppi_v1' : [0, 124],
@@ -228,15 +232,21 @@ def get_cyc_info(row, dg):
     # elog: https://elog.legend-exp.org/UWScanner/320
     # Ideally these boundaries are continuous, but if the current run isn't
     # found, we will use the 'current default' config_dsp.json in processing.
+    # FIXME: this needs to be updated with DSP > 7 for 2022 data taking.
     dsp_map = {
         1 : [36, 56],
         2 : [57, 78],
         3 : [79, 84],
         4 : [85, 96],
         5 : [97, 235],
-        6 : [236, 9999]
+        6 : [236, 394],
+        7 : [395, 413],
+        8 : [414, 9999]
         }
     row['dsp_id'] = 0
+
+    # print(row)
+
     for id, (rlo, rhi) in dsp_map.items():
         if rlo <= int(row.run) <= rhi:
             row['dsp_id'] = id
@@ -371,8 +381,10 @@ def get_runtimes(dg, overwrite=False, batch_mode=False):
         if col in df_keys.columns:
             df_keys.drop(col, axis=1, inplace=True)
 
-    sto = lh5.Store()
+    sto = lh5.LH5Store()
     def get_runtime(df_row):
+        if df_row['run'] in range(385, 392):
+            return pd.Series({'stopTime':None, 'runtime':None})
 
         # load timestamps from dsp file
         f_dsp = dg.lh5_dir + df_row['dsp_path'] + '/' + df_row['dsp_file']

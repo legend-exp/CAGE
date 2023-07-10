@@ -27,9 +27,9 @@ ditchDepth = 2          #mm, for ICPC
 toRad = math.pi/180
 
 def main():
-    radii = [15]
-    thetaRots = [0, 145, 180]
-    thetaDets = [90, 75, 60, 45]
+    radii = [3]
+    thetaRots = [0]
+    thetaDets = [143.1]
     ditchScan = True
     for radius in radii:
         for thetaRot in thetaRots:

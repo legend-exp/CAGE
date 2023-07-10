@@ -1,0 +1,19 @@
+{
+    "data_dir": "/global/cfs/cdirs/m2676/data/cage/LH5",
+    "tier_dirs": {
+        "raw": "raw",
+        "dsp": "dsp",
+        "hit": "hit"
+    },
+    "file_format": {
+        "raw": "cage_run{run}_cyc{cycle}_raw.lh5",
+        "dsp": "cage_run{run}_cyc{cycle}_dsp.lh5",
+        "hit": "cage_run{run}_cyc{cycle}_hit.lh5"
+    },
+    "table_format": {
+        "raw": "ORSIS3302DecoderForEnergy/raw",
+        "dsp": "ORSIS3302DecoderForEnergy/dsp",
+        "hit": "ORSIS3302DecoderForEnergy/hit"
+    },
+    "sortby": "cycle"
+}

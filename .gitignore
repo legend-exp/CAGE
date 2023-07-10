@@ -1,4 +1,5 @@
 # New additions go at the top!
+.vscode
 new_sims/submission/sub_*
 new_sims/submission/run_*
 config.json
