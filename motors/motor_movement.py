@@ -397,7 +397,7 @@ def move_motor(motor_name, input_val, history_df, angle_check=180, constraints=T
     result = query_encoder(mconf[motor_name]['rpi_pin'], mconf['t_sleep'],
                            mconf['com_spd'], verbose, mconf['max_reads'],
                            zero=True, ipconf=ipconf)
-    zeroed = bool(result.split("\n")[-2].split(" ")[2]) # ugly string parse
+    zeroed = eval(result.split("\n")[-2].split(" ")[2]) # ugly string parse
     if not zeroed:
         print("ERROR! read_encoders was unable to zero the encoder.")
         exit()
