@@ -1,0 +1,114 @@
+Job Start:
+Wed 31 May 2023 04:22:19 PM PDT
+Node(s):  nid004114
+Job ID:  9782670
+Processing settings:
+  overwrite? False
+  limit wfs? inf
+  multichannel d2r? False
+  CAGE_SW /global/cfs/cdirs/legend/software/CAGE
+  CAGE_DAQ /global/cfs/cdirs/m2676/data/cage/Data
+  CAGE_LH5 /global/cfs/cdirs/m2676/data/cage/LH5
+  CAGE_LH5_USER /global/cfs/cdirs/m2676/users/wisecg/CAGE_LH5_USER
+Current data group: 28 files.
+      run  cycle               daq_file runtype
+3982  472   3904  2023-5-25-CAGERun3904     bkg
+3983  472   3905  2023-5-25-CAGERun3905     bkg
+3984  472   3906  2023-5-25-CAGERun3906     bkg
+3985  472   3907  2023-5-25-CAGERun3907     bkg
+3986  473   3908  2023-5-26-CAGERun3908     bkg
+3987  474   3909  2023-5-27-CAGERun3909     bkg
+3988  474   3910  2023-5-27-CAGERun3910     bkg
+3989  475   3911  2023-5-28-CAGERun3911     bkg
+3990  475   3912  2023-5-28-CAGERun3912     bkg
+3991  475   3913  2023-5-28-CAGERun3913     bkg
+3992  475   3914  2023-5-28-CAGERun3914     bkg
+3993  475   3915  2023-5-28-CAGERun3915     bkg
+3994  475   3916  2023-5-28-CAGERun3916     bkg
+3995  475   3917  2023-5-28-CAGERun3917     bkg
+3996  475   3918  2023-5-28-CAGERun3918     bkg
+3997  475   3919  2023-5-28-CAGERun3919     bkg
+3998  475   3920  2023-5-28-CAGERun3920     bkg
+3999  475   3921  2023-5-28-CAGERun3921     bkg
+4000  475   3922  2023-5-28-CAGERun3922     bkg
+4001  475   3923  2023-5-28-CAGERun3923     bkg
+4002  475   3924  2023-5-28-CAGERun3924     bkg
+4003  476   3925  2023-5-29-CAGERun3925     bkg
+4004  477   3926  2023-5-30-CAGERun3926     bkg
+4005  478   3927  2023-5-31-CAGERun3927     bkg
+4006  479   3928  2023-5-31-CAGERun3928     bkg
+4007  480   3929  2023-5-31-CAGERun3929     bkg
+4008  481   3930  2023-5-31-CAGERun3930   ba133
+4009  481   3931  2023-5-31-CAGERun3931   ba133
+Processing 28 files ...
+file exists, overwrite not set, skipping f_raw:
+    /global/cfs/cdirs/m2676/data/cage/LH5//raw/cage_run472_cyc3904_raw.lh5
+file exists, overwrite not set, skipping f_raw:
+    /global/cfs/cdirs/m2676/data/cage/LH5//raw/cage_run472_cyc3905_raw.lh5
+file exists, overwrite not set, skipping f_raw:
+    /global/cfs/cdirs/m2676/data/cage/LH5//raw/cage_run472_cyc3906_raw.lh5
+file exists, overwrite not set, skipping f_raw:
+    /global/cfs/cdirs/m2676/data/cage/LH5//raw/cage_run472_cyc3907_raw.lh5
+file exists, overwrite not set, skipping f_raw:
+    /global/cfs/cdirs/m2676/data/cage/LH5//raw/cage_run473_cyc3908_raw.lh5
+file exists, overwrite not set, skipping f_raw:
+    /global/cfs/cdirs/m2676/data/cage/LH5//raw/cage_run474_cyc3909_raw.lh5
+file exists, overwrite not set, skipping f_raw:
+    /global/cfs/cdirs/m2676/data/cage/LH5//raw/cage_run474_cyc3910_raw.lh5
+file exists, overwrite not set, skipping f_raw:
+    /global/cfs/cdirs/m2676/data/cage/LH5//raw/cage_run475_cyc3911_raw.lh5
+file exists, overwrite not set, skipping f_raw:
+    /global/cfs/cdirs/m2676/data/cage/LH5//raw/cage_run475_cyc3912_raw.lh5
+file exists, overwrite not set, skipping f_raw:
+    /global/cfs/cdirs/m2676/data/cage/LH5//raw/cage_run475_cyc3913_raw.lh5
+file exists, overwrite not set, skipping f_raw:
+    /global/cfs/cdirs/m2676/data/cage/LH5//raw/cage_run475_cyc3914_raw.lh5
+file exists, overwrite not set, skipping f_raw:
+    /global/cfs/cdirs/m2676/data/cage/LH5//raw/cage_run475_cyc3915_raw.lh5
+file exists, overwrite not set, skipping f_raw:
+    /global/cfs/cdirs/m2676/data/cage/LH5//raw/cage_run475_cyc3916_raw.lh5
+file exists, overwrite not set, skipping f_raw:
+    /global/cfs/cdirs/m2676/data/cage/LH5//raw/cage_run475_cyc3917_raw.lh5
+file exists, overwrite not set, skipping f_raw:
+    /global/cfs/cdirs/m2676/data/cage/LH5//raw/cage_run475_cyc3918_raw.lh5
+file exists, overwrite not set, skipping f_raw:
+    /global/cfs/cdirs/m2676/data/cage/LH5//raw/cage_run475_cyc3919_raw.lh5
+file exists, overwrite not set, skipping f_raw:
+    /global/cfs/cdirs/m2676/data/cage/LH5//raw/cage_run475_cyc3920_raw.lh5
+file exists, overwrite not set, skipping f_raw:
+    /global/cfs/cdirs/m2676/data/cage/LH5//raw/cage_run475_cyc3921_raw.lh5
+file exists, overwrite not set, skipping f_raw:
+    /global/cfs/cdirs/m2676/data/cage/LH5//raw/cage_run475_cyc3922_raw.lh5
+file exists, overwrite not set, skipping f_raw:
+    /global/cfs/cdirs/m2676/data/cage/LH5//raw/cage_run475_cyc3923_raw.lh5
+file exists, overwrite not set, skipping f_raw:
+    /global/cfs/cdirs/m2676/data/cage/LH5//raw/cage_run475_cyc3924_raw.lh5
+file exists, overwrite not set, skipping f_raw:
+    /global/cfs/cdirs/m2676/data/cage/LH5//raw/cage_run476_cyc3925_raw.lh5
+file exists, overwrite not set, skipping f_raw:
+    /global/cfs/cdirs/m2676/data/cage/LH5//raw/cage_run477_cyc3926_raw.lh5
+file exists, overwrite not set, skipping f_raw:
+    /global/cfs/cdirs/m2676/data/cage/LH5//raw/cage_run478_cyc3927_raw.lh5
+file exists, overwrite not set, skipping f_raw:
+    /global/cfs/cdirs/m2676/data/cage/LH5//raw/cage_run479_cyc3928_raw.lh5
+file exists, overwrite not set, skipping f_raw:
+    /global/cfs/cdirs/m2676/data/cage/LH5//raw/cage_run480_cyc3929_raw.lh5
+file exists, overwrite not set, skipping f_raw:
+    /global/cfs/cdirs/m2676/data/cage/LH5//raw/cage_run481_cyc3930_raw.lh5
+file exists, overwrite not set, skipping f_raw:
+    /global/cfs/cdirs/m2676/data/cage/LH5//raw/cage_run481_cyc3931_raw.lh5
+/global/cfs/cdirs/m2676/data/cage/LH5//dsp/cage_run472_cyc3904_dsp.lh5
+Using DSP config: /global/cfs/cdirs/legend/software/CAGE/processing/metadata/dsp_08.json
+Processing cycle 3904
+Traceback (most recent call last):
+  File "/global/cfs/cdirs/legend/software/CAGE/processing/processing.py", line 430, in <module>
+    main()
+  File "/global/cfs/cdirs/legend/software/CAGE/processing/processing.py", line 84, in main
+    if args.r2d: r2d(dg, args.over, nwfs, args.verbose, args.user, args.mc, args.dsp[0] if args.dsp is not None else None)
+  File "/global/cfs/cdirs/legend/software/CAGE/processing/processing.py", line 200, in r2d
+    build_dsp(f_raw, f_dsp, f_config, n_max=nwfs, write_mode='r')#, chan_config=chan_config)
+  File "/global/u1/w/wisecg/pygama/src/pygama/dsp/build_dsp.py", line 104, in build_dsp
+    with open(dsp_config) as config_file:
+FileNotFoundError: [Errno 2] No such file or directory: '/global/cfs/cdirs/legend/software/CAGE/processing/metadata/dsp_08.json'
+Job Complete:
+Wed 31 May 2023 04:22:34 PM PDT

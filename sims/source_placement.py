@@ -21,7 +21,7 @@ def main():
     # positionCalc(y_final=31, theta_det=60., icpc=False)
     # rotaryCalc(radius=12.0, d_theta = 10.0)
     # maxRotation(min_clearance_toLMFE=5.0, icpc=False)
-    checkRotation(theta_det=45., min_clearance_toLMFE=4.0)
+    checkRotation(theta_det=65., min_clearance_toLMFE=5.0)
     # thetaCalc(y_final=12., icpc=False)
 
 def positionCalc(y_final, theta_det, icpc=True):
@@ -203,7 +203,7 @@ def checkRotation(theta_det, min_clearance_toLMFE=5.0, icpc=False):
     theta_rot = (90 - theta_det)
 
     if icpc==True:
-        rotAxis_height = 22.5 # height in mm from top of detector to rotation axis, which is (0, 0, 0) in the mother geometry of the simulation
+        rotAxis_height = 25.1 # height in mm from top of detector to rotation axis, which is (0, 0, 0) in the mother geometry of the simulation
         height_det_to_LMFE = 7.0 # height in mm between hieghest point of LMFE and detector surface
         print('Calculating maximum ratoation angle for ICPC')
     else:

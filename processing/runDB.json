@@ -539,5 +539,21 @@
     "517":["4442-4454", "alp", "elog 461. rot145, linear 3"],
     "518":["4455-4466", "alp", "elog 461. rot145, linear 4"],
 
-    "519":["4467-4488", "bkg", "elog 465. at 3500 V, after moving pogo pin away from center"]
+    "519":["4467-4488", "bkg", "elog 465. at 3500 V, after moving pogo pin away from center"],
+
+    "520":["4489-4507", "bkg", "elog 466 rebiased to 3400"],
+    "521":["4508-4519", "bkg", "elog 467 rot0 collimator was zeroed"],
+    "522":["4520-4530", "bkg", "lin 16"],
+    "523":["4531-4542", "bkg", "lin 14"],
+    "524":["4543-4554", "bkg", "lin 12"],
+    "525":["4555-4565", "alp", "lin 10 collimator back to normal incidence"],
+    "526":["4566-4577", "alp", "lin 8"],
+    "527":["4578-4589", "alp", "lin 6"],
+    "528":["4590-4603", "alp", "lin 4"],
+    "529":["4604-4615", "alp", "lin 2"],
+    "530":["4616-4627", "alp", "lin 0"],
+    "531":["4628-4639", "alp", "lin 12"],
+    "532":["4640-4651", "alp", "lin 14"],
+    "533":["4652-4687", "bkg", ""],
+    "534":["4688-4702", "alp", "lin 16"]
 }

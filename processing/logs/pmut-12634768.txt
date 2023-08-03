@@ -1,0 +1,50 @@
+Job Start:
+Fri 28 Jul 2023 02:59:33 PM PDT
+Node(s):  nid004173
+Job ID:  12634768
+/global/cfs/cdirs/legend/software/CAGE/processing/processing.py:20: DeprecationWarning: pygama.raw has moved to its own package, legend-daq2lh5. Please replace 'import pygama.raw' with 'import daq2lh5'. pygama.raw will be removed in a future release.
+  from pygama.raw import build_raw
+/global/cfs/cdirs/legend/software/CAGE/processing/processing.py:21: DeprecationWarning: pygama.dsp has moved to its own package, dspeed. Please replace 'import pygama.dsp' with 'import dspeed'. pygama.dsp will be removed in a future release.
+  from pygama.dsp import build_dsp
+Processing settings:
+  overwrite? True
+  limit wfs? inf
+  multichannel d2r? False
+  CAGE_SW /global/cfs/projectdirs/legend/software/CAGE
+  CAGE_DAQ /global/cfs/cdirs/m2676/data/cage/Data
+  CAGE_LH5 /global/cfs/cdirs/m2676/data/cage/LH5
+  CAGE_LH5_USER /global/cfs/cdirs/m2676/users/grsong/cage/lh5
+Current data group: 22 files.
+      run  cycle               daq_file runtype
+4508  519   4467  2023-7-14-CAGERun4467     bkg
+4509  519   4468  2023-7-14-CAGERun4468     bkg
+4510  519   4469  2023-7-14-CAGERun4469     bkg
+4511  519   4470  2023-7-14-CAGERun4470     bkg
+4512  519   4471  2023-7-14-CAGERun4471     bkg
+4513  519   4472  2023-7-14-CAGERun4472     bkg
+4514  519   4473  2023-7-14-CAGERun4473     bkg
+4515  519   4474  2023-7-14-CAGERun4474     bkg
+4516  519   4475  2023-7-14-CAGERun4475     bkg
+4517  519   4476  2023-7-14-CAGERun4476     bkg
+4518  519   4477  2023-7-14-CAGERun4477     bkg
+4519  519   4478  2023-7-14-CAGERun4478     bkg
+4520  519   4479  2023-7-14-CAGERun4479     bkg
+4521  519   4480  2023-7-14-CAGERun4480     bkg
+4522  519   4481  2023-7-14-CAGERun4481     bkg
+4523  519   4482  2023-7-14-CAGERun4482     bkg
+4524  519   4483  2023-7-14-CAGERun4483     bkg
+4525  519   4484  2023-7-14-CAGERun4484     bkg
+4526  519   4485  2023-7-14-CAGERun4485     bkg
+4527  519   4486  2023-7-14-CAGERun4486     bkg
+4528  519   4487  2023-7-14-CAGERun4487     bkg
+4529  519   4488  2023-7-14-CAGERun4488     bkg
+Traceback (most recent call last):
+  File "/global/cfs/cdirs/legend/software/CAGE/processing/processing.py", line 434, in <module>
+    main()
+  File "/global/cfs/cdirs/legend/software/CAGE/processing/processing.py", line 84, in main
+    if args.r2d: r2d(dg, args.over, nwfs, args.verbose, args.user, args.mc, args.dsp[0] if args.dsp is not None else None)
+  File "/global/cfs/cdirs/legend/software/CAGE/processing/processing.py", line 160, in r2d
+    with open(dsp_dir + dsp) as f:
+FileNotFoundError: [Errno 2] No such file or directory: '/global/cfs/projectdirs/legend/software/CAGE/processing/metadata/dspdsp_cyc4467.json'
+Job Complete:
+Fri 28 Jul 2023 02:59:45 PM PDT

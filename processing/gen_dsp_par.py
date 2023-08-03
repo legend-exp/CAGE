@@ -9,9 +9,9 @@ import argparse
 
 from pygama.flow import DataLoader
 from pygama.flow import FileDB
-from pygama.lgdo.lh5_store import LH5Store
-from pygama.lgdo import ls, Table, WaveformTable
-from pygama.dsp import build_dsp
+from lgdo.lh5_store import LH5Store
+from lgdo import ls, Table, WaveformTable
+from dspeed import build_dsp
 
 def main():
     doc="""
@@ -26,9 +26,10 @@ def main():
     arg('--fdb', nargs=1, type=str, help='LH5 file containing FileDB')
     arg('--dl', nargs=1, type=str, help='config file for DataLoader')
     arg('--cyc', nargs=1, type=int, help='the cycle to optimize for')
+    arg('-b', '--batch', action=st, help='do not ask for user input on 1460 line and saving')
     arg('--raw', nargs='?', default="1460raw_temp.lh5", type=str, help='temporary raw file for 1460 kev waveforms')
     arg('--dsp', nargs='?', default="1460dsp_temp.lh5", type=str, help='temporary dsp file for optimization')
-    arg('--config_dir', nargs='?', default="metadata/dsp", type=str, help='temporary dsp file for optimization')
+    arg('--config_dir', nargs='?', default="metadata/dsp", type=str, help='directory to store config file')
 
     args = par.parse_args()
     
@@ -160,17 +161,27 @@ def main():
     el = dl.build_entry_list(save_output_columns=True)
     data = dl.load(el)
     
-    print("Pick out the 1460 keV peak")
+    if not args.batch:
+        print("Pick out the 1460 keV peak")
+    else:
+        print("In batch mode...")
     
     plt.figure()
-    plt.hist(data['energy'], bins = np.linspace(1.7e6, 2e6, 100))
+    k40_hist, k40_bins, _ = plt.hist(data['energy'], bins = np.linspace(1.7e6, 2e6, 100))
     plt.xlabel('energy')
     plt.ylabel('count')
     plt.title('1460 keV peak')
     plt.savefig('./plots/dsp/1460peak.png')
     
-    elo = float(input("Lower bound of the 1460 peak: "))
-    ehi = float(input("Upper bound of the 1460 peak: "))
+    
+    if not args.batch:
+        elo = float(input("Lower bound of the 1460 peak: "))
+        ehi = float(input("Upper bound of the 1460 peak: "))
+    else:
+        peak_idx = np.argmax(k40_hist)
+        elo = k40_bins[peak_idx - 5]
+        ehi = k40_bins[peak_idx + 5]
+        print(f"Using elo={elo}, ehi={ehi}")
     
     dl.reset()
     dl.set_files(f"cycle == {cyc}")
@@ -208,7 +219,7 @@ def main():
     dsp_db = opt_ctc(alpha_range, raw_file, dsp_file, dsp_config, dsp_db, ebins)
     
     print("Checking final results")
-    check_final(cyc, fdb, dsp_config, dsp_db, config_dir)    
+    check_final(cyc, fdb, dsp_config, dsp_db, config_dir, args.batch)    
     
     
     
@@ -246,6 +257,7 @@ def opt_pole_zero(tau_range, raw_file, dsp_file, dsp_config, dsp_db):
     sto = LH5Store()
     while not optimized:
         results = None
+
         for tau in tau_range:
             dsp_db["40K"]["pz"]["tau"] = str(tau) + " * us"
 
@@ -379,7 +391,7 @@ def opt_ctc(alpha_range, raw_file, dsp_file, dsp_config, dsp_db, ebins):
     return dsp_db
     
     
-def check_final(cyc, fdb, dsp_config, dsp_db, config_dir):
+def check_final(cyc, fdb, dsp_config, dsp_db, config_dir, batch):
     raw = fdb.df.query(f"cycle == {cyc}").iloc[0]
     raw = os.path.join(fdb.data_dir, fdb.tier_dirs['raw'], raw['raw_file'])
     dsp = f"cycle{cyc}_testdsp.lh5"
@@ -395,67 +407,61 @@ def check_final(cyc, fdb, dsp_config, dsp_db, config_dir):
                                                       "db.dcr_trap.flat": dsp_db['40K']['dcr_trap']['flat']}
     test_config['processors']['trapEmax_ctc']['defaults'] = {"db.ctc.alpha": dsp_db['40K']['ctc']['alpha']}
     
-    build_dsp(f_raw=raw, f_dsp=dsp, dsp_config=test_config, write_mode='r')
-    
-    dsp_table, _ = sto.read_object("ORSIS3302DecoderForEnergy/dsp", dsp)
-    
-    ehist, trapEbins = np.histogram(dsp_table['trapEmax'].nda, bins=np.arange(2500, 4000))
-    k40_peak = trapEbins[np.argmax(ehist)]
-    
-    '''
-    plt.figure()
-    plt.hist(dsp_table['trapEmax'].nda, bins=np.arange(emed-50, emed+50))
-    plt.xlabel('trapEmax')
-    plt.ylabel('count')
-    plt.title('Zoom in on the 1460 keV peak and note the peak location')
-    plt.savefig('./plots/dsp/1460peak_trapEmax.png')
-    
-    k40_peak = float(input("Location of 1460 keV peak: "))
-    '''
-    
-    plt.figure()
-    plt.yscale('log')
-    plt.hist(dsp_table['trapEmax'].nda*(1460/k40_peak), bins=np.arange(1450, 2620))
-    plt.xlabel('trapEmax, scaled to 1460 peak')
-    plt.ylabel('count')
-    plt.title('Check the linearity of 2615 keV peak')
-    plt.savefig('./plots/dsp/linearity.png')
-    
-    plt.figure()
-    plt.hist(dsp_table['dcr'].nda, bins=np.arange(-50, 50))
-    plt.xlabel('dcr')
-    plt.ylabel('count')
-    plt.title('Check the DCR')
-    plt.savefig('./plots/dsp/dcr.png')
-    
-    plt.figure()
-    plt.hist2d(dsp_table['trapEmax'].nda, dsp_table['dcr'].nda, 
-               bins = (np.linspace(0, 10000, 100), np.arange(-200, 200)), 
-               norm=colors.LogNorm())
-    plt.xlabel("trapEmax")
-    plt.ylabel("DCR")
-    plt.title("trapEmax vs. DCR")
-    plt.axhline(0, color='r')
-    plt.savefig('./plots/dsp/trapEmax_dcr.png')
-    
-    plt.figure()
-    plt.hist2d(dsp_table['trapEmax_ctc'].nda, dsp_table['dcr'].nda, 
-               bins = (np.linspace(0, 10000, 100), np.arange(-200, 200)), 
-               norm=colors.LogNorm())
-    plt.xlabel("trapEmax_ctc")
-    plt.ylabel("DCR")
-    plt.title("trapEmax_ctc vs. DCR")
-    plt.axhline(0, color='r')
-    plt.savefig('./plots/dsp/trapEmaxctc_dcr.png')
-    
     print("Found values: ")
     print(dsp_db)
     
-    save = input("Should we save this configuration? y/n: ")
-    if save.strip().lower() == "y":
+    if batch:
         print(f"Writing config to: {config_dir}/dsp_cyc{cyc}.json")
         with open(f'{config_dir}/dsp_cyc{cyc}.json', 'w') as f:
             json.dump(test_config, f)
+    else:
+        build_dsp(f_raw=raw, f_dsp=dsp, dsp_config=test_config, write_mode='r')
+
+        dsp_table, _ = sto.read_object("ORSIS3302DecoderForEnergy/dsp", dsp)
+
+        ehist, trapEbins = np.histogram(dsp_table['trapEmax'].nda, bins=np.arange(2500, 4000))
+        k40_peak = trapEbins[np.argmax(ehist)]
+
+        plt.figure()
+        plt.yscale('log')
+        plt.hist(dsp_table['trapEmax'].nda*(1460/k40_peak), bins=np.arange(1450, 2620))
+        plt.xlabel('trapEmax, scaled to 1460 peak')
+        plt.ylabel('count')
+        plt.title('Check the linearity of 2615 keV peak')
+        plt.savefig('./plots/dsp/linearity.png')
+
+        plt.figure()
+        plt.hist(dsp_table['dcr'].nda, bins=np.arange(-50, 50))
+        plt.xlabel('dcr')
+        plt.ylabel('count')
+        plt.title('Check the DCR')
+        plt.savefig('./plots/dsp/dcr.png')
+
+        plt.figure()
+        plt.hist2d(dsp_table['trapEmax'].nda, dsp_table['dcr'].nda, 
+                   bins = (np.linspace(0, 10000, 100), np.arange(-200, 200)), 
+                   norm=colors.LogNorm())
+        plt.xlabel("trapEmax")
+        plt.ylabel("DCR")
+        plt.title("trapEmax vs. DCR")
+        plt.axhline(0, color='r')
+        plt.savefig('./plots/dsp/trapEmax_dcr.png')
+
+        plt.figure()
+        plt.hist2d(dsp_table['trapEmax_ctc'].nda, dsp_table['dcr'].nda, 
+                   bins = (np.linspace(0, 10000, 100), np.arange(-200, 200)), 
+                   norm=colors.LogNorm())
+        plt.xlabel("trapEmax_ctc")
+        plt.ylabel("DCR")
+        plt.title("trapEmax_ctc vs. DCR")
+        plt.axhline(0, color='r')
+        plt.savefig('./plots/dsp/trapEmaxctc_dcr.png')
+    
+        save = input("Should we save this configuration? y/n: ")
+        if save.strip().lower() == "y":
+            print(f"Writing config to: {config_dir}/dsp_cyc{cyc}.json")
+            with open(f'{config_dir}/dsp_cyc{cyc}.json', 'w') as f:
+                json.dump(test_config, f)
             
 if __name__ == "__main__":
     main()

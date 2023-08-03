@@ -1,0 +1,20 @@
+Job Start:
+Wed 31 May 2023 03:55:42 PM PDT
+Node(s):  nid004105
+Job ID:  9780822
+Traceback (most recent call last):
+  File "/global/cfs/cdirs/legend/software/CAGE/processing/processing.py", line 15, in <module>
+    plt.style.use('../clint.mpl')
+  File "/opt/anaconda3/lib/python3.10/site-packages/matplotlib/style/core.py", line 153, in use
+    path = (importlib_resources.files(pkg)
+  File "/opt/anaconda3/lib/python3.10/importlib/_common.py", line 22, in files
+    return from_package(get_package(package))
+  File "/opt/anaconda3/lib/python3.10/importlib/_common.py", line 66, in get_package
+    resolved = resolve(package)
+  File "/opt/anaconda3/lib/python3.10/importlib/_common.py", line 57, in resolve
+    return cand if isinstance(cand, types.ModuleType) else importlib.import_module(cand)
+  File "/opt/anaconda3/lib/python3.10/importlib/__init__.py", line 121, in import_module
+    raise TypeError(msg.format(name))
+TypeError: the 'package' argument is required to perform a relative import for '../clint'
+Job Complete:
+Wed 31 May 2023 03:55:50 PM PDT

@@ -21,7 +21,7 @@ def main():
     # positionCalc(y_final=14, theta_det=45, icpc=True)
     # rotaryCalc(radius=12.0, d_theta=10)
     maxRotation(min_clearance_toLMFE=5.0, icpc=True)
-    # checkRotation(theta_det=45, min_clearance_toLMFE=5.0, icpc=True)
+    checkRotation(theta_det=65, min_clearance_toLMFE=5.0, icpc=True)
     # thetaCalc(y_final=12., icpc=False)
 
 def positionCalc(y_final, theta_det, icpc=False):

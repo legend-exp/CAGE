@@ -1,0 +1,10 @@
+Job Start:
+Thu 03 Aug 2023 11:07:10 AM PDT
+Node(s):  nid004105
+Job ID:  13193692
+Traceback (most recent call last):
+  File "/global/cfs/cdirs/legend/software/CAGE/processing/processing.py", line 18, in <module>
+    import lgdo.lh5_store as lh5
+ModuleNotFoundError: No module named 'lgdo'
+Job Complete:
+Thu 03 Aug 2023 11:07:19 AM PDT

@@ -1,0 +1,40 @@
+Job Start:
+Fri 28 Jul 2023 02:59:31 PM PDT
+Node(s):  nid004117
+Job ID:  12634639
+/global/cfs/cdirs/legend/software/CAGE/processing/processing.py:20: DeprecationWarning: pygama.raw has moved to its own package, legend-daq2lh5. Please replace 'import pygama.raw' with 'import daq2lh5'. pygama.raw will be removed in a future release.
+  from pygama.raw import build_raw
+/global/cfs/cdirs/legend/software/CAGE/processing/processing.py:21: DeprecationWarning: pygama.dsp has moved to its own package, dspeed. Please replace 'import pygama.dsp' with 'import dspeed'. pygama.dsp will be removed in a future release.
+  from pygama.dsp import build_dsp
+Processing settings:
+  overwrite? True
+  limit wfs? inf
+  multichannel d2r? False
+  CAGE_SW /global/cfs/projectdirs/legend/software/CAGE
+  CAGE_DAQ /global/cfs/cdirs/m2676/data/cage/Data
+  CAGE_LH5 /global/cfs/cdirs/m2676/data/cage/LH5
+  CAGE_LH5_USER /global/cfs/cdirs/m2676/users/grsong/cage/lh5
+Current data group: 12 files.
+      run  cycle               daq_file runtype
+4370  512   4292  2023-6-16-CAGERun4292     alp
+4371  512   4293  2023-6-16-CAGERun4293     alp
+4372  512   4294  2023-6-16-CAGERun4294     alp
+4373  512   4295  2023-6-16-CAGERun4295     alp
+4374  512   4296  2023-6-16-CAGERun4296     alp
+4375  512   4297  2023-6-16-CAGERun4297     alp
+4376  512   4298  2023-6-16-CAGERun4298     alp
+4377  512   4299  2023-6-16-CAGERun4299     alp
+4378  512   4300  2023-6-16-CAGERun4300     alp
+4379  512   4301  2023-6-16-CAGERun4301     alp
+4380  512   4302  2023-6-16-CAGERun4302     alp
+4381  512   4303  2023-6-16-CAGERun4303     alp
+Traceback (most recent call last):
+  File "/global/cfs/cdirs/legend/software/CAGE/processing/processing.py", line 434, in <module>
+    main()
+  File "/global/cfs/cdirs/legend/software/CAGE/processing/processing.py", line 84, in main
+    if args.r2d: r2d(dg, args.over, nwfs, args.verbose, args.user, args.mc, args.dsp[0] if args.dsp is not None else None)
+  File "/global/cfs/cdirs/legend/software/CAGE/processing/processing.py", line 160, in r2d
+    with open(dsp_dir + dsp) as f:
+FileNotFoundError: [Errno 2] No such file or directory: '/global/cfs/projectdirs/legend/software/CAGE/processing/metadata/dspdsp_cyc4292.json'
+Job Complete:
+Fri 28 Jul 2023 02:59:45 PM PDT
