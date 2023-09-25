@@ -16,7 +16,7 @@ sensors:
   - target: krstc_pressure
     alarms:
       - payload_field: value_cal
-        max_value: .00001
+        max_value: .00003
         alarm_message: "@wisecg and @pettus and @stortini: the cryostat pressure has risen above 1e-5 mbar, the detector has been biased down"
         alarm_limit: 1
         alarm_recurrence: 3600
