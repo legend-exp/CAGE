@@ -27,9 +27,10 @@ ditchDepth = 2          #mm, for ICPC
 toRad = math.pi/180
 
 def main():
-    radii = [3]
-    thetaRots = [0]
-    thetaDets = [143.1]
+    radii = [13, 14, 15, 16]
+    thetaRots = [0, 180, 145]
+    thetaDets = [65]
+    #thetaDets = [143.1]
     ditchScan = True
     for radius in radii:
         for thetaRot in thetaRots:
@@ -78,7 +79,7 @@ def calculateMotorPos(radius, thetaRot, thetaDet=90):
     return angle, linear, source
 
 def calculateMotorFromTarget(targetX, targetY, thetaRot, thetaDet=90, flipped=False):
-    radius = np.sqrt(targetX**2 + targetY**2)
+    radius = round(np.sqrt(targetX**2 + targetY**2), 2)
     distance = 1e8
     angle = 0
     closestX = 0
@@ -107,15 +108,17 @@ def calculateMotorFromTarget(targetX, targetY, thetaRot, thetaDet=90, flipped=Fa
     sourceLinearDist = 0
     if thetaDet != 90: #only need to care if not normal incidence
         y = sourceAxToDet
-        if 13 < np.abs(radius) < 16:
+        if 13 <= np.abs(radius) <= 16:
             y += ditchDepth
         sourceLinearDist = y/math.tan(thetaDet*toRad)
     
-
     linear = np.sqrt((closestY - centerY)**2 + (closestX - centerX)**2) + col_offset - sourceLinearDist 
     if flipped:
         linear = -np.sqrt((closestY - centerY)**2 + (closestX - centerX)**2) + col_offset - sourceLinearDist 
-    source = -180 + (90-thetaDet)
+    if thetaDet == 90:
+        source = -180
+    else:
+        source = -180 + thetaDet
 
     return angle, linear, source
     
@@ -168,15 +171,19 @@ def calculateDetPos(rotary, linear, source=-180, ditch=False):
     final_x_unc = np.sqrt(center_x_unc**2 + (linx2_unc)**2 + (colx2_unc)**2)
     final_y_unc = np.sqrt(center_y_unc**2 + (liny2_unc)**2 + (coly2_unc)**2)
 
+    if source == -180:
+        thetaDet = 90
+    else:
+        thetaDet = 180 + source
     if source != -180: #only need to care if not normal incidence
         y = sourceAxToDet
         if ditch:
             y += ditchDepth 
-        sourceLinearDist = y/math.tan(-(90+source)*toRad)
+        sourceLinearDist = y/math.tan((thetaDet)*toRad)
         final_x += sourceLinearDist*math.sin(rot_rad) 
         final_y += sourceLinearDist*math.cos(rot_rad) 
 
-        source_unc = y*sourceMotor_unc*toRad/(math.sin((90+source)*toRad)**2)
+        source_unc = y*sourceMotor_unc*toRad/(math.sin((thetaDet)*toRad)**2)
         sourcex_unc = (sourceLinearDist*math.sin(rot_rad))*np.sqrt( (source_unc/sourceLinearDist)**2  + ((math.cos(rot_rad)*rotMotor_unc*toRad)/math.sin(rot_rad))**2 )
         sourcey_unc = (sourceLinearDist*math.cos(rot_rad))*np.sqrt( (source_unc/sourceLinearDist)**2 + ((math.sin(rot_rad)*rotMotor_unc*toRad)/math.cos(rot_rad))**2 )
         final_x_unc = np.sqrt( final_x_unc**2 + sourcex_unc**2)

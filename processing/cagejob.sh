@@ -1,12 +1,15 @@
 #!/bin/bash
-#SBATCH --qos=shared
-#SBATCH --time=12:00:00
-#SBATCH --constraint=haswell
-#SBATCH --account=m2676
+#SBATCH -N 1
+#SBATCH -C cpu
+#SBATCH -c 1
+#SBATCH -q shared
+#SBATCH -J cage_job
+#SBATCH -t 12:00:00
+#SBATCH -A m2676
 #SBATCH --export=HDF5_USE_FILE_LOCKING=FALSE
 #SBATCH --image=legendexp/legend-base:latest
-#SBATCH --chdir=/global/project/projectdirs/legend/software/CAGE/processing
-#SBATCH --output=/global/project/projectdirs/legend/software/CAGE/processing/logs/cori-%j.txt
+#SBATCH --chdir=/global/cfs/projectdirs/legend/software/CAGE/processing
+#SBATCH --output=/global/cfs/projectdirs/legend/software/CAGE/processing/logs/pmut-%j.txt
 #SBATCH --mail-type=begin,end,fail
 #SBATCH --mail-user=grsong@uw.edu
 
@@ -46,12 +49,27 @@ fi
 
 
 # run a bunch of DSP in parallel (lazy method, comment each line in & submit)
-#shifter python processing.py -q 'run >= 434 and run <= 439' -o --r2d --dsp dsp_cyc3207.json
-#shifter python processing.py -q 'run >= 441 and run <= 443' -o --r2d --dsp dsp_cyc3320.json
-#shifter python processing.py -q 'run >= 444 and run <= 448' --r2d --dsp dsp_cyc3409.json
-#shifter python processing.py -q 'run >= 449 and run <= 453' --r2d --dsp dsp_cyc3492.json
-#shifter python processing.py -q 'run >= 462 and run <= 463' -o --r2d --dsp dsp_cyc3590.json
-shifter python processing.py -q 'cycle >= 3819 and run <= 471' -o --r2d --dsp dsp_cyc3717.json
+shifter python processing.py -q 'run == 493' -o --r2d --dsp dsp_cyc4060.json
+#shifter python processing.py -q 'run == 494' -o --r2d --dsp dsp_cyc4065.json
+#shifter python processing.py -q 'run == 495' -o --r2d --dsp dsp_cyc4097.json
+#shifter python processing.py -q 'run == 496' -o --r2d --dsp dsp_cyc4105.json
+#shifter python processing.py -q 'run == 497' -o --r2d --dsp dsp_cyc4117.json
+#shifter python processing.py -q 'run == 498' -o --r2d --dsp dsp_cyc4129.json
+#shifter python processing.py -q 'run == 499' -o --r2d --dsp dsp_cyc4142.json
+#shifter python processing.py -q 'run == 500' -o --r2d --dsp dsp_cyc4154.json
+#shifter python processing.py -q 'run == 501' -o --r2d --dsp dsp_cyc4166.json
+#shifter python processing.py -q 'run == 502' -o --r2d --dsp dsp_cyc4178.json
+#shifter python processing.py -q 'run == 503' -o --r2d --dsp dsp_cyc4190.json
+#shifter python processing.py -q 'run == 504' -o --r2d --dsp dsp_cyc4202.json
+#shifter python processing.py -q 'run == 505' -o --r2d --dsp dsp_cyc4213.json
+#shifter python processing.py -q 'run == 506' -o --r2d --dsp dsp_cyc4224.json
+#shifter python processing.py -q 'run == 507' -o --r2d --dsp dsp_cyc4236.json
+
+#shifter python processing.py -q 'run == 516' -o --r2d --dsp dsp_cyc4430.json
+#shifter python processing.py -q 'run == 517' -o --r2d --dsp dsp_cyc4442.json
+#shifter python processing.py -q 'run == 518' -o --r2d --dsp dsp_cyc4455.json
+
+#shifter python processing.py -q 'cycle >= 3819 and run <= 471' -o --r2d --dsp dsp_cyc3717.json
 #shifter python processing.py -q 'run == 430' --r2d --dsp dsp_cyc3121.json
 #shifter python processing.py -q 'run == 320' --r2d
 #shifter python processing.py -q 'run >= 321 and run <= 331' --d2r --r2d -o

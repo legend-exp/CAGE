@@ -6,7 +6,8 @@ import numpy as np
 from pprint import pprint
 
 from pygama.flow import DataGroup
-import pygama.lgdo.lh5_store as lh5
+# import lgdo.lh5_store as lh5 # pygama > 1.1.0
+import pygama.lgdo.lh5_store as lh5 # pygama 1.1.0
 
 from orca_utils import parse_header
 
@@ -34,6 +35,7 @@ def main():
     arg('-u', '--update', action=st, help='rescan DAQ dir, update existing fileDB')
     arg('--orca', action=st, help='scan ORCA XML headers of DAQ files')
     arg('--rt', action=st, help='get runtimes (requires dsp file)')
+    
 
     # TODO: add a "delete existing entries matching this query" mode,
     # so we don't have to rescan the whole fileDB if we make a change to
@@ -45,6 +47,8 @@ def main():
     arg('-o', '--over', action=st, help='overwrite existing fileDB')
     arg('--lh5_user', action=st, help='use $CAGE_LH5_USER over $CAGE_LH5')
     arg('-ff', '--fixit', action=st, help='special: run fix-it mode for fileDB')
+    
+    arg('--rebuild', action=st, help='rebuild whole fileDB (batch mode)')
 
     args = par.parse_args()
 
@@ -59,6 +63,12 @@ def main():
     if args.orca: scan_orca_headers(dg, args.over, args.batch)
     if args.rt: get_runtimes(dg, args.over, args.batch)
     if args.fixit: fix_fileDB(dg)
+    
+    # rebuild the whole fileDB and populate all columns - I have to do this too often. 
+    if args.rebuild:
+        init(dg, True) # batch mode (no user intervention) by default
+        scan_orca_headers(dg, False, True)
+        get_runtimes(dg, False, True)
 
 
 def show_fileDB(dg):
@@ -91,7 +101,7 @@ def show_fileDB(dg):
     # print(dg.fileDB.query('cycle==[dbg_cols])
 
 
-def init(dg):
+def init(dg, batch_mode=False):
     """
     ./setup.py --init
     Run first scan of the fileDB over the DAQ directory ($CAGE_DAQ)
@@ -116,10 +126,14 @@ def init(dg):
     print(dg.fileDB[['run', 'cycle', 'daq_dir', 'daq_file', 'runtype', 'skip']].to_string())
 
     print('Ready to save.  This will overwrite any existing fileDB.')
-    ans = input('Continue? (y/n) ')
-    if ans.lower() == 'y':
+    if not batch_mode:
+        ans = input('Continue? (y/n) ')
+        if ans.lower() == 'y':
+            dg.save_df(os.path.expandvars(dg.config['fileDB']))
+            print('Wrote fileDB:', os.path.expandvars(dg.config['fileDB']))
+    else:
         dg.save_df(os.path.expandvars(dg.config['fileDB']))
-        print('Wrote fileDB:', os.path.expandvars(dg.config['fileDB']))
+        print('fileDB updated.')
 
 
 def update(dg, batch_mode=False):
@@ -470,7 +484,8 @@ def fix_fileDB(dg):
     dg.load_df()
 
     fix1 = False
-    fix2 = True
+    fix2 = False
+    fix3 = True
 
     # accidentally forgot to run get_lh5_columns when I updated the fileDB.
     if fix1:
@@ -532,13 +547,18 @@ def fix_fileDB(dg):
         dbg_cols = ['run', 'cycle', 'unique_key', 'runtype', 'dsp_id']
         print(dg.fileDB[dbg_cols].to_string())
 
+
+    # forgot to add skip cycles before updating filedb
+    if fix3:
+        skips = dg.runSelectionDB['daq_junk_cycles']
+
+        dg.fileDB.skip = dg.fileDB.apply(lambda x: x['cycle'] in skips, axis=1)
+
     print('Ready to save.  This will overwrite any existing fileDB.')
     ans = input('Save updated fileDB? (y/n):')
     if ans.lower() == 'y':
         dg.save_df(os.path.expandvars(dg.config['fileDB']))
         print('fileDB updated.')
-
-
 
 
 if __name__=='__main__':

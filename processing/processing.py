@@ -11,14 +11,17 @@ from collections import OrderedDict
 import tinydb as db
 from tinydb.storages import MemoryStorage
 
-import matplotlib.pyplot as plt
-plt.style.use('../clint.mpl')
+# import matplotlib.pyplot as plt
+# plt.style.use('../clint.mpl')
 
 from pygama.flow import DataGroup
-import pygama.lgdo.lh5_store as lh5
+
 import pygama.math.histogram as pgh
 from pygama.raw import build_raw
 from pygama.dsp import build_dsp
+
+# import lgdo.lh5_store as lh5 # pygama > 1.1.0
+import pygama.lgdo.lh5_store as lh5 # pygama 1.1.0
 
 
 def main():
@@ -141,9 +144,7 @@ def d2r(dg, overwrite=False, nwfs=None, verbose=False, user=False, run_mc=False)
             }
 
         print(f'Processing cycle {cyc}')
-        build_raw(in_stream=f_daq, in_stream_type='ORCA', out_spec='metadata/orca_config.json', verbose=verbose, n_max=nwfs, 
-                  overwrite=overwrite, f_raw=f_raw)
-
+        build_raw(in_stream=f_daq, in_stream_type='ORCA', out_spec='metadata/orca_config.json', verbose=verbose, n_max=nwfs, overwrite=overwrite, f_raw=f_raw)
 
 def r2d(dg, overwrite=False, nwfs=None, verbose=False, user=False, run_mc=False, dsp=None):
     """
@@ -151,13 +152,19 @@ def r2d(dg, overwrite=False, nwfs=None, verbose=False, user=False, run_mc=False,
     """
     # load default DSP config file
     dsp_dir = os.path.expandvars('$CAGE_SW/processing/metadata/dsp/')
+    
+    # f_config = f'{dsp_dir}/dsp_07.json'
+    # print('WARNING: clint hardcoded the DSP file for now')
+    
     if dsp is None:
-        with open(dsp_dir + 'config_dsp.json') as f:
+        with open(dsp_dir + 'dsp_07.json') as f:
             f_config = json.load(f, object_pairs_hook=OrderedDict)
     else:
         with open(dsp_dir + dsp) as f:
             f_config = json.load(f, object_pairs_hook=OrderedDict)
-        
+            
+    print('using DSP file:', f_config)
+
     for i, row in dg.fileDB.iterrows():
         lh5_dir = dg.lh5_user_dir if user else dg.lh5_dir
 
@@ -179,12 +186,11 @@ def r2d(dg, overwrite=False, nwfs=None, verbose=False, user=False, run_mc=False,
             print(f'Cycle {cyc} has been marked junk, will not process.')
             continue
 
-        # load updated dsp config file
-        if row.dsp_id > 0 and dsp is None:
-            f_config = dsp_dir + f'dsp_{row.dsp_id:02d}.json'
-            print(f'Using DSP config: {f_config}')
+        # # load updated dsp config file
+        # if row.dsp_id > 0 and dsp is None:
+        #     f_config = dsp_dir + f'dsp_{row.dsp_id:02d}.json'
+        #     print(f'Using DSP config: {f_config}')
             
-
         # load 2-channel DSP configs.  this is kinda hacky but should work
         if run_mc:
             lh5_tables = ['ch146/raw', 'ch150/raw']
@@ -198,6 +204,7 @@ def r2d(dg, overwrite=False, nwfs=None, verbose=False, user=False, run_mc=False,
 
         print(f'Processing cycle {cyc}')
         build_dsp(f_raw, f_dsp, f_config, n_max=nwfs, write_mode='r')#, chan_config=chan_config)
+
 
 def r2d_file(f_raw, f_dsp, overwrite=True, nwfs=None, verbose=False):
     """
