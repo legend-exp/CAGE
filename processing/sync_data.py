@@ -7,7 +7,7 @@ from tqdm import tqdm
 from datetime import datetime
 import subprocess as sp
 from pprint import pprint
-from pygama.utils import *
+# from pygama.utils import *
 
 def main():
     """
@@ -16,7 +16,7 @@ def main():
     with open("cage.json") as f:
         expDB = json.load(f)
 
-    # run_rsync(expDB)
+    # run_rsync(expDB) # << DEPRECATED, use Globus instead
     daq_cleanup(expDB)
 
 
@@ -62,8 +62,8 @@ def daq_cleanup(expDB):
         print("Error, we're not on the MJ60 DAQ machine.  Exiting ...")
         exit()
 
-    # nersc_login = 'grsong@cori.nersc.gov'
-    nersc_login = 'wisecg@cori.nersc.gov'
+    nersc_login = 'grsong@perlmutter.nersc.gov'
+    # nersc_login = 'wisecg@cori.nersc.gov'
 
     print('Building local and remote file lists ...')
 
@@ -91,6 +91,8 @@ def daq_cleanup(expDB):
     cols = sp.check_output(args, shell=True)
     cols = cols.decode('utf-8')
     cols = cols.split('\n')
+
+    print(args)
 
     files_nersc = {}
     for row in cols:

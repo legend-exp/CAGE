@@ -129,19 +129,17 @@ class DBMonitor(QWidget):
 
         self.endpts_enabled = []
         for endpt in self.endpt_types:
-            print(endpt)
+            # print(endpt)
             self.endpts_enabled.append({'name':endpt, 'type':'bool', 'value':False})
 
+        print('found endpoints:')
+        for ix, ep in enumerate(self.endpts_enabled):
+            print(ix, ep)
+
         # set the default endpoints
-        # ['cage_pressure', 'cage_coldPlate_temp', 'cage_topHat_temp', 'cage_motor_temp',
-        # 'cage_ln_level', 'cage_baseline', 'cage_hv_vmon']
-        self.endpts_enabled[0]['value'] = True
-        self.endpts_enabled[1]['value'] = True
-        #self.endpts_enabled[2]['value'] = True
-        self.endpts_enabled[3]['value'] = True
-        self.endpts_enabled[4]['value'] = True
-        self.endpts_enabled[6]['value'] = True
-        #self.endpts_enabled[7]['value'] = True
+        # TODO: make this a cmd line arg for each detector
+        # for ix_cage in [0,1,2,3,4,6,7]: self.endpts_enabled[ix_cage]['value'] = True
+        for ix_krstc in [11,12,13,15,20]: self.endpts_enabled[ix_krstc]['value'] = True
 
         # default time window
         self.t_later = datetime.utcnow()
@@ -228,7 +226,6 @@ class DBMonitor(QWidget):
         """
         # print(args)
         self.rp.update_data(*args)
-
 
 
 class MotorMonitor(QWidget):
@@ -437,6 +434,7 @@ class RabbitPlot(pg.GraphicsLayoutWidget):
             self.plots[ept].plot(y=np.array(self.deques[ept]),
                                  x=np.array(self.deques[ept+"_ts"])-self.t_offset,
                                  pen=pg.mkPen(pg.intColor(i_ept), width=5))
+
 
 class RabbitListener(QRunnable):
     """
