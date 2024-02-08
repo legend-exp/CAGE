@@ -43,4 +43,6 @@ services:
 
 volumes:
     db:
+      #external: true
+      #name: 'cage_db'
     mb:
