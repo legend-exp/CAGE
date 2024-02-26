@@ -27,6 +27,7 @@ def main():
     arg('--dl', nargs=1, type=str, help='config file for DataLoader')
     arg('--cyc', nargs=1, type=int, help='the cycle to optimize for')
     arg('-b', '--batch', action=st, help='do not ask for user input on 1460 line and saving')
+    arg('-q', '--query', type=str, help='runs to optimize, picking the first cycle in each run, e.g. "100-108"')
     arg('--raw', nargs='?', default="1460raw_temp.lh5", type=str, help='temporary raw file for 1460 kev waveforms')
     arg('--dsp', nargs='?', default="1460dsp_temp.lh5", type=str, help='temporary dsp file for optimization')
     arg('--config_dir', nargs='?', default="metadata/dsp", type=str, help='directory to store config file')
@@ -34,6 +35,36 @@ def main():
     args = par.parse_args()
     
     print("Parsing arguments")
+    
+    # Can specify multiple runs in the format "run_lo-run_hi"
+    # Will look up the first cycle in the runDB for each run to optimize
+    if args.query:
+        run_lo, run_hi = args.query.split("-")
+        
+        runDB_f = "runDB.json"        
+        with open(runDB_f, "r") as f:
+            runDB = json.load(f)
+                
+        cycles = []
+        for run in range(int(run_lo), int(run_hi) + 1):
+            cyc = runDB[str(run)][0]
+            try:
+                cyc = int(cyc)
+            except ValueError:
+                cyc = int(cyc.split("-")[0])
+                
+            cycles.append(cyc)
+            print(f"For run {run}, optimizing cycle {cyc}")
+            
+        cycle_str = f"cycles=({' '.join(str(c) for c in cycles)})\n"
+        script_file = "dsp_par_cycles.sh"
+        lines = open(script_file, 'r').readlines()
+        lines[2] = cycle_str
+        with open(script_file, 'w') as out:
+            out.writelines(lines)
+        
+        print(f"Now run: source {script_file}")
+        return
     
     fdb = FileDB(str(args.fdb[0]))
     dl = DataLoader(config=str(args.dl[0]), filedb=fdb)
@@ -161,13 +192,26 @@ def main():
     el = dl.build_entry_list(save_output_columns=True)
     data = dl.load(el)
     
+    
+    daqenergy_max = np.max(data['energy'])
+    plt.figure()
+    prelim_hist, prelim_bins, _ = plt.hist(data['energy'], bins=np.linspace(0, daqenergy_max/2, 1000))
+    plt.xlabel('energy')
+    plt.ylabel('count')
+    plt.yscale('log')
+    plt.title('daqenergy hist')
+    plt.savefig('./plots/dsp/prelim_hist.png')
+    
+    k40_guess = prelim_bins[200 + np.argmax(prelim_hist[200:])]
+    print(f"Centering at {k40_guess:03e}")
+    
     if not args.batch:
         print("Pick out the 1460 keV peak")
     else:
         print("In batch mode...")
     
     plt.figure()
-    k40_hist, k40_bins, _ = plt.hist(data['energy'], bins = np.linspace(1.7e6, 2e6, 100))
+    k40_hist, k40_bins, _ = plt.hist(data['energy'], bins = np.linspace(k40_guess - 1e5, k40_guess + 1e5, 100))
     plt.xlabel('energy')
     plt.ylabel('count')
     plt.title('1460 keV peak')

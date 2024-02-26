@@ -1,6 +1,6 @@
 {
   "outputs": [
-    "channel", "timestamp", "energy",
+    "channel", "timestamp", "daqenergy",
     "bl", "bl_sig", "bl_slope_ftp", "bl_sig", "bl_slope", "bl_intercept",
     "wf_max", "wf_argmax", "fltp", "fltp_sig",
     "trapEmax", "trapE_argmax", "atrap_max", "tp_0", "trapEftp", "trapEmax_ctc",
@@ -34,7 +34,7 @@
     "bl_slope_ftp": {
       "function": "fixed_time_pickoff",
       "module": "pygama.dsp.processors",
-      "args": ["wf_bltrap", "7.5*us", "i", "bl_slope_ftp"],
+      "args": ["wf_bltrap", "7.5*us", "'l'", "bl_slope_ftp"],
       "unit": "ADC",
       "prereqs": ["wf_bltrap"]
     },
@@ -111,7 +111,7 @@
     "trapEftp": {
       "function": "fixed_time_pickoff",
       "module": "pygama.dsp.processors",
-      "args": ["wf_etrap", "db.tp_ftp.ftp", "i", "trapEftp"],
+      "args": ["wf_etrap", "db.tp_ftp.ftp", "'l'", "trapEftp"],
       "defaults" : {"db.tp_ftp.ftp":"tp_0 + 11.75*us"},
       "unit": "ADC",
       "prereqs": ["wf_etrap", "tp_0"]
@@ -152,7 +152,7 @@
     "dcr": {
       "function": "fixed_time_pickoff",
       "module": "pygama.dsp.processors",
-      "args": ["wf_dcr_trap", "db.dcr.ftp", "i", "dcr"],
+      "args": ["wf_dcr_trap", "db.dcr.ftp", "'l'", "dcr"],
       "defaults" : {"db.dcr.ftp" : "80*us"},
       "unit": "ADC",
       "prereqs": ["wf_dcr_trap"]

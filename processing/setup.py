@@ -485,7 +485,8 @@ def fix_fileDB(dg):
 
     fix1 = False
     fix2 = False
-    fix3 = True
+    fix3 = False
+    fix4 = True
 
     # accidentally forgot to run get_lh5_columns when I updated the fileDB.
     if fix1:
@@ -560,6 +561,20 @@ def fix_fileDB(dg):
         dg.save_df(os.path.expandvars(dg.config['fileDB']))
         print('fileDB updated.')
 
+    # didn't update runDB so run is missing from latest row
+    if fix4:
+        idx = dg.fileDB.index[-1]
+
+        dg.fileDB.drop(idx, inplace=True)
+
+        print('New fileDB:')
+        dbg_cols = ['run', 'cycle', 'unique_key', 'runtype', 'dsp_id']
+        print(dg.fileDB[dbg_cols].to_string())
+        print('Ready to save.  This will overwrite any existing fileDB.')
+        ans = input('Save updated fileDB? (y/n):')
+        if ans.lower() == 'y':
+            dg.save_df(os.path.expandvars(dg.config['fileDB']))
+            print('fileDB updated.')
 
 if __name__=='__main__':
     main()

@@ -20,8 +20,8 @@ import pygama.math.histogram as pgh
 from pygama.raw import build_raw
 from pygama.dsp import build_dsp
 
-# import lgdo.lh5_store as lh5 # pygama > 1.1.0
-import pygama.lgdo.lh5_store as lh5 # pygama 1.1.0
+import lgdo.lh5_store as lh5 # pygama > 1.1.0
+# import pygama.lgdo.lh5_store as lh5 # pygama 1.1.0
 
 
 def main():
@@ -159,12 +159,12 @@ def r2d(dg, overwrite=False, nwfs=None, verbose=False, user=False, run_mc=False,
     if dsp is None:
         with open(dsp_dir + 'dsp_07.json') as f:
             f_config = json.load(f, object_pairs_hook=OrderedDict)
+            print('using DSP file:', dsp_dir + 'dsp_07.json')
     else:
         with open(dsp_dir + dsp) as f:
             f_config = json.load(f, object_pairs_hook=OrderedDict)
+            print('using DSP file:', dsp_dir + dsp)
             
-    print('using DSP file:', f_config)
-
     for i, row in dg.fileDB.iterrows():
         lh5_dir = dg.lh5_user_dir if user else dg.lh5_dir
 

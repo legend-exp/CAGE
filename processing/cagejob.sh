@@ -49,25 +49,26 @@ fi
 
 
 # run a bunch of DSP in parallel (lazy method, comment each line in & submit)
-shifter python processing.py -q 'run == 493' -o --r2d --dsp dsp_cyc4060.json
-#shifter python processing.py -q 'run == 494' -o --r2d --dsp dsp_cyc4065.json
-#shifter python processing.py -q 'run == 495' -o --r2d --dsp dsp_cyc4097.json
-#shifter python processing.py -q 'run == 496' -o --r2d --dsp dsp_cyc4105.json
-#shifter python processing.py -q 'run == 497' -o --r2d --dsp dsp_cyc4117.json
-#shifter python processing.py -q 'run == 498' -o --r2d --dsp dsp_cyc4129.json
-#shifter python processing.py -q 'run == 499' -o --r2d --dsp dsp_cyc4142.json
-#shifter python processing.py -q 'run == 500' -o --r2d --dsp dsp_cyc4154.json
-#shifter python processing.py -q 'run == 501' -o --r2d --dsp dsp_cyc4166.json
-#shifter python processing.py -q 'run == 502' -o --r2d --dsp dsp_cyc4178.json
-#shifter python processing.py -q 'run == 503' -o --r2d --dsp dsp_cyc4190.json
-#shifter python processing.py -q 'run == 504' -o --r2d --dsp dsp_cyc4202.json
-#shifter python processing.py -q 'run == 505' -o --r2d --dsp dsp_cyc4213.json
-#shifter python processing.py -q 'run == 506' -o --r2d --dsp dsp_cyc4224.json
-#shifter python processing.py -q 'run == 507' -o --r2d --dsp dsp_cyc4236.json
-
 #shifter python processing.py -q 'run == 516' -o --r2d --dsp dsp_cyc4430.json
 #shifter python processing.py -q 'run == 517' -o --r2d --dsp dsp_cyc4442.json
 #shifter python processing.py -q 'run == 518' -o --r2d --dsp dsp_cyc4455.json
+#shifter python processing.py -q 'run == 519' -o --r2d --dsp dsp_cyc4467.json
+#shifter python processing.py -q 'run == 520' -o --r2d --dsp dsp_cyc4489.json
+#shifter python processing.py -q 'run == 521' -o --r2d --dsp dsp_cyc4508.json
+#shifter python processing.py -q 'run == 522' -o --r2d --dsp dsp_cyc4520.json
+#shifter python processing.py -q 'run == 523' -o --r2d --dsp dsp_cyc4531.json
+#shifter python processing.py -q 'run == 524' -o --r2d --dsp dsp_cyc4543.json
+#shifter python processing.py -q 'run == 525' -o --r2d --dsp dsp_cyc4555.json
+#shifter python processing.py -q 'run == 526' -o --r2d --dsp dsp_cyc4566.json
+#shifter python processing.py -q 'run == 527' -o --r2d --dsp dsp_cyc4578.json
+#shifter python processing.py -q 'run == 528' -o --r2d --dsp dsp_cyc4590.json
+#shifter python processing.py -q 'run == 529' -o --r2d --dsp dsp_cyc4604.json
+#shifter python processing.py -q 'run == 530' -o --r2d --dsp dsp_cyc4616.json
+#shifter python processing.py -q 'run == 531' -o --r2d --dsp dsp_cyc4628.json
+#shifter python processing.py -q 'run == 532' -o --r2d --dsp dsp_cyc4640.json
+#shifter python processing.py -q 'run == 533' -o --r2d --dsp dsp_cyc4652.json
+shifter python processing.py -q 'run == 534' -o --r2d --dsp dsp_cyc4688.json
+
 
 #shifter python processing.py -q 'cycle >= 3819 and run <= 471' -o --r2d --dsp dsp_cyc3717.json
 #shifter python processing.py -q 'run == 430' --r2d --dsp dsp_cyc3121.json
