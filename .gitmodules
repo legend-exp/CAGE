@@ -6,3 +6,6 @@
 	path = controls/dragonfly/dripline-python
 	url = https://github.com/driplineorg/dripline-python.git
 	branch = master
+[submodule "autogen"]
+	path = autogen
+	url = git@github.com:cenpa/autogen.git
