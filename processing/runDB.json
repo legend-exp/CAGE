@@ -563,5 +563,23 @@
     "538":["4740-4750", "alp", "lin 8"],
     "539":["4751-4762", "alp", "lin 10"],
     "540":["4763-4774", "alp", "lin 12"],
-    "541":["4775-4786", "alp", "lin 14"]
+    "541":["4775-4786", "alp", "lin 14"],
+
+    "541":["4788-4794", "bkg", "initial background data with Al pad contact, elog 475"],
+    "542":["4795-4808", "alp", "elog 476, Al pad, lin 14"],
+    "543":["4809-4838", "bkg", "elog 476, Al pad, lin 14"],
+    "544":["4839-4853", "alp", "elog 476, Al pad, lin 12"],
+    "545":["4854-4864", "alp", "elog 476, Al pad, lin 10"],
+    "546":["4865-4876", "alp", "elog 476, Al pad, lin 8"],
+    "547":["4877-4888", "alp", "elog 476, Al pad, lin 6"],
+    "548":["4889-4916", "alp", "elog 476, Al pad, lin 4"],
+    "549":["4917-4931", "alp", "elog 476, Al pad, lin 2"],
+    "550":["4932-4942", "alp", "elog 476, Al pad, lin 0"],
+    "551":["4943-4980", "bkg", "elog 476, Al pad, lin 0"],
+
+    "552":["4981-4987", "alp", "elog 476, Al pad upped bias to 3700 V, lin 6"],
+    "553":["4988-5013", "alp", "elog 476, Al pad, lin 8"],
+    "554":["5014-5028", "alp", "elog 476, Al pad, lin 10"],
+    "555":["5029-5041", "alp", "elog 476, Al pad, lin 12"],
+    "556":["5042-5074", "bkg", "elog 476, Al pad, lin 12"]
 }
