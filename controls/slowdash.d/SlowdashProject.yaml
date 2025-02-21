@@ -1,0 +1,38 @@
+slowdash_project:
+  name: CAGE
+  title: CAGE
+
+  system:
+    our_security_is_perfect: true
+
+  data_source:
+    - type: PostgreSQL
+      parameters:
+        url: ${DRIPLINE_DB_URL:-postgresql://cage_db_user:postgres108@psql_db:5432/cage_sc_db}
+        time_series:
+          schema: numeric_data[endpoint_name]@timestamp(aware)=value_raw(default),value_cal
+          tags:
+            sql: select endpoint_name from endpoint_id_map
+        view:
+          name: dripline_endpoints
+          sql: select * from endpoint_id_map order by endpoint_id desc
+          time: current
+          
+  module:
+    file: edit_endpoints.py
+    parameters:
+      db_url: ${DRIPLINE_DB_URL:-postgresql://cage_db_user:postgres108@psql_db:5432/cage_sc_db}
+    
+  export:
+    - type: jupyter
+      parameters:
+        url: ${JUPYTER_URL:-http://localhost:8888}
+        token: ${JUPYTER_TOKEN:-SlowJupyter}
+        jupyter_internal_url: ${JUPYTER_INTERNAL_URL:-}
+        slowdash_internal_url: ${SLOWDASH_INTERNAL_URL:-}
+
+  style:
+    theme: light
+    panel:
+      plotTicksOutwards: true
+      plotFrameThickness: 0

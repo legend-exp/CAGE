@@ -1,0 +1,28 @@
+{
+  "control": {
+    "range": {
+      "length": 3600
+    },
+    "reload": 60,
+    "grid": {
+      "rows": 1,
+      "columns": 2
+    }
+  },
+  "panels": [
+    {
+      "type": "table",
+      "channel": "dripline_endpoints"
+    },
+    {
+      "type": "html",
+      "file": "EndPointManagement",
+      "title": ""
+    }
+  ],
+  "meta": {
+    "name": "endpoints",
+    "title": "Dripline Endpoint Management",
+    "description": "for DB administration"
+  }
+}

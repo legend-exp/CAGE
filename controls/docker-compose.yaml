@@ -1,5 +1,3 @@
-version: '2'
-
 services:
     # a rabbit broker
     rabbit_broker:
@@ -13,6 +11,8 @@ services:
           - db:/var/lib/postgresql/data
         ports:
           - 5432:5432
+        environment:
+          - POSTGRES_PASSWORD=postgres108
     metabase:
         image: metabase/metabase:v0.31.2
         volumes:
@@ -40,6 +40,27 @@ services:
         ports:
           - 9001:9001
         restart: on-failure
+    slowdash:
+        image: slowproj/slowdash
+        ports:
+          - "18881:18881"
+        volumes:
+          - ./authentications.json:/project/authentications.json
+          - ./slowdash.d:/project
+        environment:
+          - DRIPLINE_DB_URL=postgresql://cage_db_user:legend@psql_db:5432/cage_sc_db
+          - JUPYTER_URL=http://localhost:8888
+          - JUPYTER_TOKEN=SlowJupyter
+          - JUPYTER_INTERNAL_URL=http://notebook:8888
+          - SLOWDASH_INTERNAL_URL=http://slowdash:18881
+          
+    notebook:
+        image: slowproj/slowpy-notebook
+        command:
+          - start-notebook.sh
+          - --NotebookApp.token=SlowJupyter
+        ports:
+          - 8888:8888
 
 volumes:
     db:

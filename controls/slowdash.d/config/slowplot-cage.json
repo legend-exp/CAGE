@@ -1,0 +1,44 @@
+{
+    "control": {
+        "range": { "length": 900 },
+        "reload": 300,
+        "mode": "normal",
+        "grid": { "rows": "2", "columns": "2" }
+    },
+    "style": { },
+    "panels": [
+        {
+            "type": "timeaxis",
+            "plots": [
+                { "type": "timeseries", "channel": "cage_baseline", "color": "#009090", "label": "", "format": "%.5g", "opacity": 1, "marker_type": "circle", "marker_size": 2, "line_width": 1, "line_type": "connect", "fill_opacity": 0, "fill_baseline": 1e-100 }
+            ],
+            "axes": { "xfixed": false, "yfixed": false, "xlog": false, "ylog": false, "zlog": false },
+            "legend": { "style": "side" }
+        },
+        {
+            "type": "timeaxis",
+            "plots": [
+                { "type": "timeseries", "channel": "cage_pressure:value_cal", "color": "#009090", "label": "", "format": "%.5g", "opacity": 1, "marker_type": "circle", "marker_size": 2, "line_width": 1, "line_type": "connect", "fill_opacity": 0, "fill_baseline": 1e-100 }
+            ],
+            "axes": { "xfixed": false, "yfixed": false, "xlog": false, "ylog": true, "zlog": false, "ymin": 0, "ymax": 2 },
+            "legend": { "style": "side" }
+        },
+        {
+            "type": "timeaxis",
+            "plots": [
+                { "type": "timeseries", "channel": "cage_coldPlate_temp", "color": "#009090", "label": "", "format": "%.5g", "opacity": 1, "marker_type": "circle", "marker_size": 2, "line_width": 1, "line_type": "connect", "fill_opacity": 0, "fill_baseline": 1e-100 }
+            ],
+            "axes": { "xfixed": false, "yfixed": false, "xlog": false, "ylog": false, "zlog": false },
+            "legend": { "style": "side" }
+        },
+        {
+            "type": "timeaxis",
+            "plots": [
+                { "type": "timeseries", "channel": "cage_topHat_temp", "color": "#009090", "label": "", "format": "%.5g", "opacity": 1, "marker_type": "circle", "marker_size": 2, "line_width": 1, "line_type": "connect", "fill_opacity": 0, "fill_baseline": 1e-100 }
+            ],
+            "axes": { "xfixed": false, "yfixed": false, "xlog": false, "ylog": false, "zlog": false },
+            "legend": { "style": "side" }
+        }
+    ],
+    "meta": { "name": "cage", "title": "", "description": "" }
+}

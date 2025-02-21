@@ -1,0 +1,36 @@
+<form>
+  <table>  
+    <tr>
+      <td>Endpoint Name</td>
+      <td><input name="endpoint_name" placeholder="no space,  no special characters" pattern="[a-zA-Z][a-zA-Z0-9_\-.]*" required="true" style="width:24em"></td>
+    </tr><tr>
+      <td>Endpoint ID</td>
+      <td><input type="number" name="endpoint_id" placeholder="leave this empty to create a new endpoint" style="width:24em"></td>
+    </tr><tr>
+      <td>Endpoint Type</td>
+      <td>
+        <select name="type">
+          <option value="numeric">numeric</option>
+          <option value="json">JSON</option>
+        </select>
+      </td>
+    </tr>
+  </table>
+  <p>
+  <b style="color:red">WARNING</b>:
+  You are about to make changes on the Dripline Database.
+  <ul>
+    <li>This operation affects everything that uses the Dripline data.
+    <li>This operation could be destructive.
+    <li>This operation might not be undo-able.
+  </ul>
+  <p>
+  <label><input type="checkbox" name="confirm"> I know what I am doing.</label><br>
+  <label><input type="checkbox" name="confirm2"> I take responsibility for all the consequences.</label><br>
+  <label><input type="checkbox" name="confirm3"> I reserve the right to blame the software developers for troubles.</label><br>
+  <p>
+  [ This function may be disabled for external accesses; you will get an error in that case. ]
+  <p>
+    <input type="submit" name="manage_endpoint" value="Commit" style="font-size:x-large">
+    <span style="font-size:small">(final; no confirmation after this button)</span>
+</form>
